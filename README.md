@@ -16,8 +16,7 @@
 </p>
 
 <p align="center">
-  On Windows or Linux? Try <a href="https://github.com/WtekSupport/veyro"><b>Veyro</b></a>, a cross-platform dictation app made by my friend.<br>
-  <sub>Windows или Linux? Попробуйте <a href="https://github.com/WtekSupport/veyro">Veyro</a> — кроссплатформенное приложение моего друга.</sub>
+  On Windows or Linux? Try <a href="https://github.com/WtekSupport/veyro"><b>Veyro</b></a>, a cross-platform dictation app made by my friend.
 </p>
 
 <p align="center">
