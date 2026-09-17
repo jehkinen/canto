@@ -14,11 +14,20 @@ public enum TextCleanup {
         "cheers",
     ]
 
-    /// Subtitle credits; everything from them to the end is noise.
-    static let creditMarkers = [
-        "субтитры сделал", "субтитры создавал", "субтитры подготовил", "редактор субтитров",
-        "subtitles by", "transcribed by", "captions by",
+    /// Subtitle credits ("Субтитры делал DimaTorzok", "Subtitles by …"): Whisper learned them from
+    /// video subtitles and writes them on silence. Everything from them to the end is noise.
+    static let creditPatterns = [
+        "субтитр\\w*\\s+(?:и\\s+перевод\\w*\\s+)?(?:сделал\\w*|делал\\w*|создал\\w*|создавал\\w*|подготовил\\w*|редактир\\w*|правил\\w*)",
+        "редактор\\w*\\s+субтитр\\w*",
+        "корректор\\s*[:.]",
+        "(?:subtitl\\w*|subs|caption\\w*|transcri\\w*|translat\\w*)\\s+by\\b",
+        "amara\\.org",
     ]
+
+    static let creditExpression = try! NSRegularExpression(
+        pattern: creditPatterns.joined(separator: "|"),
+        options: [.caseInsensitive]
+    )
 
     /// Sound events Whisper writes instead of words: "*Police*", "[Music]", "(applause)", "♪".
     static let soundTag = try! NSRegularExpression(
@@ -28,10 +37,9 @@ public enum TextCleanup {
     /// Drops sound tags, subtitle credits and phantom sentences at the end of a transcript.
     public static func removeWhisperArtifacts(_ text: String) -> String {
         var result = soundTag.stringByReplacingMatches(in: text, range: NSRange(text.startIndex..., in: text), withTemplate: "")
-        for marker in creditMarkers {
-            if let range = result.range(of: marker, options: .caseInsensitive) {
-                result = String(result[..<range.lowerBound])
-            }
+        if let credits = creditExpression.firstMatch(in: result, range: NSRange(result.startIndex..., in: result)),
+           let range = Range(credits.range, in: result) {
+            result = String(result[..<range.lowerBound])
         }
         while let range = lastSentenceRange(in: result), phantomSentences.contains(normalized(String(result[range]))) {
             result = String(result[..<range.lowerBound])

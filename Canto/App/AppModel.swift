@@ -335,7 +335,8 @@ final class AppModel {
 
     private func recognize(_ segment: AudioSegment, settings: AppSettings) async -> Recognition? {
         let prepared = AudioPreprocessor.process(segment, enabled: settings.audioPreprocessing)
-        guard !prepared.skippedAsSilence, prepared.segment.duration >= 0.3 else { return nil }
+        // Under 0.6 s there is hardly any speech, but Whisper still answers with subtitle filler.
+        guard !prepared.skippedAsSilence, prepared.segment.duration >= 0.6 else { return nil }
         let prompt = Vocabulary.prompt(for: settings.vocabulary, language: settings.language)
 
         var raw: String
