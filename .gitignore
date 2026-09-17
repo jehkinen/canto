@@ -1,0 +1,16 @@
+# Build output
+/build/
+/.derived/
+/.derived-*.log
+.build/
+*.log
+/Vendor/
+/Packages/WhisperBridge/Frameworks/
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+.swiftpm/
+
+# macOS
+.DS_Store

@@ -1,0 +1,100 @@
+import AppKit
+import ApplicationServices
+import CantoCore
+
+/// Delivers text to the focused app with synthetic keyboard events (needs Accessibility).
+@MainActor
+enum TextInserter {
+    private static let keyV: CGKeyCode = 0x09
+    private static let keyReturn: CGKeyCode = 0x24
+
+    enum Outcome {
+        case inserted
+        /// Accessibility is not granted: the text was left on the pasteboard instead.
+        case copiedToPasteboard
+    }
+
+    static func insert(_ text: String, method: InsertionMethod, pressReturn: Bool) async -> Outcome {
+        guard Permissions.accessibility else {
+            copyToPasteboard(text)
+            return .copiedToPasteboard
+        }
+        if !text.isEmpty {
+            switch method {
+            case .paste: await paste(text)
+            case .type: type(text)
+            }
+        }
+        if pressReturn {
+            try? await Task.sleep(for: .milliseconds(40))
+            postKey(keyReturn)
+        }
+        return .inserted
+    }
+
+    static func copyToPasteboard(_ text: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+    }
+
+    /// Puts the text on the pasteboard, presses ⌘V and then restores what was there, unless
+    /// something else changed the pasteboard in the meantime.
+    private static func paste(_ text: String) async {
+        let pasteboard = NSPasteboard.general
+        let saved = snapshot(pasteboard)
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+        let ourChange = pasteboard.changeCount
+
+        try? await Task.sleep(for: .milliseconds(30))
+        // The physical V key, so the shortcut works with Russian and other layouts.
+        postKey(keyV, flags: .maskCommand)
+        // Apps read the pasteboard asynchronously; restoring too early pastes the old content.
+        try? await Task.sleep(for: .milliseconds(300))
+
+        guard pasteboard.changeCount == ourChange else { return }
+        pasteboard.clearContents()
+        if !saved.isEmpty {
+            pasteboard.writeObjects(saved)
+        }
+    }
+
+    private static func type(_ text: String) {
+        let source = CGEventSource(stateID: .combinedSessionState)
+        let units = Array(text.utf16)
+        // CGEventKeyboardSetUnicodeString accepts up to 20 UTF-16 units per event.
+        var start = 0
+        while start < units.count {
+            var end = min(start + 20, units.count)
+            if end < units.count, UTF16.isLeadSurrogate(units[end - 1]) { end -= 1 }
+            var chunk = Array(units[start..<end])
+            for keyDown in [true, false] {
+                let event = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: keyDown)
+                event?.keyboardSetUnicodeString(stringLength: chunk.count, unicodeString: &chunk)
+                event?.post(tap: .cghidEventTap)
+            }
+            start = end
+        }
+    }
+
+    private static func postKey(_ key: CGKeyCode, flags: CGEventFlags = []) {
+        let source = CGEventSource(stateID: .combinedSessionState)
+        for keyDown in [true, false] {
+            let event = CGEvent(keyboardEventSource: source, virtualKey: key, keyDown: keyDown)
+            event?.flags = flags
+            event?.post(tap: .cghidEventTap)
+        }
+    }
+
+    private static func snapshot(_ pasteboard: NSPasteboard) -> [NSPasteboardItem] {
+        (pasteboard.pasteboardItems ?? []).map { item in
+            let copy = NSPasteboardItem()
+            for type in item.types {
+                if let data = item.data(forType: type) {
+                    copy.setData(data, forType: type)
+                }
+            }
+            return copy
+        }
+    }
+}

@@ -1,0 +1,2315 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%@ (%@)" : {
+      "shouldTranslate" : false
+    },
+    "%@ · %lld MB" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$lld МБ"
+          }
+        }
+      }
+    },
+    "%lld" : {
+      "shouldTranslate" : false
+    },
+    "%lld %%" : {
+      "shouldTranslate" : false
+    },
+    "%lld more" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ещё %lld"
+          }
+        }
+      }
+    },
+    "%lld s" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld с"
+          }
+        }
+      }
+    },
+    "A style is a Markdown file with extra instructions for the AI, such as tone or terminology." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стиль — это Markdown-файл с дополнительными указаниями для ИИ, например о тоне или терминологии."
+          }
+        }
+      }
+    },
+    "AI" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ИИ"
+          }
+        }
+      }
+    },
+    "AI cleans up dictation: removes filler words, fixes recognition errors, keeps your meaning and tone." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ИИ чистит диктовку: убирает слова-паразиты, исправляет ошибки распознавания, сохраняет смысл и тон."
+          }
+        }
+      }
+    },
+    "AI style" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стиль ИИ"
+          }
+        }
+      }
+    },
+    "AI styling failed, inserted the cleaned-up text" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ИИ-обработка не удалась, вставлен очищенный текст"
+          }
+        }
+      }
+    },
+    "API key" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ключ API"
+          }
+        }
+      }
+    },
+    "About" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "О программе"
+          }
+        }
+      }
+    },
+    "Accessibility" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Универсальный доступ"
+          }
+        }
+      }
+    },
+    "Accurate, needs a recent Mac" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Точная, нужен современный Mac"
+          }
+        }
+      }
+    },
+    "Add" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить"
+          }
+        }
+      }
+    },
+    "Add Key…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить ключ…"
+          }
+        }
+      }
+    },
+    "Add a word" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить слово"
+          }
+        }
+      }
+    },
+    "Add your OpenAI API key" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавьте ключ API OpenAI"
+          }
+        }
+      }
+    },
+    "Advanced" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дополнительно"
+          }
+        }
+      }
+    },
+    "Allow Accessibility to insert text" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешите Универсальный доступ для вставки текста"
+          }
+        }
+      }
+    },
+    "Allow microphone access" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешите доступ к микрофону"
+          }
+        }
+      }
+    },
+    "Allowed" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешено"
+          }
+        }
+      }
+    },
+    "Allow…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешить…"
+          }
+        }
+      }
+    },
+    "Audio" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Звук"
+          }
+        }
+      }
+    },
+    "Audio is sent to OpenAI for recognition. Add your API key in Text & AI." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Звук отправляется в OpenAI для распознавания. Добавьте ключ API в разделе «Текст и ИИ»."
+          }
+        }
+      }
+    },
+    "Audio kept before speech" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Звук до начала речи"
+          }
+        }
+      }
+    },
+    "Auto" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Авто"
+          }
+        }
+      }
+    },
+    "Back" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Назад"
+          }
+        }
+      }
+    },
+    "Balanced" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сбалансированно"
+          }
+        }
+      }
+    },
+    "Balanced speed and accuracy" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Баланс скорости и точности"
+          }
+        }
+      }
+    },
+    "Basic cleanup" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Базовая очистка"
+          }
+        }
+      }
+    },
+    "Both ways need Accessibility access. If Canto is already in that list but text is not inserted, remove it with “−” and allow it again." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обоим способам нужен Универсальный доступ. Если Canto уже есть в списке, а текст не вставляется, удалите его кнопкой «−» и разрешите снова."
+          }
+        }
+      }
+    },
+    "Built with whisper.cpp (MIT) and libfvad (BSD)." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Создано на основе whisper.cpp (MIT) и libfvad (BSD)."
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отменить"
+          }
+        }
+      }
+    },
+    "Cancel download" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отменить загрузку"
+          }
+        }
+      }
+    },
+    "Canto" : {
+      "shouldTranslate" : false
+    },
+    "Canto needs to hear you and to type for you. You can change this later in System Settings." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canto нужно слышать вас и печатать за вас. Это можно изменить позже в Системных настройках."
+          }
+        }
+      }
+    },
+    "Caps Lock could not be remapped" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось переназначить Caps Lock"
+          }
+        }
+      }
+    },
+    "Choose an OpenAI key" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите ключ OpenAI"
+          }
+        }
+      }
+    },
+    "Choose…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбрать…"
+          }
+        }
+      }
+    },
+    "Clean up audio before recognition" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очищать звук перед распознаванием"
+          }
+        }
+      }
+    },
+    "Cleanup" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очистка"
+          }
+        }
+      }
+    },
+    "Clear All…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очистить всё…"
+          }
+        }
+      }
+    },
+    "Click and press a new shortcut" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажмите и введите новое сочетание клавиш"
+          }
+        }
+      }
+    },
+    "Continue" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продолжить"
+          }
+        }
+      }
+    },
+    "Copied. Allow Accessibility to paste automatically" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скопировано. Разрешите Универсальный доступ для автоматической вставки"
+          }
+        }
+      }
+    },
+    "Copy" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скопировать"
+          }
+        }
+      }
+    },
+    "Data folder" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Папка данных"
+          }
+        }
+      }
+    },
+    "Decoding" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Декодирование"
+          }
+        }
+      }
+    },
+    "Default" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "По умолчанию"
+          }
+        }
+      }
+    },
+    "Delete" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить"
+          }
+        }
+      }
+    },
+    "Delete All" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить все"
+          }
+        }
+      }
+    },
+    "Delete all transcripts?" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить все расшифровки?"
+          }
+        }
+      }
+    },
+    "Detect automatically" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Определять автоматически"
+          }
+        }
+      }
+    },
+    "Dictate anywhere on your Mac. Speech is recognized on device with Whisper, cleaned up and typed into the app you are using." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Диктуйте в любом приложении на Mac. Речь распознаётся на устройстве с помощью Whisper, очищается и вставляется туда, где вы работаете."
+          }
+        }
+      }
+    },
+    "Dictate into any app on your Mac. Hold a shortcut, speak, and the text appears where your cursor is." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Диктуйте в любое приложение на Mac. Удерживайте сочетание клавиш, говорите — и текст появится там, где курсор."
+          }
+        }
+      }
+    },
+    "Dictation" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Диктовка"
+          }
+        }
+      }
+    },
+    "Download" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загрузить"
+          }
+        }
+      }
+    },
+    "Download a speech model" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загрузите модель распознавания"
+          }
+        }
+      }
+    },
+    "Enable dictation" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включить диктовку"
+          }
+        }
+      }
+    },
+    "End a dictation with this phrase to insert the text and press Return, for example to send a chat message." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закончите диктовку этой фразой, чтобы вставить текст и нажать Return, например чтобы отправить сообщение в чате."
+          }
+        }
+      }
+    },
+    "Engine" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Движок"
+          }
+        }
+      }
+    },
+    "English" : {
+      "shouldTranslate" : false
+    },
+    "Everything you dictate appears here." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Здесь появится всё, что вы надиктуете."
+          }
+        }
+      }
+    },
+    "Fast" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Быстро"
+          }
+        }
+      }
+    },
+    "Fast takes the most likely word at each step. Balanced and Thorough compare several variants of the phrase: a little more accurate on unclear speech, but noticeably slower." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«Быстро» берёт самое вероятное слово на каждом шаге. «Сбалансированно» и «Тщательно» сравнивают несколько вариантов фразы: чуть точнее на неразборчивой речи, но заметно медленнее."
+          }
+        }
+      }
+    },
+    "Fast, good for clear speech" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Быстрая, подходит для чёткой речи"
+          }
+        }
+      }
+    },
+    "Feedback" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обратная связь"
+          }
+        }
+      }
+    },
+    "Find in Keychain…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Найти в Связке ключей…"
+          }
+        }
+      }
+    },
+    "Fix" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Исправить"
+          }
+        }
+      }
+    },
+    "For example, Kubernetes" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Например, Kubernetes"
+          }
+        }
+      }
+    },
+    "GPT-4o Transcribe" : {
+      "shouldTranslate" : false
+    },
+    "GPT-4o mini Transcribe" : {
+      "shouldTranslate" : false
+    },
+    "GPT-4o models usually recognize speech and terms more accurately than Whisper. For the fastest results without the internet, use Large v3 Turbo on this Mac." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Модели GPT-4o обычно точнее Whisper распознают речь и термины. Быстрее всего и без интернета — Large v3 Turbo на этом Mac."
+          }
+        }
+      }
+    },
+    "General" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Основные"
+          }
+        }
+      }
+    },
+    "Get a Key" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Получить ключ"
+          }
+        }
+      }
+    },
+    "History" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "История"
+          }
+        }
+      }
+    },
+    "History stays on this Mac. Up to 200 recent transcripts are kept." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "История хранится только на этом Mac. Сохраняются до 200 последних расшифровок."
+          }
+        }
+      }
+    },
+    "Hold" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удержание"
+          }
+        }
+      }
+    },
+    "Hold it while you speak and release to insert the text." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удерживайте её, пока говорите, и отпустите, чтобы вставить текст."
+          }
+        }
+      }
+    },
+    "Hold the shortcut while you speak, release to insert." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удерживайте сочетание клавиш, пока говорите, отпустите для вставки."
+          }
+        }
+      }
+    },
+    "Hold to dictate, release to insert" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удерживайте для диктовки, отпустите для вставки"
+          }
+        }
+      }
+    },
+    "Hold to talk" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удерживать для диктовки"
+          }
+        }
+      }
+    },
+    "If the selected microphone is disconnected, Canto uses the system default." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Если выбранный микрофон отключён, Canto использует системный по умолчанию."
+          }
+        }
+      }
+    },
+    "Import…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Импортировать…"
+          }
+        }
+      }
+    },
+    "Input level" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Уровень входа"
+          }
+        }
+      }
+    },
+    "Insert text by" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Способ вставки"
+          }
+        }
+      }
+    },
+    "Inserted" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вставлено"
+          }
+        }
+      }
+    },
+    "Insertion" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вставка"
+          }
+        }
+      }
+    },
+    "Installed" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Установлена"
+          }
+        }
+      }
+    },
+    "Interface" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Интерфейс"
+          }
+        }
+      }
+    },
+    "Keep a history of transcripts" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранять историю расшифровок"
+          }
+        }
+      }
+    },
+    "Language" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Язык"
+          }
+        }
+      }
+    },
+    "Like Optimization, plus clear logic: grouped ideas, order, short paragraphs." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Как «Оптимизация», плюс чёткая логика: группы мыслей, порядок, короткие абзацы."
+          }
+        }
+      }
+    },
+    "Like Structure, plus Markdown: headings and lists, short paragraphs." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Как «Структура», плюс Markdown: заголовки и списки, короткие абзацы."
+          }
+        }
+      }
+    },
+    "Listening" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Слушаю"
+          }
+        }
+      }
+    },
+    "Longest phrase" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Самая длинная фраза"
+          }
+        }
+      }
+    },
+    "Markdown structure" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Структура Markdown"
+          }
+        }
+      }
+    },
+    "Microphone" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Микрофон"
+          }
+        }
+      }
+    },
+    "Mode" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Режим"
+          }
+        }
+      }
+    },
+    "Model" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Модель"
+          }
+        }
+      }
+    },
+    "Models" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Модели"
+          }
+        }
+      }
+    },
+    "Models folder" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Папка моделей"
+          }
+        }
+      }
+    },
+    "Most accurate, slowest" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Самая точная и самая медленная"
+          }
+        }
+      }
+    },
+    "Much faster on Apple silicon." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Намного быстрее на Apple silicon."
+          }
+        }
+      }
+    },
+    "Names and terms to write exactly like this, such as OpenAI or ChatGPT, instead of spelling them out phonetically. They guide recognition and do not slow it down." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Имена и термины, которые нужно писать именно так, например OpenAI или ChatGPT, а не русскими буквами. Они подсказывают распознаванию и не замедляют его."
+          }
+        }
+      }
+    },
+    "Nearly as accurate as Large, fast on Apple silicon" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Почти как Large по точности, быстрая на Apple silicon"
+          }
+        }
+      }
+    },
+    "Needed for AI processing and for recognition with OpenAI. Local recognition works without it." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нужен для ИИ-обработки и распознавания через OpenAI. Локальное распознавание работает без него."
+          }
+        }
+      }
+    },
+    "Needs setup" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нужна настройка"
+          }
+        }
+      }
+    },
+    "No OpenAI keys were found in the keychain" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В Связке ключей нет ключей OpenAI"
+          }
+        }
+      }
+    },
+    "No Transcripts Yet" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Расшифровок пока нет"
+          }
+        }
+      }
+    },
+    "No connection to OpenAI" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нет связи с OpenAI"
+          }
+        }
+      }
+    },
+    "None" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нет"
+          }
+        }
+      }
+    },
+    "Off" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выключено"
+          }
+        }
+      }
+    },
+    "On Intel Macs the processor is usually faster." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На Mac с Intel процессор обычно быстрее."
+          }
+        }
+      }
+    },
+    "On this Mac" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На этом Mac"
+          }
+        }
+      }
+    },
+    "On this Mac (Whisper)" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На этом Mac (Whisper)"
+          }
+        }
+      }
+    },
+    "On this Mac: speech never leaves your Mac and works without the internet. Speed and accuracy depend on the downloaded model.\n\nOpenAI: needs the internet and an API key and is paid per minute. If OpenAI does not answer, Canto uses a downloaded model on this Mac instead." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На этом Mac: речь никуда не отправляется, работает без интернета. Скорость и точность зависят от загруженной модели.\n\nOpenAI: нужны интернет и ключ API, оплата поминутная. Если OpenAI не отвечает, Canto распознаёт загруженной моделью на этом Mac."
+          }
+        }
+      }
+    },
+    "Open Canto at login" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открывать Canto при входе"
+          }
+        }
+      }
+    },
+    "Open Folder" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыть папку"
+          }
+        }
+      }
+    },
+    "OpenAI" : {
+      "shouldTranslate" : false
+    },
+    "OpenAI did not respond, recognized on this Mac" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenAI не ответил, распознано на этом Mac"
+          }
+        }
+      }
+    },
+    "OpenAI quota exceeded" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Превышена квота OpenAI"
+          }
+        }
+      }
+    },
+    "OpenAI rejected the API key" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenAI отклонил ключ API"
+          }
+        }
+      }
+    },
+    "Optimization" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Оптимизация"
+          }
+        }
+      }
+    },
+    "Original" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Оригинал"
+          }
+        }
+      }
+    },
+    "Paste (⌘V)" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вставка (⌘V)"
+          }
+        }
+      }
+    },
+    "Paste: Canto puts the text on the clipboard, presses ⌘V and then puts back what was on the clipboard before. Instant, works almost everywhere.\n\nType letter by letter: Canto types the text as if from the keyboard. Slower and may be affected by autocorrect, but the clipboard stays untouched. Useful where pasting is blocked." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вставка: Canto кладёт текст в буфер обмена, нажимает ⌘V и возвращает в буфер то, что там было. Мгновенно и работает почти везде.\n\nНабор по буквам: Canto печатает текст, как будто с клавиатуры. Медленнее, может мешать автозамена, зато буфер обмена не трогается. Пригодится там, где вставка запрещена."
+          }
+        }
+      }
+    },
+    "Pasting" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вставкой"
+          }
+        }
+      }
+    },
+    "Pasting is instant and restores your clipboard afterwards. Typing leaves the clipboard alone but is slower. Both need Accessibility access. If Canto is already in that list but text is not inserted, remove it with “−” and allow it again." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вставка мгновенна и потом возвращает содержимое буфера обмена. Набор не трогает буфер, но медленнее. Для обоих способов нужен Универсальный доступ. Если Canto уже есть в списке, а текст не вставляется, удалите его кнопкой «−» и разрешите снова."
+          }
+        }
+      }
+    },
+    "Pause that ends a phrase" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пауза, завершающая фразу"
+          }
+        }
+      }
+    },
+    "Performance" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Производительность"
+          }
+        }
+      }
+    },
+    "Phrase" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фраза"
+          }
+        }
+      }
+    },
+    "Play sounds" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Воспроизводить звуки"
+          }
+        }
+      }
+    },
+    "Press Return after a phrase" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажимать Return после фразы"
+          }
+        }
+      }
+    },
+    "Press shortcut…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажмите сочетание…"
+          }
+        }
+      }
+    },
+    "Press the shortcut again to finish" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажмите сочетание ещё раз, чтобы закончить"
+          }
+        }
+      }
+    },
+    "Press to start and stop" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажатие — старт и стоп"
+          }
+        }
+      }
+    },
+    "Press to start dictation, press again to finish" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажмите, чтобы начать диктовку, и ещё раз, чтобы закончить"
+          }
+        }
+      }
+    },
+    "Processing" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обработка"
+          }
+        }
+      }
+    },
+    "Quit" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завершить"
+          }
+        }
+      }
+    },
+    "Ready" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Готово"
+          }
+        }
+      }
+    },
+    "Recent" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Недавние"
+          }
+        }
+      }
+    },
+    "Recognition" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Распознавание"
+          }
+        }
+      }
+    },
+    "Recognize speech privately on this Mac, or with OpenAI." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Распознавайте речь приватно на этом Mac или через OpenAI."
+          }
+        }
+      }
+    },
+    "Release to insert" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отпустите для вставки"
+          }
+        }
+      }
+    },
+    "Reload styles" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновить стили"
+          }
+        }
+      }
+    },
+    "Remove" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить"
+          }
+        }
+      }
+    },
+    "Removes hallucinations, fixes spacing and capitalization." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Убирает галлюцинации, исправляет пробелы и заглавные буквы."
+          }
+        }
+      }
+    },
+    "Removes low rumble, evens out loudness and skips silent recordings." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Убирает низкочастотный гул, выравнивает громкость и пропускает тихие записи."
+          }
+        }
+      }
+    },
+    "Reset" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сбросить"
+          }
+        }
+      }
+    },
+    "Reset all settings?" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сбросить все настройки?"
+          }
+        }
+      }
+    },
+    "Reset to Defaults…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сбросить настройки…"
+          }
+        }
+      }
+    },
+    "Restart Canto" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перезапустить Canto"
+          }
+        }
+      }
+    },
+    "Save" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранить"
+          }
+        }
+      }
+    },
+    "Saved in the keychain" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранён в Связке ключей"
+          }
+        }
+      }
+    },
+    "Saved transcripts" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранённые расшифровки"
+          }
+        }
+      }
+    },
+    "Say “comma”, “period” or “new paragraph” to insert them." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скажите «запятая», «точка» или «новый абзац», чтобы вставить их."
+          }
+        }
+      }
+    },
+    "Search" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поиск"
+          }
+        }
+      }
+    },
+    "Send" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отправка"
+          }
+        }
+      }
+    },
+    "Settings" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки"
+          }
+        }
+      }
+    },
+    "Settings…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки…"
+          }
+        }
+      }
+    },
+    "Setup" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройка"
+          }
+        }
+      }
+    },
+    "Shortcut" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сочетание клавиш"
+          }
+        }
+      }
+    },
+    "Shortest phrase" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Самая короткая фраза"
+          }
+        }
+      }
+    },
+    "Show All" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать все"
+          }
+        }
+      }
+    },
+    "Show History…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать историю…"
+          }
+        }
+      }
+    },
+    "Show Welcome Guide…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать приветствие…"
+          }
+        }
+      }
+    },
+    "Show in Finder" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать в Finder"
+          }
+        }
+      }
+    },
+    "Show the recording overlay" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать индикатор записи"
+          }
+        }
+      }
+    },
+    "Something went wrong" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Что-то пошло не так"
+          }
+        }
+      }
+    },
+    "Speak naturally: every pause inserts the phrase you just said." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Говорите естественно: каждая пауза вставляет только что сказанную фразу."
+          }
+        }
+      }
+    },
+    "Speech detection" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Определение речи"
+          }
+        }
+      }
+    },
+    "Speech is recognized on your Mac and never leaves it." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Речь распознаётся на вашем Mac и никуда не отправляется."
+          }
+        }
+      }
+    },
+    "Speech recognition" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Распознавание речи"
+          }
+        }
+      }
+    },
+    "Spoken language" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Язык речи"
+          }
+        }
+      }
+    },
+    "Spoken punctuation" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Произносимая пунктуация"
+          }
+        }
+      }
+    },
+    "Start Using Canto" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Начать работу"
+          }
+        }
+      }
+    },
+    "Stop" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стоп"
+          }
+        }
+      }
+    },
+    "Structure" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Структура"
+          }
+        }
+      }
+    },
+    "Style" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стиль"
+          }
+        }
+      }
+    },
+    "System" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Системный"
+          }
+        }
+      }
+    },
+    "System default" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Системный по умолчанию"
+          }
+        }
+      }
+    },
+    "System default (%@)" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Системный по умолчанию (%@)"
+          }
+        }
+      }
+    },
+    "Test" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверить"
+          }
+        }
+      }
+    },
+    "Text" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Текст"
+          }
+        }
+      }
+    },
+    "Text & AI" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Текст и ИИ"
+          }
+        }
+      }
+    },
+    "The key could not be saved to the keychain" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось сохранить ключ в Связку ключей"
+          }
+        }
+      }
+    },
+    "The keychain item could not be read" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось прочитать запись из Связки ключей"
+          }
+        }
+      }
+    },
+    "The microphone changed, listening stopped" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Микрофон изменился, запись остановлена"
+          }
+        }
+      }
+    },
+    "The microphone could not be started" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось включить микрофон"
+          }
+        }
+      }
+    },
+    "The model download failed" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось загрузить модель"
+          }
+        }
+      }
+    },
+    "The new language is used after a restart." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Новый язык применится после перезапуска."
+          }
+        }
+      }
+    },
+    "The pause applies to Press to start and stop mode. Long phrases are split so each part is recognized quickly." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пауза действует в режиме «Нажатие — старт и стоп». Длинные фразы делятся на части, чтобы каждая распознавалась быстро."
+          }
+        }
+      }
+    },
+    "The speech model could not be loaded" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось загрузить модель распознавания"
+          }
+        }
+      }
+    },
+    "The style could not be imported" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось импортировать стиль"
+          }
+        }
+      }
+    },
+    "This shortcut is used by another app" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Это сочетание занято другим приложением"
+          }
+        }
+      }
+    },
+    "This shortcut is used by another app. Choose a different one." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Это сочетание занято другим приложением. Выберите другое."
+          }
+        }
+      }
+    },
+    "Thorough" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тщательно"
+          }
+        }
+      }
+    },
+    "Time from the end of the phrase to the inserted text" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Время от конца фразы до вставки текста"
+          }
+        }
+      }
+    },
+    "To insert the text into the app you are using." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Чтобы вставлять текст в приложение, с которым вы работаете."
+          }
+        }
+      }
+    },
+    "To record while you dictate." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Чтобы записывать звук во время диктовки."
+          }
+        }
+      }
+    },
+    "Toggle" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Переключение"
+          }
+        }
+      }
+    },
+    "Transcribing" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Распознаю"
+          }
+        }
+      }
+    },
+    "Transcribing…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Распознаю…"
+          }
+        }
+      }
+    },
+    "Transcription failed" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось распознать речь"
+          }
+        }
+      }
+    },
+    "Try it here" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Попробуйте здесь"
+          }
+        }
+      }
+    },
+    "Turn dictation on or off" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включить или выключить диктовку"
+          }
+        }
+      }
+    },
+    "Turning speech into text…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Превращаю речь в текст…"
+          }
+        }
+      }
+    },
+    "Two permissions" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Два разрешения"
+          }
+        }
+      }
+    },
+    "Type letter by letter" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Набор по буквам"
+          }
+        }
+      }
+    },
+    "Typing" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Набором"
+          }
+        }
+      }
+    },
+    "Unavailable device" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Недоступное устройство"
+          }
+        }
+      }
+    },
+    "Use Caps Lock as the dictation key" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Caps Lock — клавиша диктовки"
+          }
+        }
+      }
+    },
+    "Use Default Folder" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Папка по умолчанию"
+          }
+        }
+      }
+    },
+    "Use the GPU (Metal)" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Использовать GPU (Metal)"
+          }
+        }
+      }
+    },
+    "Use this model" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Использовать эту модель"
+          }
+        }
+      }
+    },
+    "Version %@" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Версия %@"
+          }
+        }
+      }
+    },
+    "Vocabulary" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Словарь"
+          }
+        }
+      }
+    },
+    "Welcome to Canto" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добро пожаловать в Canto"
+          }
+        }
+      }
+    },
+    "What is this?" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Что это?"
+          }
+        }
+      }
+    },
+    "While Canto runs, Caps Lock acts as F18 and becomes the shortcut. Turn this off or quit Canto to get Caps Lock back." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пока Canto открыто, Caps Lock действует как F18 и становится сочетанием для диктовки. Выключите параметр или закройте Canto, чтобы вернуть Caps Lock."
+          }
+        }
+      }
+    },
+    "Whisper" : {
+      "shouldTranslate" : false
+    },
+    "Whisper's transcript as is, without cleanup." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Текст Whisper как есть, без очистки."
+          }
+        }
+      }
+    },
+    "Write numbers as words" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Писать числа словами"
+          }
+        }
+      }
+    },
+    "You can download larger, more accurate models later in Settings." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Более крупные и точные модели можно загрузить позже в настройках."
+          }
+        }
+      }
+    },
+    "Your OpenAI API key is saved." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ключ API OpenAI сохранён."
+          }
+        }
+      }
+    },
+    "Your dictation key" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Клавиша диктовки"
+          }
+        }
+      }
+    },
+    "Your latest transcripts will appear here" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Здесь появятся последние расшифровки"
+          }
+        }
+      }
+    },
+    "Your models, history, styles and API key are kept." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Модели, история, стили и ключ API сохранятся."
+          }
+        }
+      }
+    },
+    "for example “send it”" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "например «отправить»"
+          }
+        }
+      }
+    },
+    "macOS will ask to allow access to the selected item." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS попросит разрешить доступ к выбранной записи."
+          }
+        }
+      }
+    },
+    "sk-…" : {
+      "shouldTranslate" : false
+    },
+    "whisper-1" : {
+      "shouldTranslate" : false
+    },
+    "whisper.cpp on GitHub" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "whisper.cpp на GitHub"
+          }
+        }
+      }
+    },
+    "·" : {
+      "shouldTranslate" : false
+    },
+    "Русский" : {
+      "shouldTranslate" : false
+    },
+    "“%@” does not look like an OpenAI key" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«%@» не похоже на ключ OpenAI"
+          }
+        }
+      }
+    },
+    "“42” becomes “forty-two”." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«42» станет «сорок два»."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

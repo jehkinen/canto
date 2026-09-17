@@ -1,0 +1,26 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canto"
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canto записывает звук с микрофона, чтобы превратить вашу речь в текст."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
