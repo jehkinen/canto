@@ -40,6 +40,16 @@
         }
       }
     },
+    "%lld%% · %@ of %@" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld%% · %2$@ из %3$@"
+          }
+        }
+      }
+    },
     "A style is a Markdown file with extra instructions for the AI, such as tone or terminology." : {
       "localizations" : {
         "ru" : {
@@ -2085,6 +2095,16 @@
         }
       }
     },
+    "Until %@ is downloaded, %@ recognizes your speech." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пока %1$@ загружается, речь распознаёт %2$@."
+          }
+        }
+      }
+    },
     "Use Caps Lock as the dictation key" : {
       "localizations" : {
         "ru" : {
@@ -2248,6 +2268,9 @@
         }
       }
     },
+    "andydev.space" : {
+      "shouldTranslate" : false
+    },
     "for example “send it”" : {
       "localizations" : {
         "ru" : {
@@ -2283,6 +2306,9 @@
           }
         }
       }
+    },
+    "© 2026 Andrei Bogdanov" : {
+      "shouldTranslate" : false
     },
     "·" : {
       "shouldTranslate" : false

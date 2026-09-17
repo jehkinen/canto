@@ -55,7 +55,7 @@ final class AppModel {
     private(set) var microphoneAccess = Permissions.microphone
     private(set) var accessibilityGranted = Permissions.accessibility
     private(set) var models: [WhisperModelInfo] = []
-    private(set) var downloads: [WhisperModelKind: Double] = [:]
+    private(set) var downloads: [WhisperModelKind: DownloadProgress] = [:]
     private(set) var hasAPIKey = KeychainStore.hasAPIKey()
     private(set) var keychainMatches: [KeychainStore.FoundItem] = []
     private(set) var keychainSearchMessage: String?
@@ -84,7 +84,7 @@ final class AppModel {
         if !accessibilityGranted {
             issues.append(Notice(message: String(localized: "Allow Accessibility to insert text"), action: .grantAccessibility))
         }
-        if settings.transcriptionProvider == .local, !modelStore.isInstalled(settings.whisperModel) {
+        if settings.transcriptionProvider == .local, activeWhisperModel(for: settings) == nil {
             issues.append(Notice(message: String(localized: "Download a speech model"), action: .openModels))
         }
         if settings.needsAPIKey, !hasAPIKey {
@@ -271,7 +271,7 @@ final class AppModel {
             fail(String(localized: "Allow microphone access"), action: .openMicrophoneSettings)
             return false
         }
-        if settings.transcriptionProvider == .local, !modelStore.isInstalled(settings.whisperModel) {
+        if settings.transcriptionProvider == .local, activeWhisperModel(for: settings) == nil {
             fail(String(localized: "Download a speech model"), action: .openModels)
             return false
         }
@@ -441,8 +441,10 @@ final class AppModel {
             guard let key = apiKey() else { throw TranscriptionError.apiKeyMissing }
             return OpenAITranscriber(apiKey: key, model: settings.openAITranscriptionModel)
         case .local:
+            // While the chosen model is still downloading, another downloaded one does the work.
+            let model = activeWhisperModel(for: settings) ?? settings.whisperModel
             let configuration = WhisperTranscriber.Configuration(
-                modelURL: modelStore.url(for: settings.whisperModel),
+                modelURL: WhisperModelStore(directory: AppPaths.modelsDirectory(for: settings)).url(for: model),
                 useGPU: settings.whisperUseGPU,
                 beamSize: settings.whisperBeamSize
             )
@@ -453,6 +455,14 @@ final class AppModel {
         }
     }
 
+    /// The model local recognition uses: the chosen one once it is downloaded, otherwise the first
+    /// downloaded model, so dictation keeps working during a download.
+    func activeWhisperModel(for settings: AppSettings) -> WhisperModelKind? {
+        let store = WhisperModelStore(directory: AppPaths.modelsDirectory(for: settings))
+        if store.isInstalled(settings.whisperModel) { return settings.whisperModel }
+        return WhisperModelKind.allCases.first { store.isInstalled($0) }
+    }
+
     private func prewarmWhisper() {
         if settings.transcriptionProvider == .openAI {
             // Loading the AAC codec takes over a second the first time; do it before the first phrase.
@@ -461,7 +471,7 @@ final class AppModel {
             }
             return
         }
-        guard settings.transcriptionProvider == .local, modelStore.isInstalled(settings.whisperModel),
+        guard settings.transcriptionProvider == .local, activeWhisperModel(for: settings) != nil,
               let whisper = try? transcriber(for: settings) as? WhisperTranscriber else { return }
         Task.detached(priority: .utility) {
             try? await whisper.prepare()
@@ -494,6 +504,10 @@ final class AppModel {
     }
 
     #if SNAPSHOTS
+    func setSnapshotDownload(_ kind: WhisperModelKind, progress: DownloadProgress) {
+        downloads[kind] = progress
+    }
+
     func setSnapshotState(phase: DictationPhase, level: Float, history: [TranscriptEntry]? = nil) {
         self.phase = phase
         self.level = level
@@ -637,7 +651,7 @@ final class AppModel {
 
     func download(_ kind: WhisperModelKind) {
         guard downloadTasks[kind] == nil else { return }
-        downloads[kind] = 0
+        downloads[kind] = DownloadProgress(receivedBytes: 0, totalBytes: Int64(kind.approximateSizeMB) * 1_000_000)
         let store = modelStore
         downloadTasks[kind] = Task { [weak self] in
             do {
@@ -664,6 +678,7 @@ final class AppModel {
         if let error, !(error is CancellationError), (error as? URLError)?.code != .cancelled {
             show(Notice(message: String(localized: "The model download failed")))
         } else if error == nil, settings.whisperModel == kind {
+            whisper = nil
             prewarmWhisper()
         }
     }

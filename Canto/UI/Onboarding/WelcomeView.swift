@@ -237,8 +237,11 @@ private struct WelcomeModelRow: View {
                 Text(Labels.modelDescription(kind)).font(.callout).foregroundStyle(.secondary)
             }
             Spacer()
-            if let progress = model.downloads[kind] {
-                ProgressView(value: progress).frame(width: 100)
+            if let download = model.downloads[kind] {
+                VStack(alignment: .trailing, spacing: 3) {
+                    ProgressView(value: download.fraction).frame(width: 130)
+                    DownloadCaption(download: download)
+                }
             } else if installed {
                 Label("Ready", systemImage: "checkmark").foregroundStyle(.green)
             } else {

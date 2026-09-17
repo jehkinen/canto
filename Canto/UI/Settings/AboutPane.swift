@@ -11,13 +11,15 @@ struct AboutPane: View {
             Text("Dictate anywhere on your Mac. Speech is recognized on device with Whisper, cleaned up and typed into the app you are using.")
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 380)
-            Spacer()
             VStack(spacing: 4) {
-                Text("Built with whisper.cpp (MIT) and libfvad (BSD).")
-                Link("whisper.cpp on GitHub", destination: URL(string: "https://github.com/ggml-org/whisper.cpp")!)
+                Text("© 2026 Andrei Bogdanov")
+                Link("andydev.space", destination: URL(string: "https://andydev.space")!)
             }
-            .font(.caption)
-            .foregroundStyle(.secondary)
+            .padding(.top, 6)
+            Spacer()
+            Text("Built with whisper.cpp (MIT) and libfvad (BSD).")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
         .padding(30)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

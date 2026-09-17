@@ -5,6 +5,10 @@ import json, os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 RU = {
+    "Until %@ is downloaded, %@ recognizes your speech.": "Пока %1$@ загружается, речь распознаёт %2$@.",
+    "%lld%% · %@ of %@": "%1$lld%% · %2$@ из %3$@",
+    "andydev.space": "andydev.space",
+    "© 2026 Andrei Bogdanov": "© 2026 Andrei Bogdanov",
     "Cancel": "Отменить",
     "%lld s": "%lld с",
     "OpenAI did not respond, recognized on this Mac": "OpenAI не ответил, распознано на этом Mac",
@@ -247,7 +251,7 @@ RU = {
     "“42” becomes “forty-two”.": "«42» станет «сорок два».",
 }
 
-DO_NOT_TRANSLATE = {"GPT-4o mini Transcribe", "GPT-4o Transcribe", "Whisper", "Large v3 Turbo", "%@ (%@)", "%lld", "%lld %%", "English", "OpenAI", "Canto", "sk-…", "whisper-1", "·", "Русский"}
+DO_NOT_TRANSLATE = {"andydev.space", "© 2026 Andrei Bogdanov", "GPT-4o mini Transcribe", "GPT-4o Transcribe", "Whisper", "Large v3 Turbo", "%@ (%@)", "%lld", "%lld %%", "English", "OpenAI", "Canto", "sk-…", "whisper-1", "·", "Русский"}
 
 def catalog(entries):
     strings = {}

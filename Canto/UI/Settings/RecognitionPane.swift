@@ -41,9 +41,15 @@ struct RecognitionPane: View {
             }
 
             if model.settings.transcriptionProvider == .local {
-                Section("Models") {
+                Section {
                     ForEach(model.models) { info in
                         ModelRow(info: info)
+                    }
+                } header: {
+                    Text("Models")
+                } footer: {
+                    if let active = model.activeWhisperModel(for: model.settings), active != model.settings.whisperModel {
+                        Text("Until \(Labels.model(model.settings.whisperModel)) is downloaded, \(Labels.model(active)) recognizes your speech.")
                     }
                 }
 
@@ -151,9 +157,12 @@ private struct ModelRow: View {
 
             Spacer()
 
-            if let progress = model.downloads[info.kind] {
-                ProgressView(value: progress)
-                    .frame(width: 110)
+            if let download = model.downloads[info.kind] {
+                VStack(alignment: .trailing, spacing: 3) {
+                    ProgressView(value: download.fraction)
+                        .frame(width: 150)
+                    DownloadCaption(download: download)
+                }
                 Button {
                     model.cancelDownload(info.kind)
                 } label: {
@@ -187,5 +196,20 @@ private struct ModelRow: View {
 extension URL {
     var abbreviatingWithTildeInPath: String {
         (path as NSString).abbreviatingWithTildeInPath
+    }
+}
+
+/// "37% · 212 MB of 574 MB"
+struct DownloadCaption: View {
+    let download: DownloadProgress
+
+    var body: some View {
+        Text("\(Int(download.fraction * 100))% · \(Self.megabytes(download.receivedBytes)) of \(Self.megabytes(download.totalBytes))")
+            .font(.caption.monospacedDigit())
+            .foregroundStyle(.secondary)
+    }
+
+    static func megabytes(_ bytes: Int64) -> String {
+        ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
     }
 }

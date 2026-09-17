@@ -71,6 +71,18 @@ enum SnapshotMain {
                 render(WelcomeView(startAt: step) {}, width: 560, name: "welcome-\(step.rawValue)-\(suffix)", appearance: appearance, to: output)
             }
         }
+        // A model that is still downloading while another one does the work.
+        var downloading = model.settings
+        downloading.whisperModel = .largeV3Turbo
+        model.settings = downloading
+        model.setSnapshotDownload(.largeV3Turbo, progress: DownloadProgress(receivedBytes: 212_000_000, totalBytes: 574_000_000))
+        let (downloadWindow, downloadTabs) = WindowCoordinator.makeSettingsWindow()
+        downloadWindow.appearance = NSAppearance(named: .aqua)
+        downloadTabs.selectedTabViewItemIndex = 2
+        renderWindow(downloadWindow, name: "window-settings-downloading", to: output)
+        downloadTabs.selectedTabViewItemIndex = 5
+        renderWindow(downloadWindow, name: "window-settings-about", to: output)
+
         print("wrote snapshots to \(output.path)")
     }
 
