@@ -30,6 +30,16 @@ public enum TextProcessingMode: String, Codable, CaseIterable, Sendable {
     }
 }
 
+/// How numbers appear in the finished text.
+public enum NumberFormat: String, Codable, CaseIterable, Sendable {
+    /// Exactly as the recognizer wrote them.
+    case asHeard
+    /// "двадцать пять" becomes "25".
+    case digits
+    /// "25" becomes "двадцать пять".
+    case words
+}
+
 /// How the finished text reaches the focused app.
 public enum InsertionMethod: String, Codable, CaseIterable, Sendable {
     /// Put the text on the pasteboard, press ⌘V, restore the previous pasteboard.
@@ -128,7 +138,9 @@ public struct AppSettings: Codable, Equatable, Sendable {
     /// File name of the AI style (a Markdown file in the styles folder).
     public var aiStyle: String?
     public var spokenPunctuation = true
-    public var numbersAsWords = false
+    public var numberFormat: NumberFormat = .asHeard
+    /// "50 долларов" becomes "$50", "50 евро" becomes "50 €".
+    public var currencySymbols = true
     public var pressEnterOnTrigger = false
     public var enterTriggerPhrase = ""
 
@@ -201,6 +213,11 @@ public struct AppSettings: Codable, Equatable, Sendable {
         return copy
     }
 
+    /// The synthesized keys plus the one that only older settings files have.
+    enum LegacyCodingKeys: String, CodingKey {
+        case numbersAsWords
+    }
+
     // Decoding tolerates missing keys so settings saved by an older build keep loading.
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -222,7 +239,11 @@ public struct AppSettings: Codable, Equatable, Sendable {
         textProcessingMode = try c.decodeIfPresent(TextProcessingMode.self, forKey: .textProcessingMode) ?? d.textProcessingMode
         aiStyle = try c.decodeIfPresent(String.self, forKey: .aiStyle)
         spokenPunctuation = try c.decodeIfPresent(Bool.self, forKey: .spokenPunctuation) ?? d.spokenPunctuation
-        numbersAsWords = try c.decodeIfPresent(Bool.self, forKey: .numbersAsWords) ?? d.numbersAsWords
+        // Settings saved before the three-way choice existed only had "numbers as words".
+        let legacy = try decoder.container(keyedBy: LegacyCodingKeys.self)
+        let legacyNumbersAsWords = try legacy.decodeIfPresent(Bool.self, forKey: .numbersAsWords) ?? false
+        numberFormat = try c.decodeIfPresent(NumberFormat.self, forKey: .numberFormat) ?? (legacyNumbersAsWords ? .words : d.numberFormat)
+        currencySymbols = try c.decodeIfPresent(Bool.self, forKey: .currencySymbols) ?? d.currencySymbols
         pressEnterOnTrigger = try c.decodeIfPresent(Bool.self, forKey: .pressEnterOnTrigger) ?? d.pressEnterOnTrigger
         enterTriggerPhrase = try c.decodeIfPresent(String.self, forKey: .enterTriggerPhrase) ?? d.enterTriggerPhrase
         audioPreprocessing = try c.decodeIfPresent(Bool.self, forKey: .audioPreprocessing) ?? d.audioPreprocessing

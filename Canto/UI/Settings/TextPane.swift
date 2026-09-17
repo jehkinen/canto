@@ -69,9 +69,14 @@ struct TextPane: View {
                     Text("Spoken punctuation")
                     Text("Say “comma”, “period” or “new paragraph” to insert them.")
                 }
-                Toggle(isOn: $model.settings.numbersAsWords) {
-                    Text("Write numbers as words")
-                    Text("“42” becomes “forty-two”.")
+                Picker("Numbers", selection: $model.settings.numberFormat) {
+                    Text("As dictated").tag(NumberFormat.asHeard)
+                    Text("Digits: 25").tag(NumberFormat.digits)
+                    Text("Words: twenty-five").tag(NumberFormat.words)
+                }
+                Toggle(isOn: $model.settings.currencySymbols) {
+                    Text("Currency symbols")
+                    Text("“50 dollars” becomes “$50”, “50 euros” becomes “50 €”.")
                 }
             }
 

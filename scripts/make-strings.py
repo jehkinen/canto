@@ -5,6 +5,12 @@ import json, os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 RU = {
+    "Numbers": "Числа",
+    "As dictated": "Как продиктовано",
+    "Digits: 25": "Цифрами: 25",
+    "Words: twenty-five": "Словами: двадцать пять",
+    "Currency symbols": "Значки валют",
+    "“50 dollars” becomes “$50”, “50 euros” becomes “50 €”.": "«50 долларов» станет «$50», «50 евро» станет «50 €».",
     "Until %@ is downloaded, %@ recognizes your speech.": "Пока %1$@ загружается, речь распознаёт %2$@.",
     "%lld%% · %@ of %@": "%1$lld%% · %2$@ из %3$@",
     "andydev.space": "andydev.space",

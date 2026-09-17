@@ -9,6 +9,9 @@ public enum TextCleanup {
         "спасибо за просмотр", "спасибо за внимание", "продолжение следует", "подписывайтесь на канал",
         "ставьте лайки и подписывайтесь на канал", "до новых встреч",
         "thanks for watching", "thank you for watching", "please subscribe", "subscribe to my channel",
+        // "Cheers" is Whisper's most common filler on short phrases; other polite one-liners
+        // ("thanks", "bye") are left alone because people really do dictate them.
+        "cheers",
     ]
 
     /// Subtitle credits; everything from them to the end is noise.
@@ -17,9 +20,14 @@ public enum TextCleanup {
         "subtitles by", "transcribed by", "captions by",
     ]
 
-    /// Drops subtitle credits and phantom sentences at the end of a transcript.
+    /// Sound events Whisper writes instead of words: "*Police*", "[Music]", "(applause)", "♪".
+    static let soundTag = try! NSRegularExpression(
+        pattern: "\\s*(?:\\*[^*\\n]{0,40}\\*|\\[[^\\]\\n]{0,40}\\]|\\([^)\\n]{0,40}\\)\\s*$|♪[^♪\\n]{0,60}♪)"
+    )
+
+    /// Drops sound tags, subtitle credits and phantom sentences at the end of a transcript.
     public static func removeWhisperArtifacts(_ text: String) -> String {
-        var result = text
+        var result = soundTag.stringByReplacingMatches(in: text, range: NSRange(text.startIndex..., in: text), withTemplate: "")
         for marker in creditMarkers {
             if let range = result.range(of: marker, options: .caseInsensitive) {
                 result = String(result[..<range.lowerBound])
@@ -97,7 +105,7 @@ public enum TextCleanup {
         ("new line", "\n"), ("comma", ","), ("colon", ":"), ("full stop", "."), ("period", "."),
     ]
 
-    nonisolated(unsafe) static let spokenPunctuationExpressions: [(NSRegularExpression, String)] = spokenPunctuation.map { words, symbol in
+    static let spokenPunctuationExpressions: [(NSRegularExpression, String)] = spokenPunctuation.map { words, symbol in
         let phrase = words.replacingOccurrences(of: " ", with: "\\s+")
         // The command must follow a word; punctuation Whisper already put around it is absorbed,
         // so "app, comma, running" becomes "app, running" rather than "app,,, running".

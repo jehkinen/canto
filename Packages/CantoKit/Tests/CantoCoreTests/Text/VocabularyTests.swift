@@ -43,9 +43,13 @@ struct VocabularyTests {
     }
 
     @Test func detectsPromptEcho() {
-        #expect(Vocabulary.isEchoOfPrompt("OpenAI, ChatGPT.", terms: ["OpenAI", "ChatGPT"]))
-        #expect(Vocabulary.isEchoOfPrompt("Термины: OpenAI, ChatGPT.", terms: ["OpenAI", "ChatGPT"]))
-        #expect(!Vocabulary.isEchoOfPrompt("OpenAI сделала ChatGPT", terms: ["OpenAI", "ChatGPT"]))
+        let vocabulary = ["OpenAI", "ChatGPT", "Claude", "Kubernetes"]
+        #expect(Vocabulary.isEchoOfPrompt("OpenAI, ChatGPT.", terms: vocabulary))
+        #expect(Vocabulary.isEchoOfPrompt("ChatGPT, Claude, Kubernetes.", terms: vocabulary))
+        #expect(!Vocabulary.isEchoOfPrompt("OpenAI сделала ChatGPT", terms: vocabulary))
+        // A single term is a normal thing to dictate.
+        #expect(!Vocabulary.isEchoOfPrompt("ChatGPT", terms: vocabulary))
+        #expect(!Vocabulary.isEchoOfPrompt("", terms: vocabulary))
     }
 
     @Test func pipelineAppliesVocabularyLast() async {

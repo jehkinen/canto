@@ -3,7 +3,7 @@ import Foundation
 /// Writes whole numbers as words with the system's number formatter: "42" → "сорок два".
 public enum NumberWords {
     /// Standalone whole numbers only: versions, decimals, times, dates and codes like "007" stay as they are.
-    nonisolated(unsafe) static let number = try! NSRegularExpression(pattern: "(?<![\\p{L}\\p{N}.,:/\\-])[1-9]\\d{0,8}(?![\\p{L}\\p{N}]|[.,:/\\-]\\d)|(?<![\\p{L}\\p{N}.,:/\\-])0(?![\\p{L}\\p{N}]|[.,:/\\-]\\d)")
+    static let number = try! NSRegularExpression(pattern: "(?<![\\p{L}\\p{N}.,:/\\-])[1-9]\\d{0,8}(?![\\p{L}\\p{N}]|[.,:/\\-]\\d)|(?<![\\p{L}\\p{N}.,:/\\-])0(?![\\p{L}\\p{N}]|[.,:/\\-]\\d)")
 
     public static func apply(_ text: String, language: String) -> String {
         let formatter = NumberFormatter()

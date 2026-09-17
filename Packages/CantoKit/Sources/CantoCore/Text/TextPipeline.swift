@@ -61,8 +61,16 @@ public struct TextPipeline: Sendable {
             }
         }
 
-        if settings.numbersAsWords {
+        switch settings.numberFormat {
+        case .asHeard:
+            break
+        case .digits:
+            text = SpokenNumbers.toDigits(text)
+        case .words:
             text = NumberWords.apply(text, language: settings.effectiveLanguage(fallback: fallbackLanguage))
+        }
+        if settings.currencySymbols {
+            text = SpokenNumbers.currencySymbols(text)
         }
         if !settings.vocabulary.isEmpty {
             text = Vocabulary.apply(text, terms: settings.vocabulary)

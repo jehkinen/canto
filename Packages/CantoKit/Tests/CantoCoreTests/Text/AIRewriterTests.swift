@@ -113,7 +113,7 @@ struct TextPipelineTests {
         let chat = FakeChat([.success("Деплоим 2 сервиса в aws.")])
         let processed = await pipeline(chat).process("деплоим два сервиса в aws", settings: settings {
             $0.textProcessingMode = .optimization
-            $0.numbersAsWords = true
+            $0.numberFormat = .words
             $0.vocabulary = ["AWS"]
         }, fallbackLanguage: "ru")
         #expect(processed.text == "Деплоим два сервиса в AWS.")

@@ -230,6 +230,16 @@
         }
       }
     },
+    "As dictated" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Как продиктовано"
+          }
+        }
+      }
+    },
     "Audio" : {
       "localizations" : {
         "ru" : {
@@ -463,6 +473,16 @@
         }
       }
     },
+    "Currency symbols" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Значки валют"
+          }
+        }
+      }
+    },
     "Data folder" : {
       "localizations" : {
         "ru" : {
@@ -559,6 +579,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Диктовка"
+          }
+        }
+      }
+    },
+    "Digits: 25" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Цифрами: 25"
           }
         }
       }
@@ -1098,6 +1128,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Нет"
+          }
+        }
+      }
+    },
+    "Numbers" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Числа"
           }
         }
       }
@@ -2208,6 +2248,16 @@
         }
       }
     },
+    "Words: twenty-five" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Словами: двадцать пять"
+          }
+        }
+      }
+    },
     "Write numbers as words" : {
       "localizations" : {
         "ru" : {
@@ -2332,6 +2382,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "«42» станет «сорок два»."
+          }
+        }
+      }
+    },
+    "“50 dollars” becomes “$50”, “50 euros” becomes “50 €”." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«50 долларов» станет «$50», «50 евро» станет «50 €»."
           }
         }
       }

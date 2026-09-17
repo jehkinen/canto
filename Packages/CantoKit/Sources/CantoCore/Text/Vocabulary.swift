@@ -36,12 +36,22 @@ public enum Vocabulary {
         return result
     }
 
-    /// Whisper sometimes answers near-silence with nothing but the prompt.
+    /// Whisper answers near-silence with the prompt it was given: the whole list, part of it, or
+    /// a couple of terms. Text that is nothing but dictionary terms is such an echo, and a phrase
+    /// with a single term ("ChatGPT") is left alone because it is something people do dictate.
     public static func isEchoOfPrompt(_ text: String, terms raw: [String]) -> Bool {
-        let letters: (String) -> String = { String($0.lowercased().filter { $0.isLetter || $0.isNumber }) }
-        let spoken = letters(text)
-        let list = letters(terms(raw).joined())
-        return !spoken.isEmpty && (spoken == list || spoken == letters("Термины") + list)
+        let list = terms(raw)
+        guard !list.isEmpty else { return false }
+        var rest = text
+        var matches = 0
+        for term in list.sorted(by: { $0.count > $1.count }) {
+            guard let expression = expression(for: term) else { continue }
+            let range = NSRange(rest.startIndex..., in: rest)
+            matches += expression.numberOfMatches(in: rest, range: range)
+            rest = expression.stringByReplacingMatches(in: rest, range: range, withTemplate: "")
+        }
+        let leftovers = rest.filter { $0.isLetter || $0.isNumber }
+        return matches >= 2 && leftovers.isEmpty
     }
 
     /// Matches the term's parts with optional spaces, hyphens or dots between them, as a whole word.

@@ -82,6 +82,8 @@ public final class WhisperTranscriber: Transcriber, @unchecked Sendable {
         parameters.entropy_thold = 2.2
         parameters.logprob_thold = -0.8
         parameters.no_speech_thold = 0.55
+        // Short phrases otherwise come back as sound tags like "*Police*" or "[Music]".
+        parameters.suppress_nst = true
 
         // The C strings must outlive whisper_full, so the call happens inside both closures.
         let code: Int32 = (language ?? "auto").withCString { languagePointer in
