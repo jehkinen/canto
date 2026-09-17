@@ -41,6 +41,11 @@ cleans the text up and pastes it into whatever you are working in: chats, email,
 - **Small touches.** Spoken punctuation ("comma", "new paragraph"), numbers as words, a phrase that presses Return,
   a recording overlay, history, microphone selection, English and Russian interface.
 
+## Not on a Mac?
+
+[Veyro](https://github.com/WtekSupport/veyro) is a cross-platform voice dictation app made by my friend. It is built
+with Tauri and runs on Windows, macOS and Linux.
+
 ## Requirements
 
 - macOS 14 Sonoma or later. The app is built as a universal binary for Apple silicon and Intel; Apple silicon is
@@ -132,6 +137,11 @@ Canto is available under the [MIT license](LICENSE).
 - **Словарь.** Термины вроде OpenAI, Node.js или AWS пишутся так, как вы их задали, а не русскими буквами.
 - **Мелочи.** Произносимая пунктуация («запятая», «новый абзац»), числа прописью, фраза для нажатия Return, индикатор
   записи, история, выбор микрофона, интерфейс на русском и английском.
+
+### Не на Mac?
+
+[Veyro](https://github.com/WtekSupport/veyro) — кроссплатформенное приложение для голосового ввода, которое делает
+мой друг. Оно построено на Tauri и работает на Windows, macOS и Linux.
 
 ### Установка
 
