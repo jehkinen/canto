@@ -30,11 +30,24 @@ struct TextPane: View {
             }
 
             Section {
-                Picker("Skill", selection: $model.settings.skill) {
-                    Text("None").tag(String?.none)
-                    ForEach(model.skills) { skill in
-                        Text(skill.name).tag(Optional(skill.fileName))
+                ForEach(model.skills) { skill in
+                    Toggle(isOn: Binding(
+                        get: { model.settings.skills.contains(skill.fileName) },
+                        set: { _ in model.settings.toggleSkill(skill.fileName) }
+                    )) {
+                        HStack {
+                            Text(skill.name)
+                            // The order matters when several are on: a later skill wins where they disagree.
+                            if model.settings.skills.count > 1, let index = model.settings.skills.firstIndex(of: skill.fileName) {
+                                Text(verbatim: "\(index + 1)")
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundStyle(.secondary)
+                                    .padding(.horizontal, 5)
+                                    .background(.quaternary, in: Capsule())
+                            }
+                        }
                     }
+                    .toggleStyle(.checkbox)
                 }
                 Picker("Runs on", selection: $model.settings.aiProvider) {
                     Text("OpenAI").tag(AIProvider.openAI)
@@ -59,12 +72,12 @@ struct TextPane: View {
                     EmptyView()
                 }
             } header: {
-                Text("AI skill")
+                Text("AI skills")
             } footer: {
                 if model.settings.aiProvider == .localServer {
                     Text("Ollama: http://localhost:11434/v1, LM Studio: http://localhost:1234/v1. The text stays on your Mac.")
                 } else {
-                    Text("A skill is a Markdown file with instructions for the AI: clean up, organize, fix technical terms, translate. It runs after the cleanup and adds about a second.")
+                    Text("A skill is a Markdown file with instructions for the AI: clean up, organize, fix technical terms, translate. Skills that are on run together in one request after the cleanup and add about a second; the number shows their order.")
                 }
             }
 

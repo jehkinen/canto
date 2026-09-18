@@ -80,12 +80,12 @@
         }
       }
     },
-    "A skill is a Markdown file with instructions for the AI: clean up, organize, fix technical terms, translate. It runs after the cleanup and adds about a second." : {
+    "A skill is a Markdown file with instructions for the AI: clean up, organize, fix technical terms, translate. Skills that are on run together in one request after the cleanup and add about a second; the number shows their order." : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Скилл — это Markdown-файл с инструкцией для ИИ: почистить текст, разложить по разделам, поправить технические термины, перевести. Он работает после очистки и добавляет около секунды."
+            "value" : "Скилл — это Markdown-файл с инструкцией для ИИ: почистить текст, разложить по разделам, поправить технические термины, перевести. Включённые скиллы работают вместе, одним запросом после очистки, и добавляют около секунды; цифра показывает их порядок."
           }
         }
       }
@@ -100,12 +100,12 @@
         }
       }
     },
-    "AI skill" : {
+    "AI skills" : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ИИ-скилл"
+            "value" : "ИИ-скиллы"
           }
         }
       }
@@ -1725,12 +1725,12 @@
         }
       }
     },
-    "Skill" : {
+    "Skills" : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Скилл"
+            "value" : "Скиллы"
           }
         }
       }
@@ -2171,6 +2171,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Включить или выключить диктовку"
+          }
+        }
+      }
+    },
+    "Turn off all skills" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выключить все скиллы"
           }
         }
       }

@@ -9,6 +9,17 @@ public struct Skill: Identifiable, Hashable, Sendable {
     public var id: String { fileName }
 }
 
+/// A skill ready to send: its name and its instructions without the heading and front matter.
+public struct LoadedSkill: Equatable, Sendable {
+    public var name: String
+    public var instructions: String
+
+    public init(name: String, instructions: String) {
+        self.name = name
+        self.instructions = instructions
+    }
+}
+
 /// The skills folder. Canto knows only the format; every skill, the bundled ones included,
 /// is a file the user can read, change, delete or share.
 public struct SkillStore: Sendable {
@@ -43,6 +54,14 @@ public struct SkillStore: Sendable {
         }
         if offered.count != before {
             try offered.sorted().joined(separator: "\n").write(to: record, atomically: true, encoding: .utf8)
+        }
+    }
+
+    /// The skills with these file names that are in the folder, in the same order.
+    public func load(_ fileNames: [String]) -> [LoadedSkill] {
+        fileNames.compactMap { fileName in
+            guard let skill = skill(named: fileName), let instructions = instructions(for: fileName) else { return nil }
+            return LoadedSkill(name: skill.name, instructions: instructions)
         }
     }
 

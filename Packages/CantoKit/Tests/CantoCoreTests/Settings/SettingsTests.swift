@@ -88,23 +88,34 @@ struct AppSettingsTests {
         var settings = AppSettings()
         settings.language = "ru"
         settings.textProcessingMode = .original
-        settings.skill = "Software Engineer.md"
+        settings.skills = ["Software Engineer.md", "Remove profanity.md"]
         settings.aiProvider = .localServer
         settings.aiServerModel = "qwen2.5:7b"
         let decoded = try JSONDecoder().decode(AppSettings.self, from: JSONEncoder().encode(settings))
         #expect(decoded == settings)
     }
 
+    @Test func skillsAreTurnedOnInOrder() throws {
+        var settings = AppSettings()
+        settings.toggleSkill("B.md")
+        settings.toggleSkill("A.md")
+        #expect(settings.skills == ["B.md", "A.md"])
+        settings.toggleSkill("B.md")
+        #expect(settings.skills == ["A.md"])
+        let saved = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"skills":["X.md","Y.md"],"skill":"Old.md"}"#.utf8))
+        #expect(saved.skills == ["X.md", "Y.md"])
+    }
+
     @Test func oldAIModesBecomeSkills() throws {
         let mode = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"textProcessingMode":"structural"}"#.utf8))
         #expect(mode.textProcessingMode == .basic)
-        #expect(mode.skill == "Clean up.md")
+        #expect(mode.skills == ["Clean up.md"])
         #expect(AppSettings().vocabulary.isEmpty)
         let chosen = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"textProcessingMode":"optimization","skill":"Mine.md"}"#.utf8))
-        #expect(chosen.skill == "Mine.md")
+        #expect(chosen.skills == ["Mine.md"])
         #expect(!AppSettings().needsAPIKey)
         var local = AppSettings()
-        local.skill = "Clean up.md"
+        local.skills = ["Clean up.md"]
         #expect(local.needsAPIKey)
         local.aiProvider = .localServer
         #expect(!local.needsAPIKey)

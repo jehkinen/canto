@@ -3,8 +3,16 @@ import Foundation
 /// The frame every skill runs in. What to do with the text comes from the skill file; the code
 /// only keeps the model to the transcript and to a bare reply.
 public enum RewritePrompt {
-    public static func system(skillName: String, instructions: String, vocabulary: [String]) -> String {
-        [rules(vocabulary: vocabulary), "Skill \"\(skillName)\":\n\(instructions)"].joined(separator: "\n\n")
+    public static func system(skills: [LoadedSkill], vocabulary: [String]) -> String {
+        guard skills.count > 1 else {
+            return ([rules(vocabulary: vocabulary)] + skills.map { "Skill \"\($0.name)\":\n\($0.instructions)" })
+                .joined(separator: "\n\n")
+        }
+        // Several skills share one request: the model applies them all in a single pass.
+        let intro = "Apply all \(skills.count) skills below to the transcript at once and reply with one text. "
+            + "Where they disagree, the later skill wins."
+        let list = skills.enumerated().map { "Skill \($0.offset + 1), \"\($0.element.name)\":\n\($0.element.instructions)" }
+        return ([rules(vocabulary: vocabulary), intro] + list).joined(separator: "\n\n")
     }
 
     /// The transcript is wrapped in tags so it is clearly data, not a request to the model.

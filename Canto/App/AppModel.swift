@@ -455,7 +455,7 @@ final class AppModel {
         let processingStart = Date()
         let processed = await process(raw, settings: settings)
         guard !Task.isCancelled else { return nil }
-        let skillName = processed.rewriteFallback ? nil : SkillStore(directory: AppPaths.skillsDirectory).skill(named: settings.skill)?.name
+        let skillName = processed.skills.isEmpty ? nil : processed.skills.joined(separator: " + ")
         return Recognition(text: processed.text, pressEnter: processed.pressEnter, rewriteFallback: processed.rewriteFallback,
                            usedLocalFallback: usedLocalFallback, provider: provider, recognitionTime: recognitionTime,
                            processingTime: Date().timeIntervalSince(processingStart), skillName: skillName,
@@ -917,7 +917,7 @@ final class AppModel {
 
     /// The chat model a skill runs on, or `nil` without a skill or a way to reach a model.
     private func skillChat(for settings: AppSettings, session: URLSession) -> (any ChatCompleting)? {
-        guard settings.skill != nil else { return nil }
+        guard !settings.skills.isEmpty else { return nil }
         switch settings.aiProvider {
         case .openAI: return apiKey().map { OpenAIChatClient(apiKey: $0, session: session) }
         case .localServer: return OpenAIChatClient(serverURL: settings.aiServerURL, session: session)
@@ -949,7 +949,7 @@ final class AppModel {
         do {
             let skill = try SkillStore(directory: AppPaths.skillsDirectory).importSkill(from: url)
             refreshSkills()
-            settings.skill = skill.fileName
+            if !settings.skills.contains(skill.fileName) { settings.skills.append(skill.fileName) }
         } catch {
             show(Notice(message: String(localized: "The skill could not be imported")))
         }

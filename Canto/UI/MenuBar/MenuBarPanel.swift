@@ -73,13 +73,17 @@ struct MenuBarPanel: View {
                 }
             }
             Divider().padding(.leading, 36)
-            QuickRow(symbol: "sparkles", title: "Skill") {
-                ValueMenu(title: model.skills.first { $0.fileName == model.settings.skill }?.name ?? String(localized: "None")) {
-                    Picker("Skill", selection: $model.settings.skill) {
-                        Text("None").tag(String?.none)
-                        ForEach(model.skills) { skill in
-                            Text(skill.name).tag(Optional(skill.fileName))
-                        }
+            QuickRow(symbol: "sparkles", title: "Skills") {
+                ValueMenu(title: skillsTitle) {
+                    ForEach(model.skills) { skill in
+                        Toggle(skill.name, isOn: Binding(
+                            get: { model.settings.skills.contains(skill.fileName) },
+                            set: { _ in model.settings.toggleSkill(skill.fileName) }
+                        ))
+                    }
+                    if !model.settings.skills.isEmpty {
+                        Divider()
+                        Button("Turn off all skills") { model.settings.skills = [] }
                     }
                 }
             }
@@ -429,5 +433,14 @@ struct ElapsedTime: View {
                     .foregroundStyle(.secondary)
             }
         }
+    }
+}
+
+private extension MenuBarPanel {
+    /// "Software Engineer", or "Software Engineer +1" when several skills are on.
+    var skillsTitle: String {
+        let names = model.settings.skills.compactMap { fileName in model.skills.first { $0.fileName == fileName }?.name }
+        guard let first = names.first else { return String(localized: "None") }
+        return names.count == 1 ? first : "\(first) +\(names.count - 1)"
     }
 }

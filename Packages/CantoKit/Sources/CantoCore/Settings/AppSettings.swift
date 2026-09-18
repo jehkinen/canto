@@ -192,8 +192,9 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var unloadModelAfterMinutes = 5
 
     public var textProcessingMode: TextProcessingMode = .basic
-    /// File name of the active skill (a Markdown file in the skills folder); `nil` runs no AI step.
-    public var skill: String?
+    /// File names of the active skills (Markdown files in the skills folder), in the order they were
+    /// turned on. They run together in one AI request; none runs no AI step.
+    public var skills: [String] = []
     public var aiProvider: AIProvider = .openAI
     public var aiServerURL = "http://localhost:11434/v1"
     public var aiServerModel = ""
@@ -232,7 +233,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
     }
 
     public var needsAPIKey: Bool {
-        transcriptionProvider == .openAI || (skill != nil && aiProvider == .openAI)
+        transcriptionProvider == .openAI || (!skills.isEmpty && aiProvider == .openAI)
     }
 
     public var vadConfiguration: VADConfiguration {
@@ -277,6 +278,17 @@ public struct AppSettings: Codable, Equatable, Sendable {
     /// The synthesized keys plus the one that only older settings files have.
     enum LegacyCodingKeys: String, CodingKey {
         case numbersAsWords
+        /// One skill, before several could be on at once.
+        case skill
+    }
+
+    /// Turns a skill on (it runs after those already on) or off.
+    public mutating func toggleSkill(_ fileName: String) {
+        if let index = skills.firstIndex(of: fileName) {
+            skills.remove(at: index)
+        } else {
+            skills.append(fileName)
+        }
     }
 
     // Decoding tolerates missing keys so settings saved by an older build keep loading.
@@ -301,10 +313,12 @@ public struct AppSettings: Codable, Equatable, Sendable {
         whisperBeamSize = try c.decodeIfPresent(Int.self, forKey: .whisperBeamSize) ?? d.whisperBeamSize
         unloadModelAfterMinutes = try c.decodeIfPresent(Int.self, forKey: .unloadModelAfterMinutes) ?? d.unloadModelAfterMinutes
         textProcessingMode = try c.decodeIfPresent(TextProcessingMode.self, forKey: .textProcessingMode) ?? d.textProcessingMode
-        skill = try c.decodeIfPresent(String.self, forKey: .skill)
+        let legacy = try decoder.container(keyedBy: LegacyCodingKeys.self)
+        let oneSkill = try legacy.decodeIfPresent(String.self, forKey: .skill)
+        skills = try c.decodeIfPresent([String].self, forKey: .skills) ?? oneSkill.map { [$0] } ?? d.skills
         // An old AI mode continues as the skill that replaced it, on top of the basic cleanup.
         if let replacement = textProcessingMode.legacySkillFileName {
-            skill = skill ?? replacement
+            if skills.isEmpty { skills = [replacement] }
             textProcessingMode = .basic
         }
         aiProvider = try c.decodeIfPresent(AIProvider.self, forKey: .aiProvider) ?? d.aiProvider
@@ -312,7 +326,6 @@ public struct AppSettings: Codable, Equatable, Sendable {
         aiServerModel = try c.decodeIfPresent(String.self, forKey: .aiServerModel) ?? d.aiServerModel
         spokenPunctuation = try c.decodeIfPresent(Bool.self, forKey: .spokenPunctuation) ?? d.spokenPunctuation
         // Settings saved before the three-way choice existed only had "numbers as words".
-        let legacy = try decoder.container(keyedBy: LegacyCodingKeys.self)
         let legacyNumbersAsWords = try legacy.decodeIfPresent(Bool.self, forKey: .numbersAsWords) ?? false
         numberFormat = try c.decodeIfPresent(NumberFormat.self, forKey: .numberFormat) ?? (legacyNumbersAsWords ? .words : d.numberFormat)
         currencySymbols = try c.decodeIfPresent(Bool.self, forKey: .currencySymbols) ?? d.currencySymbols

@@ -1,6 +1,6 @@
 import Foundation
 
-/// Runs a skill on a transcript with a chat model: OpenAI or an OpenAI-compatible local server.
+/// Runs one or several skills on a transcript with a chat model: OpenAI or an OpenAI-compatible local server.
 public struct AIRewriter: Sendable {
     /// The OpenAI model skills use.
     public static let model = "gpt-4.1-mini"
@@ -13,10 +13,9 @@ public struct AIRewriter: Sendable {
         self.model = model
     }
 
-    public func rewrite(_ transcript: String, skillName: String, instructions: String, vocabulary: [String]) async throws -> String {
+    public func rewrite(_ transcript: String, skills: [LoadedSkill], vocabulary: [String]) async throws -> String {
         let request = ChatCompletionRequest(model: model, temperature: 0.2, messages: [
-            ChatMessage(role: "system", content: RewritePrompt.system(skillName: skillName, instructions: instructions,
-                                                                      vocabulary: vocabulary)),
+            ChatMessage(role: "system", content: RewritePrompt.system(skills: skills, vocabulary: vocabulary)),
             ChatMessage(role: "user", content: RewritePrompt.user(transcript)),
         ])
         let text = Self.sanitize(try await chat.complete(request))

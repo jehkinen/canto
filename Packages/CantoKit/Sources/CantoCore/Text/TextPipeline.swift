@@ -6,12 +6,16 @@ public struct ProcessedText: Equatable, Sendable {
     /// The AI mode could not be used and the text was cleaned up the basic way instead.
     public var rewriteFallback: Bool
     public var rewriteFallbackReason: String?
+    /// Names of the skills that processed the text.
+    public var skills: [String]
 
-    public init(text: String, pressEnter: Bool, rewriteFallback: Bool = false, rewriteFallbackReason: String? = nil) {
+    public init(text: String, pressEnter: Bool, rewriteFallback: Bool = false, rewriteFallbackReason: String? = nil,
+                skills: [String] = []) {
         self.text = text
         self.pressEnter = pressEnter
         self.rewriteFallback = rewriteFallback
         self.rewriteFallbackReason = rewriteFallbackReason
+        self.skills = skills
     }
 }
 
@@ -53,11 +57,15 @@ public struct TextPipeline: Sendable {
         }
 
         var fallbackReason: String?
-        if let fileName = settings.skill, !text.isEmpty {
-            if let chat, let skill = skills.skill(named: fileName), let instructions = skills.instructions(for: fileName) {
+        var applied: [String] = []
+        if !settings.skills.isEmpty, !text.isEmpty {
+            // A skill whose file is gone is skipped; the others still run.
+            let loaded = skills.load(settings.skills)
+            if let chat, !loaded.isEmpty {
                 do {
                     text = try await AIRewriter(chat: chat, model: model)
-                        .rewrite(text, skillName: skill.name, instructions: instructions, vocabulary: settings.vocabulary)
+                        .rewrite(text, skills: loaded, vocabulary: settings.vocabulary)
+                    applied = loaded.map(\.name)
                     // The model may spell a number out again or bend a term's spelling.
                     text = formatNumbers(text, settings: settings, fallbackLanguage: fallbackLanguage)
                     if !settings.vocabulary.isEmpty {
@@ -67,12 +75,12 @@ public struct TextPipeline: Sendable {
                     fallbackReason = String(describing: error)
                 }
             } else {
-                fallbackReason = chat == nil ? "no AI connection" : "skill \(fileName) not found"
+                fallbackReason = chat == nil ? "no AI connection" : "skill \(settings.skills.joined(separator: ", ")) not found"
             }
         }
 
         return ProcessedText(text: text, pressEnter: enter.pressEnter, rewriteFallback: fallbackReason != nil,
-                             rewriteFallbackReason: fallbackReason)
+                             rewriteFallbackReason: fallbackReason, skills: applied)
     }
 
     private func formatNumbers(_ text: String, settings: AppSettings, fallbackLanguage: String) -> String {

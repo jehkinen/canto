@@ -23,8 +23,8 @@ final class FakeChat: ChatCompleting, @unchecked Sendable {
 struct AIRewriterTests {
     @Test func sendsSkillAndVocabulary() async throws {
         let chat = FakeChat([.success("Готовый текст.")])
-        let text = try await AIRewriter(chat: chat).rewrite("ну готовый текст", skillName: "Markdown",
-                                                            instructions: "Format it as Markdown.", vocabulary: ["Node.js", "AWS"])
+        let text = try await AIRewriter(chat: chat).rewrite("ну готовый текст", skills: [LoadedSkill(name: "Markdown", instructions: "Format it as Markdown.")],
+                                                            vocabulary: ["Node.js", "AWS"])
         #expect(text == "Готовый текст.")
         let request = try #require(chat.requests.first)
         #expect(request.model == AIRewriter.model)
@@ -37,7 +37,7 @@ struct AIRewriterTests {
 
     @Test func localServerGetsItsOwnModel() async throws {
         let chat = FakeChat([.success("Ok.")])
-        _ = try await AIRewriter(chat: chat, model: "qwen2.5:7b").rewrite("ok", skillName: "S", instructions: "Do.", vocabulary: [])
+        _ = try await AIRewriter(chat: chat, model: "qwen2.5:7b").rewrite("ok", skills: [LoadedSkill(name: "S", instructions: "Do.")], vocabulary: [])
         #expect(chat.requests.first?.model == "qwen2.5:7b")
         #expect(chat.requests.first?.messages[0].content.contains("Spell these terms") == false)
     }
@@ -52,9 +52,21 @@ struct AIRewriterTests {
         #expect(AIRewriter.sanitize(reply) == expected)
     }
 
+    @Test func severalSkillsGoInOneRequestInOrder() async throws {
+        let chat = FakeChat([.success("Ok.")])
+        _ = try await AIRewriter(chat: chat).rewrite("ok", skills: [LoadedSkill(name: "A", instructions: "Do A."),
+                                                               LoadedSkill(name: "B", instructions: "Do B.")], vocabulary: [])
+        #expect(chat.requests.count == 1)
+        let system = try #require(chat.requests.first?.messages[0].content)
+        #expect(system.contains("Apply all 2 skills"))
+        let first = try #require(system.range(of: "Skill 1, \"A\":\nDo A."))
+        let second = try #require(system.range(of: "Skill 2, \"B\":\nDo B."))
+        #expect(first.lowerBound < second.lowerBound)
+    }
+
     @Test func emptyReplyIsAnError() async {
         await #expect(throws: ChatError.emptyResponse) {
-            try await AIRewriter(chat: FakeChat([.success("```\n```")])).rewrite("текст", skillName: "S", instructions: "Do.", vocabulary: [])
+            try await AIRewriter(chat: FakeChat([.success("```\n```")])).rewrite("текст", skills: [LoadedSkill(name: "S", instructions: "Do.")], vocabulary: [])
         }
     }
 }
@@ -86,7 +98,7 @@ struct TextPipelineTests {
     @Test func enterPhraseIsRemovedBeforeTheSkill() async {
         let chat = FakeChat([.success("Буду через пять минут.")])
         let processed = await pipeline(chat).process("буду через пять минут отправить", settings: settings {
-            $0.skill = "Clean up.md"
+            $0.skills = ["Clean up.md"]
             $0.pressEnterOnTrigger = true
             $0.enterTriggerPhrase = "отправить"
         }, fallbackLanguage: "ru")
@@ -97,32 +109,41 @@ struct TextPipelineTests {
 
     @Test func artifactsOnlyGiveEmptyText() async {
         let chat = FakeChat([])
-        let processed = await pipeline(chat).process("Спасибо за просмотр!", settings: settings { $0.skill = "Clean up.md" }, fallbackLanguage: "ru")
+        let processed = await pipeline(chat).process("Спасибо за просмотр!", settings: settings { $0.skills = ["Clean up.md"] }, fallbackLanguage: "ru")
         #expect(processed.text.isEmpty)
         #expect(chat.requests.isEmpty)
     }
 
     @Test func skillFailureKeepsTheCleanedUpText() async {
         let processed = await pipeline(FakeChat([.failure(.quotaExceeded)])).process("мы мы пойдём", settings: settings {
-            $0.skill = "Clean up.md"
+            $0.skills = ["Clean up.md"]
         }, fallbackLanguage: "ru")
         #expect(processed.text == "Мы пойдём")
         #expect(processed.rewriteFallback)
     }
 
     @Test func noConnectionOrMissingSkillFallsBack() async {
-        let noChat = await pipeline(nil).process("тест", settings: settings { $0.skill = "Clean up.md" }, fallbackLanguage: "ru")
+        let noChat = await pipeline(nil).process("тест", settings: settings { $0.skills = ["Clean up.md"] }, fallbackLanguage: "ru")
         #expect(noChat.text == "Тест")
         #expect(noChat.rewriteFallbackReason == "no AI connection")
-        let missing = await pipeline(FakeChat([])).process("тест", settings: settings { $0.skill = "Gone.md" }, fallbackLanguage: "ru")
+        let missing = await pipeline(FakeChat([])).process("тест", settings: settings { $0.skills = ["Gone.md"] }, fallbackLanguage: "ru")
         #expect(missing.text == "Тест")
         #expect(missing.rewriteFallbackReason == "skill Gone.md not found")
+    }
+
+    @Test func aMissingSkillIsSkippedAndTheOthersRun() async {
+        let chat = FakeChat([.success("Готово.")])
+        let processed = await pipeline(chat).process("готово", settings: settings { $0.skills = ["Gone.md", "Clean up.md"] },
+                                                     fallbackLanguage: "ru")
+        #expect(processed.text == "Готово.")
+        #expect(processed.skills == ["Clean up"])
+        #expect(!processed.rewriteFallback)
     }
 
     @Test func numbersTheSkillSpellsOutBecomeDigitsAgain() async {
         let chat = FakeChat([.success("Один и пять.")])
         let processed = await pipeline(chat).process("один и пять", settings: settings {
-            $0.skill = "Clean up.md"
+            $0.skills = ["Clean up.md"]
             $0.numberFormat = .digits
         }, fallbackLanguage: "ru")
         #expect(chat.requests.first?.messages[1].content.contains("1 и 5") == true)
@@ -132,7 +153,7 @@ struct TextPipelineTests {
     @Test func skillRunsAfterTheLocalStepsAndVocabularyFixesItsSpelling() async {
         let chat = FakeChat([.success("Деплоим 2 сервиса в aws.")])
         let processed = await pipeline(chat).process("деплоим два сервиса в aws", settings: settings {
-            $0.skill = "Clean up.md"
+            $0.skills = ["Clean up.md"]
             $0.numberFormat = .digits
             $0.vocabulary = ["AWS"]
         }, fallbackLanguage: "ru")
