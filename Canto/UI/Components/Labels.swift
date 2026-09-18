@@ -39,6 +39,7 @@ enum Labels {
         switch kind {
         case .largeV3Turbo: "Whisper: 99 languages, takes the vocabulary into account while recognizing"
         case .parakeetV3: "Fastest, on the Neural Engine; 25 European languages"
+        case .base where kind.isOffered: "Small and fast, less accurate"
         case .base, .small, .medium, .largeV3: "No longer offered. Delete it to free up space."
         }
     }

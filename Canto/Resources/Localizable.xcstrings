@@ -1735,6 +1735,16 @@
         }
       }
     },
+    "Small and fast, less accurate" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Маленькая и быстрая, но менее точная"
+          }
+        }
+      }
+    },
     "Something went wrong" : {
       "localizations" : {
         "ru" : {

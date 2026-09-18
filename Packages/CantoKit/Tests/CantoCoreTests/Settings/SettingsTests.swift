@@ -65,13 +65,20 @@ struct AppSettingsTests {
     }
 
     @Test func modelsNoLongerOfferedBecomeLargeV3Turbo() throws {
-        for old in ["base", "small", "medium", "largeV3"] {
+        for old in ["small", "medium", "largeV3"] {
             let settings = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"whisperModel":"\#(old)"}"#.utf8))
             #expect(settings.whisperModel == .largeV3Turbo)
         }
+        // Base stays on Intel Macs only.
+        let base = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"whisperModel":"base"}"#.utf8))
+        #expect(base.whisperModel == (WhisperModelKind.base.isOffered ? .base : .largeV3Turbo))
         let parakeet = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"whisperModel":"parakeetV3"}"#.utf8))
         #expect(parakeet.whisperModel == .parakeetV3)
+        #if arch(arm64)
         #expect(WhisperModelKind.offered == [.largeV3Turbo, .parakeetV3])
+        #else
+        #expect(WhisperModelKind.offered == [.largeV3Turbo, .base])
+        #endif
     }
 
     @Test func leftoverModelsAreListedOnlyWhenOnDisk() throws {

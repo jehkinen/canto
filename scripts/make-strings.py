@@ -55,6 +55,7 @@ RU = {
     "GPT-4o models usually recognize speech and terms more accurately than Whisper. For the fastest results without the internet, use Large v3 Turbo on this Mac.": "Модели GPT-4o обычно точнее Whisper распознают речь и термины. Быстрее всего и без интернета — Large v3 Turbo на этом Mac.",
     "Whisper: 99 languages, takes the vocabulary into account while recognizing": "Whisper: 99 языков, учитывает словарь при распознавании",
     "No longer offered. Delete it to free up space.": "Больше не поддерживается. Удалите, чтобы освободить место.",
+    "Small and fast, less accurate": "Маленькая и быстрая, но менее точная",
     "What the model heard, before punctuation, numbers and the skill": "Что услышала модель, до пунктуации, чисел и скилла",
     "Recognized text, for example from History": "Распознанный текст, например из истории",
     "Try the processing": "Проверка обработки",

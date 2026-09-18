@@ -94,9 +94,16 @@ public enum WhisperModelKind: String, Codable, CaseIterable, Sendable {
         #endif
     }
 
-    /// The two models Canto offers. The others remain only so that settings and files from older
-    /// versions still load and can be deleted.
-    public static let offered: [WhisperModelKind] = [.largeV3Turbo, .parakeetV3]
+    /// The models Canto offers: Large v3 Turbo and Parakeet v3, plus Base on Intel Macs, where
+    /// Parakeet does not run and Turbo is slow on the CPU. The others remain only so that settings
+    /// and files from older versions still load and can be deleted.
+    public static let offered: [WhisperModelKind] = {
+        #if arch(arm64)
+        [.largeV3Turbo, .parakeetV3]
+        #else
+        [.largeV3Turbo, .base]
+        #endif
+    }()
 
     public var isOffered: Bool { Self.offered.contains(self) }
 
@@ -305,7 +312,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         transcriptionProvider = try c.decodeIfPresent(TranscriptionProvider.self, forKey: .transcriptionProvider) ?? d.transcriptionProvider
         openAITranscriptionModel = try c.decodeIfPresent(String.self, forKey: .openAITranscriptionModel) ?? d.openAITranscriptionModel
         vocabulary = try c.decodeIfPresent([String].self, forKey: .vocabulary) ?? d.vocabulary
-        // Base, Small, Medium and Large v3 are no longer offered: Large v3 Turbo replaces them.
+        // Small, Medium, Large v3 (and Base on Apple silicon) are no longer offered: Large v3 Turbo replaces them.
         let model = try c.decodeIfPresent(WhisperModelKind.self, forKey: .whisperModel) ?? d.whisperModel
         whisperModel = model.isOffered ? model : .largeV3Turbo
         whisperModelsDirectory = try c.decodeIfPresent(String.self, forKey: .whisperModelsDirectory)
