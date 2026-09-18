@@ -93,31 +93,44 @@ struct EnterPhraseTests {
     }
 }
 
-struct StyleStoreTests {
-    func makeStore() -> StyleStore {
-        StyleStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent("canto-styles-\(UUID())"))
+struct SkillStoreTests {
+    func makeStore() -> SkillStore {
+        SkillStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent("canto-skills-\(UUID())"))
     }
 
-    @Test func createsFolderWithExample() throws {
+    @Test func seedsTheBundledSkills() throws {
         let store = makeStore()
         try store.ensureDirectory()
-        #expect(store.list() == [AIStyle(fileName: StyleStore.exampleFileName, name: "Friendly and concise")])
-        #expect(store.instructions(for: StyleStore.exampleFileName)?.contains("friendly tone") == true)
+        #expect(store.list().map(\.name) == ["Clean up", "Markdown", "Organize", "Software Engineer", "Translate to English"])
+        let engineer = try #require(store.instructions(for: "Software Engineer.md"))
+        #expect(!engineer.hasPrefix("#"))
+        #expect(engineer.contains("«пуш» → push"))
+        #expect(store.instructions(for: "Organize.md")?.contains("no Markdown symbols") == true)
+        #expect(store.instructions(for: "Clean up.md")?.contains("Never translate") == true)
+    }
+
+    @Test func leavesAnExistingFolderAlone() throws {
+        let store = makeStore()
+        try FileManager.default.createDirectory(at: store.directory, withIntermediateDirectories: true)
+        try store.ensureDirectory()
+        #expect(store.list().isEmpty)
     }
 
     @Test func importsMarkdownAndNamesItByHeading() throws {
         let store = makeStore()
         let source = FileManager.default.temporaryDirectory.appendingPathComponent("legal-\(UUID()).md")
         try "# Legal\n\nUse formal language.".write(to: source, atomically: true, encoding: .utf8)
-        let style = try store.importStyle(from: source)
-        #expect(style.name == "Legal")
-        #expect(store.instructions(for: style.fileName) == "# Legal\n\nUse formal language.")
+        let skill = try store.importSkill(from: source)
+        #expect(skill.name == "Legal")
+        #expect(store.instructions(for: skill.fileName) == "Use formal language.")
+        #expect(store.skill(named: skill.fileName) == skill)
     }
 
     @Test func rejectsOtherFilesAndPathsOutsideTheFolder() throws {
         let store = makeStore()
-        #expect(throws: (any Error).self) { try store.importStyle(from: URL(fileURLWithPath: "/tmp/notes.txt")) }
+        #expect(throws: (any Error).self) { try store.importSkill(from: URL(fileURLWithPath: "/tmp/notes.txt")) }
         #expect(store.instructions(for: "../../etc/passwd") == nil)
         #expect(store.instructions(for: nil) == nil)
+        #expect(store.skill(named: "Missing.md") == nil)
     }
 }

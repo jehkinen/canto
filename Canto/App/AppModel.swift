@@ -63,7 +63,7 @@ final class AppModel {
     private(set) var keychainMatches: [KeychainStore.FoundItem] = []
     private(set) var keychainSearchMessage: String?
     var isChoosingKeychainItem = false
-    private(set) var styles: [AIStyle] = []
+    private(set) var skills: [Skill] = []
     private(set) var hotkeyConflict = false
     private(set) var isMicrophoneTestRunning = false
     var isRecordingShortcut = false {
@@ -157,7 +157,7 @@ final class AppModel {
         refreshDevices()
         AudioDevices.observeChanges { [weak self] in self?.refreshDevices() }
         refreshModels()
-        refreshStyles()
+        refreshSkills()
         prewarmLocalModel()
 
         NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main) { _ in
@@ -355,6 +355,7 @@ final class AppModel {
         var provider: TranscriptionProvider
         var recognitionTime: TimeInterval
         var processingTime: TimeInterval
+        var skillName: String?
     }
 
     /// Phrases are recognized as soon as they end, in parallel, so one slow request does not hold
@@ -431,18 +432,19 @@ final class AppModel {
         let recognitionTime = Date().timeIntervalSince(recognitionStart)
         guard !Task.isCancelled, !Vocabulary.isEchoOfPrompt(raw, terms: settings.vocabulary) else { return nil }
 
-        let session = OpenAISession.make()
+        // A local model can take a while to load on its first request.
+        let session = OpenAISession.make(totalTimeout: 120)
         defer { session.finishTasksAndInvalidate() }
-        let chat: (any ChatCompleting)? = settings.textProcessingMode.usesAI
-            ? apiKey().map { OpenAIChatClient(apiKey: $0, session: session) }
-            : nil
+        let skills = SkillStore(directory: AppPaths.skillsDirectory)
         let processingStart = Date()
-        let processed = await TextPipeline(chat: chat, styles: StyleStore(directory: AppPaths.stylesDirectory))
+        let processed = await TextPipeline(chat: skillChat(for: settings, session: session), skills: skills,
+                                           model: Self.skillModel(for: settings))
             .process(raw, settings: settings, fallbackLanguage: Self.interfaceLanguage)
         guard !Task.isCancelled else { return nil }
+        let skillName = processed.rewriteFallback ? nil : skills.skill(named: settings.skill)?.name
         return Recognition(text: processed.text, pressEnter: processed.pressEnter, rewriteFallback: processed.rewriteFallback,
                            usedLocalFallback: usedLocalFallback, provider: provider, recognitionTime: recognitionTime,
-                           processingTime: Date().timeIntervalSince(processingStart))
+                           processingTime: Date().timeIntervalSince(processingStart), skillName: skillName)
     }
 
     private func deliver(_ result: Recognition, segment: AudioSegment, endedAt: Date, settings: AppSettings) async {
@@ -458,13 +460,15 @@ final class AppModel {
             phrase \(segment.duration, format: .fixed(precision: 1), privacy: .public)s via \(result.provider.rawValue, privacy: .public)\
             \(result.usedLocalFallback ? " (OpenAI fallback)" : "", privacy: .public): \
             recognition \(result.recognitionTime, format: .fixed(precision: 2), privacy: .public)s, \
-            \(settings.textProcessingMode.rawValue, privacy: .public) \(result.processingTime, format: .fixed(precision: 2), privacy: .public)s, \
+            \(settings.textProcessingMode.rawValue, privacy: .public)\(result.skillName.map { " + " + $0 } ?? "", privacy: .public) \
+            \(result.processingTime, format: .fixed(precision: 2), privacy: .public)s, \
             total \(latency, format: .fixed(precision: 2), privacy: .public)s, inserted \(result.text.count, privacy: .public) chars \
             into \(appName ?? "?", privacy: .public) (\(String(describing: outcome), privacy: .public))
             """)
         if settings.keepHistory, hasContent {
             addToHistory(TranscriptEntry(text: result.text, duration: segment.duration, provider: result.provider,
-                                         processingMode: settings.textProcessingMode, appName: appName, latency: latency))
+                                         processingMode: settings.textProcessingMode, appName: appName, latency: latency,
+                                         skill: result.skillName))
         }
 
         switch outcome {
@@ -473,7 +477,8 @@ final class AppModel {
         case .inserted where result.usedLocalFallback:
             show(Notice(message: String(localized: "OpenAI did not respond, recognized on this Mac")))
         case .inserted where result.rewriteFallback:
-            show(Notice(message: String(localized: "AI styling failed, inserted the cleaned-up text"), action: .openAPIKey))
+            show(Notice(message: String(localized: "The skill did not run, inserted the text without it"),
+                        action: settings.aiProvider == .openAI ? .openAPIKey : nil))
         case .inserted:
             if !isListening, jobsInFlight <= 1 {
                 phase = .inserted
@@ -857,31 +862,45 @@ final class AppModel {
         keychainSearchMessage = nil
     }
 
-    // MARK: AI styles
+    // MARK: Skills
 
-    func refreshStyles() {
-        let store = StyleStore(directory: AppPaths.stylesDirectory)
+    /// The chat model a skill runs on, or `nil` without a skill or a way to reach a model.
+    private func skillChat(for settings: AppSettings, session: URLSession) -> (any ChatCompleting)? {
+        guard settings.skill != nil else { return nil }
+        switch settings.aiProvider {
+        case .openAI: return apiKey().map { OpenAIChatClient(apiKey: $0, session: session) }
+        case .localServer: return OpenAIChatClient(serverURL: settings.aiServerURL, session: session)
+        }
+    }
+
+    private static func skillModel(for settings: AppSettings) -> String {
+        let local = settings.aiServerModel.trimmingCharacters(in: .whitespacesAndNewlines)
+        return settings.aiProvider == .localServer && !local.isEmpty ? local : AIRewriter.model
+    }
+
+    func refreshSkills() {
+        let store = SkillStore(directory: AppPaths.skillsDirectory)
         try? store.ensureDirectory()
-        styles = store.list()
+        skills = store.list()
     }
 
-    func openStylesFolder() {
-        try? StyleStore(directory: AppPaths.stylesDirectory).ensureDirectory()
-        NSWorkspace.shared.open(AppPaths.stylesDirectory)
+    func openSkillsFolder() {
+        try? SkillStore(directory: AppPaths.skillsDirectory).ensureDirectory()
+        NSWorkspace.shared.open(AppPaths.skillsDirectory)
     }
 
-    func importStyle() {
+    func importSkill() {
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.init(filenameExtension: "md")].compactMap { $0 }
         panel.allowsMultipleSelection = false
         NSApp.activate(ignoringOtherApps: true)
         guard panel.runModal() == .OK, let url = panel.url else { return }
         do {
-            let style = try StyleStore(directory: AppPaths.stylesDirectory).importStyle(from: url)
-            refreshStyles()
-            settings.aiStyle = style.fileName
+            let skill = try SkillStore(directory: AppPaths.skillsDirectory).importSkill(from: url)
+            refreshSkills()
+            settings.skill = skill.fileName
         } catch {
-            show(Notice(message: String(localized: "The style could not be imported")))
+            show(Notice(message: String(localized: "The skill could not be imported")))
         }
     }
 

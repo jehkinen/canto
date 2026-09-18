@@ -44,7 +44,7 @@ struct AdvancedPane: View {
         .confirmationDialog("Reset all settings?", isPresented: $confirmReset) {
             Button("Reset", role: .destructive) { model.resetSettings() }
         } message: {
-            Text("Your models, history, styles and API key are kept.")
+            Text("Your models, history, skills and API key are kept.")
         }
     }
 }

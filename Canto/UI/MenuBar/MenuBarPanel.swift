@@ -73,11 +73,12 @@ struct MenuBarPanel: View {
                 }
             }
             Divider().padding(.leading, 36)
-            QuickRow(symbol: "text.quote", title: "Text") {
-                ValueMenu(title: String(localized: Labels.processingResource(model.settings.textProcessingMode))) {
-                    Picker("Text", selection: $model.settings.textProcessingMode) {
-                        ForEach(TextProcessingMode.allCases, id: \.self) { mode in
-                            Text(Labels.processing(mode)).tag(mode)
+            QuickRow(symbol: "sparkles", title: "Skill") {
+                ValueMenu(title: model.skills.first { $0.fileName == model.settings.skill }?.name ?? String(localized: "None")) {
+                    Picker("Skill", selection: $model.settings.skill) {
+                        Text("None").tag(String?.none)
+                        ForEach(model.skills) { skill in
+                            Text(skill.name).tag(Optional(skill.fileName))
                         }
                     }
                 }

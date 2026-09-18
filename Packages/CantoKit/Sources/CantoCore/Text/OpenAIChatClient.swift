@@ -39,26 +39,39 @@ public enum ChatError: Error, Equatable, Sendable {
 public struct OpenAIChatClient: ChatCompleting {
     static let endpoint = URL(string: "https://api.openai.com/v1/chat/completions")!
 
-    private let apiKey: String
+    private let apiKey: String?
+    private let endpoint: URL
     private let session: URLSession
     private let retryDelay: Duration
 
     public init(apiKey: String, session: URLSession) {
-        self.init(apiKey: apiKey, session: session, retryDelay: .milliseconds(400))
+        self.init(apiKey: apiKey, endpoint: Self.endpoint, session: session, retryDelay: .milliseconds(400))
     }
 
-    init(apiKey: String, session: URLSession, retryDelay: Duration) {
+    /// A local OpenAI-compatible server, such as Ollama (`http://localhost:11434/v1`) or LM Studio
+    /// (`http://localhost:1234/v1`). Returns `nil` for an address that is not an http(s) URL.
+    public init?(serverURL: String, session: URLSession) {
+        var base = serverURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        while base.hasSuffix("/") { base.removeLast() }
+        if base.hasSuffix("/chat/completions") { base.removeLast("/chat/completions".count) }
+        guard let url = URL(string: base + "/chat/completions"), ["http", "https"].contains(url.scheme ?? ""),
+              url.host?.isEmpty == false else { return nil }
+        self.init(apiKey: nil, endpoint: url, session: session, retryDelay: .milliseconds(400))
+    }
+
+    init(apiKey: String?, endpoint: URL = OpenAIChatClient.endpoint, session: URLSession, retryDelay: Duration) {
         self.apiKey = apiKey
+        self.endpoint = endpoint
         self.session = session
         self.retryDelay = retryDelay
     }
 
     public func complete(_ request: ChatCompletionRequest) async throws -> String {
-        var urlRequest = URLRequest(url: Self.endpoint)
+        var urlRequest = URLRequest(url: endpoint)
         urlRequest.httpMethod = "POST"
         // The reply is not streamed: nothing arrives until a long rewrite is complete.
         urlRequest.timeoutInterval = 60
-        urlRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        if let apiKey { urlRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization") }
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         urlRequest.httpBody = try JSONEncoder().encode(Body(model: request.model, temperature: request.temperature, messages: request.messages))
 

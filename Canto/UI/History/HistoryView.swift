@@ -125,7 +125,10 @@ private struct HistoryRow: View {
                     .labelStyle(.titleAndIcon)
                     .help(Text("Time from the end of the phrase to the inserted text"))
                 }
-                if entry.processingMode.usesAI {
+                if let skill = entry.skill {
+                    Text("·")
+                    Label(skill, systemImage: "sparkles").labelStyle(.titleAndIcon)
+                } else if entry.processingMode.usesAI {
                     Text("·")
                     Label("AI", systemImage: "sparkles").labelStyle(.titleAndIcon)
                 }

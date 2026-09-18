@@ -18,16 +18,36 @@ public enum TranscriptionProvider: String, Codable, CaseIterable, Sendable {
 public enum TextProcessingMode: String, Codable, CaseIterable, Sendable {
     case original
     case basic
+    // The AI modes of earlier versions, now the skills "Clean up", "Organize" and "Markdown".
+    // They stay decodable for old settings and history.
     case optimization
     case structural
     case mdStructural
 
+    /// The modes offered today: the AI step is a skill on top of either of them.
+    public static let choices: [TextProcessingMode] = [.original, .basic]
+
     public var usesAI: Bool {
+        legacySkillFileName != nil
+    }
+
+    /// The skill that replaced an old AI mode.
+    public var legacySkillFileName: String? {
         switch self {
-        case .optimization, .structural, .mdStructural: true
-        case .original, .basic: false
+        case .optimization: "Clean up.md"
+        case .structural: "Organize.md"
+        case .mdStructural: "Markdown.md"
+        case .original, .basic: nil
         }
     }
+}
+
+/// Where skills run.
+public enum AIProvider: String, Codable, CaseIterable, Sendable {
+    /// OpenAI with the user's key.
+    case openAI
+    /// An OpenAI-compatible server, such as Ollama or LM Studio on this Mac.
+    case localServer
 }
 
 /// How numbers appear in the finished text.
@@ -166,8 +186,11 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var whisperBeamSize = 1
 
     public var textProcessingMode: TextProcessingMode = .basic
-    /// File name of the AI style (a Markdown file in the styles folder).
-    public var aiStyle: String?
+    /// File name of the active skill (a Markdown file in the skills folder); `nil` runs no AI step.
+    public var skill: String?
+    public var aiProvider: AIProvider = .openAI
+    public var aiServerURL = "http://localhost:11434/v1"
+    public var aiServerModel = ""
     public var spokenPunctuation = true
     public var numberFormat: NumberFormat = .asHeard
     /// "50 долларов" becomes "$50", "50 евро" becomes "50 €".
@@ -203,7 +226,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
     }
 
     public var needsAPIKey: Bool {
-        transcriptionProvider == .openAI || textProcessingMode.usesAI
+        transcriptionProvider == .openAI || (skill != nil && aiProvider == .openAI)
     }
 
     public var vadConfiguration: VADConfiguration {
@@ -268,7 +291,15 @@ public struct AppSettings: Codable, Equatable, Sendable {
         whisperUseGPU = try c.decodeIfPresent(Bool.self, forKey: .whisperUseGPU) ?? d.whisperUseGPU
         whisperBeamSize = try c.decodeIfPresent(Int.self, forKey: .whisperBeamSize) ?? d.whisperBeamSize
         textProcessingMode = try c.decodeIfPresent(TextProcessingMode.self, forKey: .textProcessingMode) ?? d.textProcessingMode
-        aiStyle = try c.decodeIfPresent(String.self, forKey: .aiStyle)
+        skill = try c.decodeIfPresent(String.self, forKey: .skill)
+        // An old AI mode continues as the skill that replaced it, on top of the basic cleanup.
+        if let replacement = textProcessingMode.legacySkillFileName {
+            skill = skill ?? replacement
+            textProcessingMode = .basic
+        }
+        aiProvider = try c.decodeIfPresent(AIProvider.self, forKey: .aiProvider) ?? d.aiProvider
+        aiServerURL = try c.decodeIfPresent(String.self, forKey: .aiServerURL) ?? d.aiServerURL
+        aiServerModel = try c.decodeIfPresent(String.self, forKey: .aiServerModel) ?? d.aiServerModel
         spokenPunctuation = try c.decodeIfPresent(Bool.self, forKey: .spokenPunctuation) ?? d.spokenPunctuation
         // Settings saved before the three-way choice existed only had "numbers as words".
         let legacy = try decoder.container(keyedBy: LegacyCodingKeys.self)

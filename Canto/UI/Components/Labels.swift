@@ -10,33 +10,17 @@ enum Labels {
         }
     }
 
-    static func processingResource(_ mode: TextProcessingMode) -> LocalizedStringResource {
-        switch mode {
-        case .original: "Original"
-        case .basic: "Basic cleanup"
-        case .optimization: "Optimization"
-        case .structural: "Structure"
-        case .mdStructural: "Markdown structure"
-        }
-    }
-
     static func processing(_ mode: TextProcessingMode) -> LocalizedStringKey {
         switch mode {
         case .original: "Original"
-        case .basic: "Basic cleanup"
-        case .optimization: "Optimization"
-        case .structural: "Structure"
-        case .mdStructural: "Markdown structure"
+        case .basic, .optimization, .structural, .mdStructural: "Basic cleanup"
         }
     }
 
     static func processingDescription(_ mode: TextProcessingMode) -> LocalizedStringKey {
         switch mode {
-        case .original: "Whisper's transcript as is, without cleanup."
-        case .basic: "Removes hallucinations, fixes spacing and capitalization."
-        case .optimization: "AI cleans up dictation: removes filler words, fixes recognition errors, keeps your meaning and tone."
-        case .structural: "Like Optimization, plus clear logic: grouped ideas, order, short paragraphs."
-        case .mdStructural: "Like Structure, plus Markdown: headings and lists, short paragraphs."
+        case .original: "The transcript as is, without cleanup."
+        case .basic, .optimization, .structural, .mdStructural: "Removes hallucinations, fixes spacing and capitalization."
         }
     }
 

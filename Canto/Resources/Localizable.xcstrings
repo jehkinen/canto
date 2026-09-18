@@ -50,12 +50,12 @@
         }
       }
     },
-    "A style is a Markdown file with extra instructions for the AI, such as tone or terminology." : {
+    "A skill is a Markdown file with instructions for the AI: clean up, organize, fix technical terms, translate. It runs after the cleanup and adds about a second." : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Стиль — это Markdown-файл с дополнительными указаниями для ИИ, например о тоне или терминологии."
+            "value" : "Скилл — это Markdown-файл с инструкцией для ИИ: почистить текст, разложить по разделам, поправить технические термины, перевести. Он работает после очистки и добавляет около секунды."
           }
         }
       }
@@ -70,32 +70,12 @@
         }
       }
     },
-    "AI cleans up dictation: removes filler words, fixes recognition errors, keeps your meaning and tone." : {
+    "AI skill" : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ИИ чистит диктовку: убирает слова-паразиты, исправляет ошибки распознавания, сохраняет смысл и тон."
-          }
-        }
-      }
-    },
-    "AI style" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Стиль ИИ"
-          }
-        }
-      }
-    },
-    "AI styling failed, inserted the cleaned-up text" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ИИ-обработка не удалась, вставлен очищенный текст"
+            "value" : "ИИ-скилл"
           }
         }
       }
@@ -942,26 +922,6 @@
         }
       }
     },
-    "Like Optimization, plus clear logic: grouped ideas, order, short paragraphs." : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Как «Оптимизация», плюс чёткая логика: группы мыслей, порядок, короткие абзацы."
-          }
-        }
-      }
-    },
-    "Like Structure, plus Markdown: headings and lists, short paragraphs." : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Как «Структура», плюс Markdown: заголовки и списки, короткие абзацы."
-          }
-        }
-      }
-    },
     "Listening" : {
       "localizations" : {
         "ru" : {
@@ -972,22 +932,22 @@
         }
       }
     },
+    "Local server" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Локальный сервер"
+          }
+        }
+      }
+    },
     "Longest phrase" : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Самая длинная фраза"
-          }
-        }
-      }
-    },
-    "Markdown structure" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Структура Markdown"
           }
         }
       }
@@ -1082,12 +1042,12 @@
         }
       }
     },
-    "Needed for AI processing and for recognition with OpenAI. Local recognition works without it." : {
+    "Needed for skills on OpenAI and for recognition with OpenAI. Local recognition works without it." : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Нужен для ИИ-обработки и распознавания через OpenAI. Локальное распознавание работает без него."
+            "value" : "Нужен для скиллов и распознавания через OpenAI. Локальное распознавание работает без него."
           }
         }
       }
@@ -1158,6 +1118,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Выключено"
+          }
+        }
+      }
+    },
+    "Ollama: http://localhost:11434/v1, LM Studio: http://localhost:1234/v1. The text stays on your Mac." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ollama: http://localhost:11434/v1, LM Studio: http://localhost:1234/v1. Текст не покидает ваш Mac."
           }
         }
       }
@@ -1251,16 +1221,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "OpenAI отклонил ключ API"
-          }
-        }
-      }
-    },
-    "Optimization" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Оптимизация"
           }
         }
       }
@@ -1475,12 +1435,12 @@
         }
       }
     },
-    "Reload styles" : {
+    "Reload skills" : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Обновить стили"
+            "value" : "Обновить скиллы"
           }
         }
       }
@@ -1555,6 +1515,16 @@
         }
       }
     },
+    "Runs on" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Где работает"
+          }
+        }
+      }
+    },
     "Save" : {
       "localizations" : {
         "ru" : {
@@ -1611,6 +1581,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Отправка"
+          }
+        }
+      }
+    },
+    "Server" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер"
           }
         }
       }
@@ -1711,6 +1691,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Показывать индикатор записи"
+          }
+        }
+      }
+    },
+    "Skill" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скилл"
           }
         }
       }
@@ -1821,26 +1811,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Стоп"
-          }
-        }
-      }
-    },
-    "Structure" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Структура"
-          }
-        }
-      }
-    },
-    "Style" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Стиль"
           }
         }
       }
@@ -1985,6 +1955,26 @@
         }
       }
     },
+    "The skill could not be imported" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось импортировать скилл"
+          }
+        }
+      }
+    },
+    "The skill did not run, inserted the text without it" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скилл не сработал, текст вставлен без него"
+          }
+        }
+      }
+    },
     "The speech model could not be loaded" : {
       "localizations" : {
         "ru" : {
@@ -1995,12 +1985,12 @@
         }
       }
     },
-    "The style could not be imported" : {
+    "The transcript as is, without cleanup." : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Не удалось импортировать стиль"
+            "value" : "Расшифровка как есть, без очистки."
           }
         }
       }
@@ -2278,16 +2268,6 @@
     "Whisper" : {
       "shouldTranslate" : false
     },
-    "Whisper's transcript as is, without cleanup." : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Текст Whisper как есть, без очистки."
-          }
-        }
-      }
-    },
     "Words: twenty-five" : {
       "localizations" : {
         "ru" : {
@@ -2348,12 +2328,12 @@
         }
       }
     },
-    "Your models, history, styles and API key are kept." : {
+    "Your models, history, skills and API key are kept." : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Модели, история, стили и ключ API сохранятся."
+            "value" : "Модели, история, скиллы и ключ API сохранятся."
           }
         }
       }

@@ -1,6 +1,6 @@
 import Foundation
 
-/// Where Canto keeps its models, styles and history.
+/// Where Canto keeps its models, skills and history.
 public enum AppPaths {
     public static var supportDirectory: URL {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -11,8 +11,8 @@ public enum AppPaths {
         supportDirectory.appendingPathComponent("models", isDirectory: true)
     }
 
-    public static var stylesDirectory: URL {
-        supportDirectory.appendingPathComponent("styles", isDirectory: true)
+    public static var skillsDirectory: URL {
+        supportDirectory.appendingPathComponent("skills", isDirectory: true)
     }
 
     public static var historyFile: URL {

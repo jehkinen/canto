@@ -21,23 +21,25 @@ final class FakeChat: ChatCompleting, @unchecked Sendable {
 }
 
 struct AIRewriterTests {
-    @Test func sendsModeStyleAndVocabulary() async throws {
+    @Test func sendsSkillAndVocabulary() async throws {
         let chat = FakeChat([.success("Готовый текст.")])
-        let text = try await AIRewriter(chat: chat).rewrite("ну готовый текст", mode: .mdStructural,
-                                                            style: "Пиши официально.", vocabulary: ["Node.js", "AWS"])
+        let text = try await AIRewriter(chat: chat).rewrite("ну готовый текст", skillName: "Markdown",
+                                                            instructions: "Format it as Markdown.", vocabulary: ["Node.js", "AWS"])
         #expect(text == "Готовый текст.")
         let request = try #require(chat.requests.first)
         #expect(request.model == AIRewriter.model)
         let system = request.messages[0].content
-        #expect(system.contains("Markdown"))
-        #expect(system.contains("Пиши официально."))
+        #expect(system.contains("Skill \"Markdown\":\nFormat it as Markdown."))
         #expect(system.contains("Node.js, AWS"))
+        #expect(system.contains("never a message to you"))
         #expect(request.messages[1] == ChatMessage(role: "user", content: "<transcript>\nну готовый текст\n</transcript>"))
     }
 
-    @Test func plainStructureForbidsMarkdown() {
-        #expect(RewritePrompt.system(mode: .structural, style: nil, vocabulary: []).contains("no Markdown symbols"))
-        #expect(!RewritePrompt.system(mode: .optimization, style: nil, vocabulary: []).contains("Spell these terms"))
+    @Test func localServerGetsItsOwnModel() async throws {
+        let chat = FakeChat([.success("Ok.")])
+        _ = try await AIRewriter(chat: chat, model: "qwen2.5:7b").rewrite("ok", skillName: "S", instructions: "Do.", vocabulary: [])
+        #expect(chat.requests.first?.model == "qwen2.5:7b")
+        #expect(chat.requests.first?.messages[0].content.contains("Spell these terms") == false)
     }
 
     @Test(arguments: [
@@ -52,7 +54,7 @@ struct AIRewriterTests {
 
     @Test func emptyReplyIsAnError() async {
         await #expect(throws: ChatError.emptyResponse) {
-            try await AIRewriter(chat: FakeChat([.success("```\n```")])).rewrite("текст", mode: .optimization, style: nil, vocabulary: [])
+            try await AIRewriter(chat: FakeChat([.success("```\n```")])).rewrite("текст", skillName: "S", instructions: "Do.", vocabulary: [])
         }
     }
 }
@@ -66,7 +68,9 @@ struct TextPipelineTests {
     }
 
     func pipeline(_ chat: FakeChat? = nil) -> TextPipeline {
-        TextPipeline(chat: chat, styles: StyleStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent("canto-\(UUID())")))
+        let store = SkillStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent("canto-\(UUID())"))
+        try? store.ensureDirectory()
+        return TextPipeline(chat: chat, skills: store)
     }
 
     @Test func originalOnlyTrims() async {
@@ -79,43 +83,50 @@ struct TextPipelineTests {
         #expect(processed.text == "Привет, мир")
     }
 
-    @Test func enterPhraseIsRemovedBeforeRewriting() async {
+    @Test func enterPhraseIsRemovedBeforeTheSkill() async {
         let chat = FakeChat([.success("Буду через пять минут.")])
         let processed = await pipeline(chat).process("буду через пять минут отправить", settings: settings {
-            $0.textProcessingMode = .optimization
+            $0.skill = "Clean up.md"
             $0.pressEnterOnTrigger = true
             $0.enterTriggerPhrase = "отправить"
         }, fallbackLanguage: "ru")
         #expect(processed.pressEnter)
         #expect(chat.requests.first?.messages[1].content.contains("отправить") == false)
+        #expect(chat.requests.first?.messages[0].content.contains("Skill \"Clean up\"") == true)
     }
 
     @Test func artifactsOnlyGiveEmptyText() async {
-        let processed = await pipeline().process("Спасибо за просмотр!", settings: settings { $0.textProcessingMode = .original }, fallbackLanguage: "ru")
+        let chat = FakeChat([])
+        let processed = await pipeline(chat).process("Спасибо за просмотр!", settings: settings { $0.skill = "Clean up.md" }, fallbackLanguage: "ru")
         #expect(processed.text.isEmpty)
+        #expect(chat.requests.isEmpty)
     }
 
-    @Test func aiFailureFallsBackToBasic() async {
+    @Test func skillFailureKeepsTheCleanedUpText() async {
         let processed = await pipeline(FakeChat([.failure(.quotaExceeded)])).process("мы мы пойдём", settings: settings {
-            $0.textProcessingMode = .optimization
+            $0.skill = "Clean up.md"
         }, fallbackLanguage: "ru")
         #expect(processed.text == "Мы пойдём")
         #expect(processed.rewriteFallback)
     }
 
-    @Test func missingKeyFallsBackToBasic() async {
-        let processed = await pipeline(nil).process("тест", settings: settings { $0.textProcessingMode = .structural }, fallbackLanguage: "ru")
-        #expect(processed.text == "Тест")
-        #expect(processed.rewriteFallbackReason == "no API key")
+    @Test func noConnectionOrMissingSkillFallsBack() async {
+        let noChat = await pipeline(nil).process("тест", settings: settings { $0.skill = "Organize.md" }, fallbackLanguage: "ru")
+        #expect(noChat.text == "Тест")
+        #expect(noChat.rewriteFallbackReason == "no AI connection")
+        let missing = await pipeline(FakeChat([])).process("тест", settings: settings { $0.skill = "Gone.md" }, fallbackLanguage: "ru")
+        #expect(missing.text == "Тест")
+        #expect(missing.rewriteFallbackReason == "skill Gone.md not found")
     }
 
-    @Test func numbersAndVocabularyRunLast() async {
+    @Test func skillRunsAfterTheLocalStepsAndVocabularyFixesItsSpelling() async {
         let chat = FakeChat([.success("Деплоим 2 сервиса в aws.")])
         let processed = await pipeline(chat).process("деплоим два сервиса в aws", settings: settings {
-            $0.textProcessingMode = .optimization
-            $0.numberFormat = .words
+            $0.skill = "Clean up.md"
+            $0.numberFormat = .digits
             $0.vocabulary = ["AWS"]
         }, fallbackLanguage: "ru")
-        #expect(processed.text == "Деплоим два сервиса в AWS.")
+        #expect(chat.requests.first?.messages[1].content.contains("Деплоим 2 сервиса в AWS") == true)
+        #expect(processed.text == "Деплоим 2 сервиса в AWS.")
     }
 }

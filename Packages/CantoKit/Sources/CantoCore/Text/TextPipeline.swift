@@ -15,14 +15,18 @@ public struct ProcessedText: Equatable, Sendable {
     }
 }
 
-/// From raw recognized text to the text that gets inserted.
+/// From raw recognized text to the text that gets inserted: Whisper artifacts, spoken commands,
+/// cleanup, numbers, currency and vocabulary are handled here on the Mac; a skill, when one is
+/// chosen, then runs on a chat model.
 public struct TextPipeline: Sendable {
     let chat: (any ChatCompleting)?
-    let styles: StyleStore
+    let skills: SkillStore
+    let model: String
 
-    public init(chat: (any ChatCompleting)?, styles: StyleStore) {
+    public init(chat: (any ChatCompleting)?, skills: SkillStore, model: String = AIRewriter.model) {
         self.chat = chat
-        self.styles = styles
+        self.skills = skills
+        self.model = model
     }
 
     public func process(_ raw: String, settings: AppSettings, fallbackLanguage: String) async -> ProcessedText {
@@ -36,29 +40,11 @@ public struct TextPipeline: Sendable {
             text = TextCleanup.applySpokenPunctuation(text)
         }
 
-        var fallbackReason: String?
         switch settings.textProcessingMode {
         case .original:
             text = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        case .basic:
+        case .basic, .optimization, .structural, .mdStructural:
             text = TextCleanup.basic(text)
-        case .optimization, .structural, .mdStructural:
-            if let chat, !text.isEmpty {
-                do {
-                    text = try await AIRewriter(chat: chat).rewrite(
-                        text,
-                        mode: settings.textProcessingMode,
-                        style: styles.instructions(for: settings.aiStyle),
-                        vocabulary: settings.vocabulary
-                    )
-                } catch {
-                    fallbackReason = String(describing: error)
-                    text = TextCleanup.basic(text)
-                }
-            } else {
-                if chat == nil { fallbackReason = "no API key" }
-                text = TextCleanup.basic(text)
-            }
         }
 
         switch settings.numberFormat {
@@ -74,6 +60,24 @@ public struct TextPipeline: Sendable {
         }
         if !settings.vocabulary.isEmpty {
             text = Vocabulary.apply(text, terms: settings.vocabulary)
+        }
+
+        var fallbackReason: String?
+        if let fileName = settings.skill, !text.isEmpty {
+            if let chat, let skill = skills.skill(named: fileName), let instructions = skills.instructions(for: fileName) {
+                do {
+                    text = try await AIRewriter(chat: chat, model: model)
+                        .rewrite(text, skillName: skill.name, instructions: instructions, vocabulary: settings.vocabulary)
+                    // The model may still bend a term's spelling.
+                    if !settings.vocabulary.isEmpty {
+                        text = Vocabulary.apply(text, terms: settings.vocabulary)
+                    }
+                } catch {
+                    fallbackReason = String(describing: error)
+                }
+            } else {
+                fallbackReason = chat == nil ? "no AI connection" : "skill \(fileName) not found"
+            }
         }
 
         return ProcessedText(text: text, pressEnter: enter.pressEnter, rewriteFallback: fallbackReason != nil,

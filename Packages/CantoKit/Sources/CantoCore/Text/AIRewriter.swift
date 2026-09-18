@@ -1,18 +1,22 @@
 import Foundation
 
-/// Rewrites a transcript with an OpenAI chat model according to the selected text mode.
+/// Runs a skill on a transcript with a chat model: OpenAI or an OpenAI-compatible local server.
 public struct AIRewriter: Sendable {
+    /// The OpenAI model skills use.
     public static let model = "gpt-4.1-mini"
 
     let chat: any ChatCompleting
+    let model: String
 
-    public init(chat: any ChatCompleting) {
+    public init(chat: any ChatCompleting, model: String = AIRewriter.model) {
         self.chat = chat
+        self.model = model
     }
 
-    public func rewrite(_ transcript: String, mode: TextProcessingMode, style: String?, vocabulary: [String]) async throws -> String {
-        let request = ChatCompletionRequest(model: Self.model, temperature: 0.2, messages: [
-            ChatMessage(role: "system", content: RewritePrompt.system(mode: mode, style: style, vocabulary: vocabulary)),
+    public func rewrite(_ transcript: String, skillName: String, instructions: String, vocabulary: [String]) async throws -> String {
+        let request = ChatCompletionRequest(model: model, temperature: 0.2, messages: [
+            ChatMessage(role: "system", content: RewritePrompt.system(skillName: skillName, instructions: instructions,
+                                                                      vocabulary: vocabulary)),
             ChatMessage(role: "user", content: RewritePrompt.user(transcript)),
         ])
         let text = Self.sanitize(try await chat.complete(request))

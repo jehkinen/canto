@@ -41,8 +41,8 @@ struct SpokenNumbersTests {
         var settings = AppSettings()
         settings.textProcessingMode = .original
         settings.numberFormat = .digits
-        let store = StyleStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent("canto-\(UUID())"))
-        let processed = await TextPipeline(chat: nil, styles: store)
+        let store = SkillStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent("canto-\(UUID())"))
+        let processed = await TextPipeline(chat: nil, skills: store)
             .process("пятьдесят долларов и двадцать евро", settings: settings, fallbackLanguage: "ru")
         #expect(processed.text == "$50 и 20\u{00A0}€")
     }

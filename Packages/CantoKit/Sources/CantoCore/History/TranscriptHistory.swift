@@ -10,10 +10,12 @@ public struct TranscriptEntry: Codable, Identifiable, Equatable, Sendable {
     public var appName: String?
     /// Seconds from the end of the phrase to the text being inserted.
     public var latency: TimeInterval?
+    /// The name of the skill that processed the text.
+    public var skill: String?
 
     public init(id: UUID = UUID(), date: Date = Date(), text: String, duration: TimeInterval,
                 provider: TranscriptionProvider, processingMode: TextProcessingMode, appName: String?,
-                latency: TimeInterval? = nil) {
+                latency: TimeInterval? = nil, skill: String? = nil) {
         self.id = id
         self.date = date
         self.text = text
@@ -22,6 +24,7 @@ public struct TranscriptEntry: Codable, Identifiable, Equatable, Sendable {
         self.processingMode = processingMode
         self.appName = appName
         self.latency = latency
+        self.skill = skill
     }
 }
 

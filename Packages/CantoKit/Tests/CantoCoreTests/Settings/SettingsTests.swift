@@ -67,9 +67,26 @@ struct AppSettingsTests {
     @Test func roundTripsThroughJSON() throws {
         var settings = AppSettings()
         settings.language = "ru"
-        settings.textProcessingMode = .mdStructural
+        settings.textProcessingMode = .original
+        settings.skill = "Software Engineer.md"
+        settings.aiProvider = .localServer
+        settings.aiServerModel = "qwen2.5:7b"
         let decoded = try JSONDecoder().decode(AppSettings.self, from: JSONEncoder().encode(settings))
         #expect(decoded == settings)
+    }
+
+    @Test func oldAIModesBecomeSkills() throws {
+        let mode = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"textProcessingMode":"structural"}"#.utf8))
+        #expect(mode.textProcessingMode == .basic)
+        #expect(mode.skill == "Organize.md")
+        let chosen = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"textProcessingMode":"optimization","skill":"Mine.md"}"#.utf8))
+        #expect(chosen.skill == "Mine.md")
+        #expect(!AppSettings().needsAPIKey)
+        var local = AppSettings()
+        local.skill = "Clean up.md"
+        #expect(local.needsAPIKey)
+        local.aiProvider = .localServer
+        #expect(!local.needsAPIKey)
     }
 
     @Test func sanitizedClampsRanges() {

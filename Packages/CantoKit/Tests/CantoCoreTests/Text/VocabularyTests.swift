@@ -56,8 +56,8 @@ struct VocabularyTests {
         var settings = AppSettings()
         settings.textProcessingMode = .basic
         settings.vocabulary = ["ChatGPT"]
-        let store = StyleStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent("canto-vocab-\(UUID())"))
-        let processed = await TextPipeline(chat: nil, styles: store).process("chat gpt ответил", settings: settings, fallbackLanguage: "ru")
+        let store = SkillStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent("canto-vocab-\(UUID())"))
+        let processed = await TextPipeline(chat: nil, skills: store).process("chat gpt ответил", settings: settings, fallbackLanguage: "ru")
         #expect(processed.text == "ChatGPT ответил")
     }
 }

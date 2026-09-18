@@ -10,19 +10,9 @@ struct TextPane: View {
         Form {
             Section {
                 Picker("Processing", selection: $model.settings.textProcessingMode) {
-                    ForEach(TextProcessingMode.allCases, id: \.self) { mode in
+                    ForEach(TextProcessingMode.choices, id: \.self) { mode in
                         VStack(alignment: .leading, spacing: 2) {
-                            HStack(spacing: 6) {
-                                Text(Labels.processing(mode))
-                                if mode.usesAI {
-                                    Text("AI")
-                                        .font(.caption2.weight(.semibold))
-                                        .padding(.horizontal, 5)
-                                        .padding(.vertical, 1)
-                                        .background(.purple.opacity(0.15), in: Capsule())
-                                        .foregroundStyle(.purple)
-                                }
-                            }
+                            Text(Labels.processing(mode))
                             Text(Labels.processingDescription(mode))
                                 .font(.caption).foregroundStyle(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -37,32 +27,43 @@ struct TextPane: View {
             }
 
             Section {
-                Picker("Style", selection: $model.settings.aiStyle) {
+                Picker("Skill", selection: $model.settings.skill) {
                     Text("None").tag(String?.none)
-                    ForEach(model.styles) { style in
-                        Text(style.name).tag(Optional(style.fileName))
+                    ForEach(model.skills) { skill in
+                        Text(skill.name).tag(Optional(skill.fileName))
                     }
+                }
+                Picker("Runs on", selection: $model.settings.aiProvider) {
+                    Text("OpenAI").tag(AIProvider.openAI)
+                    Text("Local server").tag(AIProvider.localServer)
+                }
+                if model.settings.aiProvider == .localServer {
+                    TextField("Server", text: $model.settings.aiServerURL, prompt: Text(verbatim: "http://localhost:11434/v1"))
+                    TextField("Model", text: $model.settings.aiServerModel, prompt: Text(verbatim: "qwen2.5:7b"))
                 }
                 LabeledContent {
                     HStack {
-                        Button("Import…") { model.importStyle() }
-                        Button("Open Folder") { model.openStylesFolder() }
+                        Button("Import…") { model.importSkill() }
+                        Button("Open Folder") { model.openSkillsFolder() }
                         Button {
-                            model.refreshStyles()
+                            model.refreshSkills()
                         } label: {
                             Image(systemName: "arrow.clockwise")
                         }
-                        .help(Text("Reload styles"))
+                        .help(Text("Reload skills"))
                     }
                 } label: {
                     EmptyView()
                 }
             } header: {
-                Text("AI style")
+                Text("AI skill")
             } footer: {
-                Text("A style is a Markdown file with extra instructions for the AI, such as tone or terminology.")
+                if model.settings.aiProvider == .localServer {
+                    Text("Ollama: http://localhost:11434/v1, LM Studio: http://localhost:1234/v1. The text stays on your Mac.")
+                } else {
+                    Text("A skill is a Markdown file with instructions for the AI: clean up, organize, fix technical terms, translate. It runs after the cleanup and adds about a second.")
+                }
             }
-            .disabled(!model.settings.textProcessingMode.usesAI)
 
             Section("Cleanup") {
                 Toggle(isOn: $model.settings.spokenPunctuation) {
@@ -113,11 +114,11 @@ struct TextPane: View {
             } header: {
                 Text("OpenAI")
             } footer: {
-                Text("Needed for AI processing and for recognition with OpenAI. Local recognition works without it.")
+                Text("Needed for skills on OpenAI and for recognition with OpenAI. Local recognition works without it.")
             }
         }
         .formStyle(.grouped)
-        .onAppear { model.refreshStyles() }
+        .onAppear { model.refreshSkills() }
         .keychainKeyChooser()
     }
 
