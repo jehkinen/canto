@@ -34,8 +34,8 @@ chats, email, notes, code editors, the terminal.
 
 - **Works everywhere.** A global shortcut, or Caps Lock, in any app. Hold to talk, or press to start and stop
   and let pauses split your speech into phrases.
-- **Private by default.** Speech is recognized on your Mac with Whisper, accelerated by Metal. Nothing leaves your
-  Mac unless you choose OpenAI.
+- **Private by default.** Speech is recognized on your Mac with Whisper Large v3 Turbo on Metal or Parakeet v3 on
+  the Neural Engine. Nothing leaves your Mac unless you choose OpenAI.
 - **OpenAI when you want it.** GPT-4o Transcribe or Whisper in the cloud, with a fallback to a downloaded local
   model when the network does not answer.
 - **Clean text.** Keep the transcript as is, tidy it up, or let AI remove filler words, organize long thoughts into
@@ -82,8 +82,8 @@ MIT. Canto is built on [whisper.cpp](https://github.com/ggml-org/whisper.cpp) an
 
 - **Работает в любом приложении.** Глобальное сочетание клавиш или Caps Lock. Можно удерживать, а можно нажать
   один раз и говорить: паузы сами делят речь на фразы.
-- **Приватно по умолчанию.** Речь распознаётся на вашем Mac с помощью Whisper с ускорением Metal и никуда не
-  отправляется, если вы не выбрали OpenAI.
+- **Приватно по умолчанию.** Речь распознаётся на вашем Mac моделью Whisper Large v3 Turbo на Metal или Parakeet v3
+  на Neural Engine и никуда не отправляется, если вы не выбрали OpenAI.
 - **OpenAI по желанию.** GPT-4o Transcribe или Whisper в облаке. Если сеть не отвечает, Canto распознаёт скачанной
   локальной моделью.
 - **Чистый текст.** Оставить расшифровку как есть, аккуратно почистить или доверить ИИ: убрать слова-паразиты,
