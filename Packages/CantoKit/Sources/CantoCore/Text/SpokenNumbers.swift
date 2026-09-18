@@ -6,10 +6,27 @@ public enum SpokenNumbers {
     // MARK: Words to digits
 
     /// Number words that stay words when they are the only number around: on its own "один"/"one"
-    /// is usually an article or a pronoun ("одна из них"), not a quantity.
-    static let standaloneExceptions: Set<String> = ["один", "одна", "одно", "одну", "одни", "one"]
+    /// is usually an article or a pronoun ("одна из них", "ни одного"), "семью" is a family and
+    /// "сорока" a magpie.
+    static let standaloneExceptions: Set<String> = [
+        "один", "одна", "одно", "одну", "одни", "одного", "одному", "одним", "одном", "одной", "одною",
+        "семью", "сорока", "one",
+    ]
 
-    static let units: [String: Int] = [
+    /// Every form of a number word and its value: "пять", "до пяти", "с пятью" are all 5.
+    static let units: [String: Int] = {
+        var table = nominativeUnits
+        for (value, forms) in caseForms {
+            for form in forms { table[form] = value }
+        }
+        // "ё" is often written as "е": "трёх" and "трех".
+        for (word, value) in table where word.contains("ё") {
+            table[word.replacingOccurrences(of: "ё", with: "е")] = value
+        }
+        return table
+    }()
+
+    static let nominativeUnits: [String: Int] = [
         "ноль": 0, "нуль": 0, "один": 1, "одна": 1, "одно": 1, "одну": 1, "два": 2, "две": 2, "три": 3, "четыре": 4,
         "пять": 5, "шесть": 6, "семь": 7, "восемь": 8, "девять": 9, "десять": 10, "одиннадцать": 11,
         "двенадцать": 12, "тринадцать": 13, "четырнадцать": 14, "пятнадцать": 15, "шестнадцать": 16,
@@ -23,13 +40,56 @@ public enum SpokenNumbers {
         "forty": 40, "fifty": 50, "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90,
     ]
 
-    /// Words that multiply the number before them.
-    static let multipliers: [String: Int] = [
-        "hundred": 100, "thousand": 1_000, "million": 1_000_000, "billion": 1_000_000_000,
-        "тысяча": 1_000, "тысячи": 1_000, "тысяч": 1_000, "тысячу": 1_000,
-        "миллион": 1_000_000, "миллиона": 1_000_000, "миллионов": 1_000_000,
-        "миллиард": 1_000_000_000, "миллиарда": 1_000_000_000, "миллиардов": 1_000_000_000,
-    ]
+    /// Russian case forms of the numbers, beyond the nominative. Zero is left out: "с нуля" means
+    /// "from scratch".
+    static let caseForms: [Int: [String]] = {
+        var forms: [Int: [String]] = [
+            1: ["одного", "одному", "одним", "одном", "одной", "одною"],
+            2: ["двух", "двум", "двумя"],
+            3: ["трёх", "трём", "тремя"],
+            4: ["четырёх", "четырём", "четырьмя"],
+            7: ["семи", "семью"],
+            8: ["восьми", "восемью", "восьмью"],
+            40: ["сорока"],
+            90: ["девяноста"],
+            100: ["ста"],
+            200: ["двухсот", "двумстам", "двумястами", "двухстах"],
+            300: ["трёхсот", "трёмстам", "тремястами", "трёхстах"],
+            400: ["четырёхсот", "четырёмстам", "четырьмястами", "четырёхстах"],
+        ]
+        // "пять" → "пяти", "пятью"; the same for 6, 9, 10–20 and 30.
+        let regular = ["пять": 5, "шесть": 6, "девять": 9, "десять": 10, "одиннадцать": 11, "двенадцать": 12,
+                       "тринадцать": 13, "четырнадцать": 14, "пятнадцать": 15, "шестнадцать": 16, "семнадцать": 17,
+                       "восемнадцать": 18, "девятнадцать": 19, "двадцать": 20, "тридцать": 30]
+        for (word, value) in regular {
+            let stem = String(word.dropLast())
+            forms[value] = [stem + "и", stem + "ью"]
+        }
+        // 50–80 and 500–900 decline both halves: "пятидесяти", "пятьюдесятью", "пятисот", "пятьюстами".
+        let halves: [(genitive: String, instrumental: String, value: Int)] = [
+            ("пяти", "пятью", 5), ("шести", "шестью", 6), ("семи", "семью", 7), ("восьми", "восемью", 8), ("девяти", "девятью", 9),
+        ]
+        for half in halves {
+            if half.value < 9 {
+                forms[half.value * 10] = [half.genitive + "десяти", half.instrumental + "десятью"]
+            }
+            forms[half.value * 100] = [half.genitive + "сот", half.genitive + "стам", half.instrumental + "стами", half.genitive + "стах"]
+        }
+        return forms
+    }()
+
+    /// Words that multiply the number before them, in every case.
+    static let multipliers: [String: Int] = {
+        var table: [String: Int] = ["hundred": 100, "thousand": 1_000, "million": 1_000_000, "billion": 1_000_000_000]
+        for form in ["тысяча", "тысячи", "тысяче", "тысячу", "тысячей", "тысячею", "тысяч", "тысячам", "тысячами", "тысячах"] {
+            table[form] = 1_000
+        }
+        for ending in ["", "а", "у", "ом", "е", "ов", "ам", "ами", "ах"] {
+            table["миллион" + ending] = 1_000_000
+            table["миллиард" + ending] = 1_000_000_000
+        }
+        return table
+    }()
 
     /// Multipliers that mean one of them when they come alone: "тысяча рублей" is 1000, while
     /// "тысячи людей" and "a thousand people" are not a number to write in digits.
