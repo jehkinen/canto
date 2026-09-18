@@ -64,6 +64,26 @@ struct AppSettingsTests {
         #expect(settings.silenceTimeoutMs == 700)
     }
 
+    @Test func modelsNoLongerOfferedBecomeLargeV3Turbo() throws {
+        for old in ["base", "small", "medium", "largeV3"] {
+            let settings = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"whisperModel":"\#(old)"}"#.utf8))
+            #expect(settings.whisperModel == .largeV3Turbo)
+        }
+        let parakeet = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"whisperModel":"parakeetV3"}"#.utf8))
+        #expect(parakeet.whisperModel == .parakeetV3)
+        #expect(WhisperModelKind.offered == [.largeV3Turbo, .parakeetV3])
+    }
+
+    @Test func leftoverModelsAreListedOnlyWhenOnDisk() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("canto-models-\(UUID())")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = WhisperModelStore(directory: directory)
+        #expect(!store.models().contains { $0.kind == .base })
+        try Data([1]).write(to: store.url(for: .base))
+        #expect(store.models().last?.kind == .base)
+    }
+
     @Test func roundTripsThroughJSON() throws {
         var settings = AppSettings()
         settings.language = "ru"

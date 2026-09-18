@@ -12,10 +12,12 @@ public struct TranscriptEntry: Codable, Identifiable, Equatable, Sendable {
     public var latency: TimeInterval?
     /// The name of the skill that processed the text.
     public var skill: String?
+    /// What the model heard, before punctuation, numbers and the skill; kept when it differs from `text`.
+    public var recognized: String?
 
     public init(id: UUID = UUID(), date: Date = Date(), text: String, duration: TimeInterval,
                 provider: TranscriptionProvider, processingMode: TextProcessingMode, appName: String?,
-                latency: TimeInterval? = nil, skill: String? = nil) {
+                latency: TimeInterval? = nil, skill: String? = nil, recognized: String? = nil) {
         self.id = id
         self.date = date
         self.text = text
@@ -25,6 +27,7 @@ public struct TranscriptEntry: Codable, Identifiable, Equatable, Sendable {
         self.appName = appName
         self.latency = latency
         self.skill = skill
+        self.recognized = recognized
     }
 }
 

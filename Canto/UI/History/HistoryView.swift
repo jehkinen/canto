@@ -107,6 +107,16 @@ private struct HistoryRow: View {
             Text(entry.text)
                 .textSelection(.enabled)
                 .lineLimit(6)
+            if let recognized = entry.recognized {
+                Label {
+                    Text(recognized).textSelection(.enabled).lineLimit(4)
+                } icon: {
+                    Image(systemName: "waveform")
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .help(Text("What the model heard, before punctuation, numbers and the skill"))
+            }
             HStack(spacing: 6) {
                 Text(entry.date, style: .time)
                 if let app = entry.appName {

@@ -140,16 +140,6 @@
         }
       }
     },
-    "Accurate, needs a recent Mac" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Точная, нужен современный Mac"
-          }
-        }
-      }
-    },
     "Add" : {
       "localizations" : {
         "ru" : {
@@ -306,16 +296,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Сбалансированно"
-          }
-        }
-      }
-    },
-    "Balanced speed and accuracy" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Баланс скорости и точности"
           }
         }
       }
@@ -686,22 +666,12 @@
         }
       }
     },
-    "Fast, good for clear speech" : {
+    "Fastest, on the Neural Engine; 25 European languages" : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Быстрая, подходит для чёткой речи"
-          }
-        }
-      }
-    },
-    "Fastest, on the Neural Engine; the vocabulary only fixes spelling" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Самая быстрая, на Neural Engine; словарь только исправляет написание"
+            "value" : "Самая быстрая, на Neural Engine; 25 европейских языков"
           }
         }
       }
@@ -1042,16 +1012,6 @@
         }
       }
     },
-    "Most accurate, slowest" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Самая точная и самая медленная"
-          }
-        }
-      }
-    },
     "Much faster on Apple silicon." : {
       "localizations" : {
         "ru" : {
@@ -1068,16 +1028,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Имена и термины, которые нужно писать именно так, например OpenAI или ChatGPT, а не русскими буквами. Они подсказывают распознаванию и не замедляют его."
-          }
-        }
-      }
-    },
-    "Nearly as accurate as Large, fast on Apple silicon" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Почти как Large по точности, быстрая на Apple silicon"
           }
         }
       }
@@ -1138,6 +1088,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Нет связи с OpenAI"
+          }
+        }
+      }
+    },
+    "No longer offered. Delete it to free up space." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Больше не поддерживается. Удалите, чтобы освободить место."
           }
         }
       }
@@ -1475,6 +1435,16 @@
         }
       }
     },
+    "Recognized text, for example from History" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Распознанный текст, например из истории"
+          }
+        }
+      }
+    },
     "Release to insert" : {
       "localizations" : {
         "ru" : {
@@ -1561,6 +1531,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Перезапустить Canto"
+          }
+        }
+      }
+    },
+    "Run" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверить"
           }
         }
       }
@@ -2025,12 +2005,32 @@
         }
       }
     },
+    "The skill did not run: %@" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скилл не сработал: %@"
+          }
+        }
+      }
+    },
     "The speech model could not be loaded" : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не удалось загрузить модель распознавания"
+          }
+        }
+      }
+    },
+    "The text goes through the same steps as dictation with the current settings: punctuation, numbers, vocabulary and the skill. History shows what the model heard under each entry." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Текст проходит те же шаги, что и диктовка, с текущими настройками: пунктуацию, числа, словарь и скилл. В истории под каждой записью видно, что услышала модель."
           }
         }
       }
@@ -2151,6 +2151,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Попробуйте здесь"
+          }
+        }
+      }
+    },
+    "Try the processing" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверка обработки"
           }
         }
       }
@@ -2315,6 +2325,16 @@
         }
       }
     },
+    "What the model heard, before punctuation, numbers and the skill" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Что услышала модель, до пунктуации, чисел и скилла"
+          }
+        }
+      }
+    },
     "While Canto runs, Caps Lock acts as F18 and becomes the shortcut. Turn this off or quit Canto to get Caps Lock back." : {
       "localizations" : {
         "ru" : {
@@ -2327,6 +2347,16 @@
     },
     "Whisper" : {
       "shouldTranslate" : false
+    },
+    "Whisper: 99 languages, takes the vocabulary into account while recognizing" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whisper: 99 языков, учитывает словарь при распознавании"
+          }
+        }
+      }
     },
     "Words: twenty-five" : {
       "localizations" : {
@@ -2344,16 +2374,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Писать числа словами"
-          }
-        }
-      }
-    },
-    "You can download larger, more accurate models later in Settings." : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Более крупные и точные модели можно загрузить позже в настройках."
           }
         }
       }

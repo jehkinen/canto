@@ -360,6 +360,7 @@ final class AppModel {
         var recognitionTime: TimeInterval
         var processingTime: TimeInterval
         var skillName: String?
+        var recognized: String
     }
 
     /// Phrases are recognized as soon as they end, in parallel, so one slow request does not hold
@@ -451,19 +452,38 @@ final class AppModel {
         let recognitionTime = Date().timeIntervalSince(recognitionStart)
         guard !Task.isCancelled, !Vocabulary.isEchoOfPrompt(raw, terms: settings.vocabulary) else { return nil }
 
+        let processingStart = Date()
+        let processed = await process(raw, settings: settings)
+        guard !Task.isCancelled else { return nil }
+        let skillName = processed.rewriteFallback ? nil : SkillStore(directory: AppPaths.skillsDirectory).skill(named: settings.skill)?.name
+        return Recognition(text: processed.text, pressEnter: processed.pressEnter, rewriteFallback: processed.rewriteFallback,
+                           usedLocalFallback: usedLocalFallback, provider: provider, recognitionTime: recognitionTime,
+                           processingTime: Date().timeIntervalSince(processingStart), skillName: skillName,
+                           recognized: raw.trimmingCharacters(in: .whitespacesAndNewlines))
+    }
+
+    /// Recognized text through cleanup, numbers, vocabulary and the chosen skill.
+    private func process(_ raw: String, settings: AppSettings) async -> ProcessedText {
         // A local model can take a while to load on its first request.
         let session = OpenAISession.make(totalTimeout: 120)
         defer { session.finishTasksAndInvalidate() }
-        let skills = SkillStore(directory: AppPaths.skillsDirectory)
-        let processingStart = Date()
-        let processed = await TextPipeline(chat: skillChat(for: settings, session: session), skills: skills,
-                                           model: Self.skillModel(for: settings))
+        return await TextPipeline(chat: skillChat(for: settings, session: session), skills: SkillStore(directory: AppPaths.skillsDirectory),
+                                  model: Self.skillModel(for: settings))
             .process(raw, settings: settings, fallbackLanguage: Self.interfaceLanguage)
-        guard !Task.isCancelled else { return nil }
-        let skillName = processed.rewriteFallback ? nil : skills.skill(named: settings.skill)?.name
-        return Recognition(text: processed.text, pressEnter: processed.pressEnter, rewriteFallback: processed.rewriteFallback,
-                           usedLocalFallback: usedLocalFallback, provider: provider, recognitionTime: recognitionTime,
-                           processingTime: Date().timeIntervalSince(processingStart), skillName: skillName)
+    }
+
+    struct ProcessingTrial: Equatable {
+        var text: String
+        var seconds: TimeInterval
+        var problem: String?
+    }
+
+    /// Runs typed text through the same processing as a dictated phrase, to try a skill.
+    func tryProcessing(_ text: String) async -> ProcessingTrial {
+        let start = Date()
+        let processed = await process(text, settings: settings)
+        let problem = processed.rewriteFallbackReason.map { String(localized: "The skill did not run: \($0)") }
+        return ProcessingTrial(text: processed.text, seconds: Date().timeIntervalSince(start), problem: problem)
     }
 
     private func deliver(_ result: Recognition, segment: AudioSegment, endedAt: Date, settings: AppSettings) async {
@@ -487,7 +507,8 @@ final class AppModel {
         if settings.keepHistory, hasContent {
             addToHistory(TranscriptEntry(text: result.text, duration: segment.duration, provider: result.provider,
                                          processingMode: settings.textProcessingMode, appName: appName, latency: latency,
-                                         skill: result.skillName))
+                                         skill: result.skillName,
+                                         recognized: result.recognized == result.text ? nil : result.recognized))
         }
 
         switch outcome {
@@ -515,7 +536,7 @@ final class AppModel {
 
     private func localFallbackTranscriber(for settings: AppSettings) -> (any Transcriber)? {
         let store = modelStore
-        guard let kind = ([settings.whisperModel] + WhisperModelKind.allCases).first(where: { store.isInstalled($0) }) else {
+        guard let kind = ([settings.whisperModel] + WhisperModelKind.available).first(where: { store.isInstalled($0) }) else {
             return nil
         }
         var local = settings
@@ -556,7 +577,7 @@ final class AppModel {
     func activeWhisperModel(for settings: AppSettings) -> WhisperModelKind? {
         let store = WhisperModelStore(directory: AppPaths.modelsDirectory(for: settings))
         if store.isInstalled(settings.whisperModel) { return settings.whisperModel }
-        return WhisperModelKind.allCases.first { store.isInstalled($0) }
+        return WhisperModelKind.available.first { store.isInstalled($0) }
     }
 
     private func prewarmLocalModel() {

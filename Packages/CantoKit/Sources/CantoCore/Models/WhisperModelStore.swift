@@ -42,8 +42,10 @@ public struct WhisperModelStore: Sendable {
         try Data().write(to: completionMarker(for: kind))
     }
 
+    /// The offered models, then any older model still on disk so it can be deleted.
     public func models() -> [WhisperModelInfo] {
-        WhisperModelKind.available.map { WhisperModelInfo(kind: $0, url: url(for: $0), isInstalled: isInstalled($0)) }
+        let leftovers = WhisperModelKind.allCases.filter { !$0.isOffered && isInstalled($0) }
+        return (WhisperModelKind.available + leftovers).map { WhisperModelInfo(kind: $0, url: url(for: $0), isInstalled: isInstalled($0)) }
     }
 
     public func delete(_ kind: WhisperModelKind) throws {

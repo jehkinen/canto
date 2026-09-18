@@ -94,9 +94,15 @@ public enum WhisperModelKind: String, Codable, CaseIterable, Sendable {
         #endif
     }
 
-    /// The models this Mac can run, in the order they are offered.
+    /// The two models Canto offers. The others remain only so that settings and files from older
+    /// versions still load and can be deleted.
+    public static let offered: [WhisperModelKind] = [.largeV3Turbo, .parakeetV3]
+
+    public var isOffered: Bool { Self.offered.contains(self) }
+
+    /// The offered models this Mac can run, in the order they are shown.
     public static var available: [WhisperModelKind] {
-        allCases.filter(\.isAvailable)
+        offered.filter(\.isAvailable)
     }
 
     /// The ggml file of a Whisper model, or the folder of the Parakeet Core ML bundle.
@@ -177,7 +183,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var openAITranscriptionModel = "whisper-1"
     /// Names and terms to keep as written (OpenAI, ChatGPT…): they bias recognition and fix the spelling afterwards.
     public var vocabulary: [String] = []
-    public var whisperModel: WhisperModelKind = .base
+    public var whisperModel: WhisperModelKind = .largeV3Turbo
     /// Custom models folder; `nil` uses Application Support/Canto/Models.
     public var whisperModelsDirectory: String?
     public var whisperUseGPU = AppSettings.gpuRecommended
@@ -287,7 +293,9 @@ public struct AppSettings: Codable, Equatable, Sendable {
         transcriptionProvider = try c.decodeIfPresent(TranscriptionProvider.self, forKey: .transcriptionProvider) ?? d.transcriptionProvider
         openAITranscriptionModel = try c.decodeIfPresent(String.self, forKey: .openAITranscriptionModel) ?? d.openAITranscriptionModel
         vocabulary = try c.decodeIfPresent([String].self, forKey: .vocabulary) ?? d.vocabulary
-        whisperModel = try c.decodeIfPresent(WhisperModelKind.self, forKey: .whisperModel) ?? d.whisperModel
+        // Base, Small, Medium and Large v3 are no longer offered: Large v3 Turbo replaces them.
+        let model = try c.decodeIfPresent(WhisperModelKind.self, forKey: .whisperModel) ?? d.whisperModel
+        whisperModel = model.isOffered ? model : .largeV3Turbo
         whisperModelsDirectory = try c.decodeIfPresent(String.self, forKey: .whisperModelsDirectory)
         whisperUseGPU = try c.decodeIfPresent(Bool.self, forKey: .whisperUseGPU) ?? d.whisperUseGPU
         whisperBeamSize = try c.decodeIfPresent(Int.self, forKey: .whisperBeamSize) ?? d.whisperBeamSize

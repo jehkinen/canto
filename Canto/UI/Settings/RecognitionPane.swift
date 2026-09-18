@@ -154,15 +154,21 @@ private struct ModelRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Button {
-                model.settings.whisperModel = info.kind
-            } label: {
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+            if info.kind.isOffered {
+                Button {
+                    model.settings.whisperModel = info.kind
+                } label: {
+                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                        .font(.title3)
+                        .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+                }
+                .buttonStyle(.plain)
+                .help(Text("Use this model"))
+            } else {
+                Image(systemName: "archivebox")
                     .font(.title3)
-                    .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+                    .foregroundStyle(.tertiary)
             }
-            .buttonStyle(.plain)
-            .help(Text("Use this model"))
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {

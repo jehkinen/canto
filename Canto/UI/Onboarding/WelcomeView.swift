@@ -112,12 +112,10 @@ struct WelcomeView: View {
 
             if model.settings.transcriptionProvider == .local {
                 VStack(spacing: 10) {
-                    ForEach([WhisperModelKind.base, .small], id: \.self) { kind in
+                    ForEach(WhisperModelKind.available, id: \.self) { kind in
                         WelcomeModelRow(kind: kind)
                     }
                 }
-                Text("You can download larger, more accurate models later in Settings.")
-                    .font(.callout).foregroundStyle(.secondary)
             } else if model.hasAPIKey {
                 Label("Your OpenAI API key is saved.", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
             } else {

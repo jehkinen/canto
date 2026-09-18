@@ -37,12 +37,9 @@ enum Labels {
 
     static func modelDescription(_ kind: WhisperModelKind) -> LocalizedStringKey {
         switch kind {
-        case .base: "Fast, good for clear speech"
-        case .small: "Balanced speed and accuracy"
-        case .largeV3Turbo: "Nearly as accurate as Large, fast on Apple silicon"
-        case .parakeetV3: "Fastest, on the Neural Engine; the vocabulary only fixes spelling"
-        case .medium: "Accurate, needs a recent Mac"
-        case .largeV3: "Most accurate, slowest"
+        case .largeV3Turbo: "Whisper: 99 languages, takes the vocabulary into account while recognizing"
+        case .parakeetV3: "Fastest, on the Neural Engine; 25 European languages"
+        case .base, .small, .medium, .largeV3: "No longer offered. Delete it to free up space."
         }
     }
 

@@ -4,6 +4,9 @@ import CantoCore
 struct TextPane: View {
     @Environment(AppModel.self) private var model
     @State private var keyDraft = ""
+    @State private var trialInput = ""
+    @State private var trial: AppModel.ProcessingTrial?
+    @State private var isTrying = false
 
     var body: some View {
         @Bindable var model = model
@@ -63,6 +66,40 @@ struct TextPane: View {
                 } else {
                     Text("A skill is a Markdown file with instructions for the AI: clean up, organize, fix technical terms, translate. It runs after the cleanup and adds about a second.")
                 }
+            }
+
+            Section {
+                TextField("Text", text: $trialInput, prompt: Text("Recognized text, for example from History"), axis: .vertical)
+                    .lineLimit(2...6)
+                    .labelsHidden()
+                HStack {
+                    if let trial {
+                        Text(Duration.milliseconds(Int(trial.seconds * 1000)).formatted(.units(allowed: [.seconds], width: .abbreviated, fractionalPart: .show(length: 1))))
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    if isTrying { ProgressView().controlSize(.small) }
+                    Button("Run") {
+                        isTrying = true
+                        Task {
+                            trial = await model.tryProcessing(trialInput)
+                            isTrying = false
+                        }
+                    }
+                    .disabled(trialInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isTrying)
+                }
+                if let trial {
+                    Text(trial.text.isEmpty ? " " : trial.text)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    if let problem = trial.problem {
+                        Text(problem).font(.caption).foregroundStyle(.orange)
+                    }
+                }
+            } header: {
+                Text("Try the processing")
+            } footer: {
+                Text("The text goes through the same steps as dictation with the current settings: punctuation, numbers, vocabulary and the skill. History shows what the model heard under each entry.")
             }
 
             Section("Cleanup") {
