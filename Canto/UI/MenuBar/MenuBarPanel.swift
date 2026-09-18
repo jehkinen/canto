@@ -12,7 +12,7 @@ struct MenuBarPanel: View {
         VStack(alignment: .leading, spacing: 12) {
             header
             HeroCard()
-                .frame(height: 150)
+                .frame(height: 56)
             quickControls
             recent
             Divider()
@@ -194,50 +194,57 @@ private struct StatusLine: View {
     }
 }
 
+/// One row that shows what dictation is doing: the shortcut when idle, the level and time while
+/// listening, progress while transcribing, or the first setup problem.
 private struct HeroCard: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        VStack(spacing: 10) {
+        HStack(spacing: 10) {
             switch model.phase {
             case .listening where model.microphoneWarmingUp:
-                ProgressView().controlSize(.regular).frame(height: 36)
-                Text("Starting the microphone…").font(.callout)
-                Text("Start speaking after the sound").font(.caption).foregroundStyle(.secondary)
+                ProgressView().controlSize(.small)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Starting the microphone…").font(.callout)
+                    Text("Start speaking after the sound").font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 0)
             case .listening(let since):
-                Waveform(level: model.level, barCount: 30, maxHeight: 44)
-                TimelineView(.periodic(from: since, by: 1)) { context in
-                    Text(Duration.seconds(max(0, context.date.timeIntervalSince(since))), format: .time(pattern: .minuteSecond))
-                        .font(.system(.title3, design: .rounded).monospacedDigit())
-                }
-                Text(model.settings.activationMode == .pushToTalk ? "Release to insert" : "Press the shortcut again to finish")
-                    .font(.caption).foregroundStyle(.secondary)
-            case .transcribing:
-                ProgressView().controlSize(.regular).frame(height: 36)
-                Text("Turning speech into text…").font(.callout)
-                HStack(spacing: 10) {
-                    if let since = model.transcribingSince {
-                        ElapsedTime(since: since)
+                Waveform(level: model.level, barCount: 22, maxHeight: 30)
+                Spacer(minLength: 0)
+                VStack(alignment: .trailing, spacing: 1) {
+                    TimelineView(.periodic(from: since, by: 1)) { context in
+                        Text(Duration.seconds(max(0, context.date.timeIntervalSince(since))), format: .time(pattern: .minuteSecond))
+                            .font(.system(.body, design: .rounded).monospacedDigit())
                     }
-                    Button("Cancel") { model.cancelTranscription() }
-                        .controlSize(.small)
+                    Text(model.settings.activationMode == .pushToTalk ? "Release to insert" : "Press the shortcut again to finish")
+                        .font(.caption).foregroundStyle(.secondary).lineLimit(1)
                 }
+            case .transcribing:
+                ProgressView().controlSize(.small)
+                Text("Turning speech into text…").font(.callout).lineLimit(1)
+                Spacer(minLength: 0)
+                if let since = model.transcribingSince {
+                    ElapsedTime(since: since)
+                }
+                Button("Cancel") { model.cancelTranscription() }
+                    .controlSize(.small)
             default:
                 if let issue = model.setupIssues.first {
-                    SetupIssueHero(issue: issue, remaining: model.setupIssues.count - 1)
+                    SetupIssueRow(issue: issue, remaining: model.setupIssues.count - 1)
                 } else {
                     idleHint
                 }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .padding(.horizontal, 12)
         .background {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(heroTint.opacity(0.10).gradient)
         }
         .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .strokeBorder(heroTint.opacity(0.18), lineWidth: 1)
         }
         .animation(.smooth(duration: 0.25), value: model.phase)
@@ -245,17 +252,19 @@ private struct HeroCard: View {
 
     @ViewBuilder
     private var idleHint: some View {
-                KeyCaps(hotkey: model.settings.hotkey, size: .large)
-                    .frame(height: 44)
-                    .opacity(model.settings.isEnabled ? 1 : 0.4)
-                Text(model.settings.activationMode == .pushToTalk ? "Hold to dictate, release to insert" : "Press to start dictation, press again to finish")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                if model.hotkeyConflict {
-                    Label("This shortcut is used by another app", systemImage: "exclamationmark.triangle.fill")
-                        .font(.caption).foregroundStyle(.orange)
-                }
+        KeyCaps(hotkey: model.settings.hotkey)
+            .opacity(model.settings.isEnabled ? 1 : 0.4)
+        if model.hotkeyConflict {
+            Label("This shortcut is used by another app", systemImage: "exclamationmark.triangle.fill")
+                .font(.caption).foregroundStyle(.orange).lineLimit(2)
+        } else {
+            Text(model.settings.activationMode == .pushToTalk ? "Hold to dictate, release to insert" : "Press to start dictation, press again to finish")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        Spacer(minLength: 0)
     }
 
     private var heroTint: Color {
@@ -267,19 +276,20 @@ private struct HeroCard: View {
     }
 }
 
-private struct SetupIssueHero: View {
+private struct SetupIssueRow: View {
     let issue: Notice
     let remaining: Int
 
     var body: some View {
         Image(systemName: "exclamationmark.circle.fill")
-            .font(.system(size: 30))
+            .font(.title3)
             .foregroundStyle(.orange)
         Text(issue.message)
             .font(.callout.weight(.medium))
-            .multilineTextAlignment(.center)
             .lineLimit(2)
-        HStack(spacing: 8) {
+            .fixedSize(horizontal: false, vertical: true)
+        Spacer(minLength: 0)
+        VStack(alignment: .trailing, spacing: 2) {
             if let action = issue.action {
                 Button("Fix") { NoticeActions.perform(action) }
                     .controlSize(.small)
