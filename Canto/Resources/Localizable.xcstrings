@@ -50,6 +50,36 @@
         }
       }
     },
+    "1 minute" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 минуту"
+          }
+        }
+      }
+    },
+    "15 minutes" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 минут"
+          }
+        }
+      }
+    },
+    "5 minutes" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 минут"
+          }
+        }
+      }
+    },
     "A skill is a Markdown file with instructions for the AI: clean up, organize, fix technical terms, translate. It runs after the cleanup and adds about a second." : {
       "localizations" : {
         "ru" : {
@@ -716,6 +746,16 @@
         }
       }
     },
+    "Frees memory while you are not dictating. The model loads again when you press the shortcut, usually while you are still speaking." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Освобождает память, пока вы не диктуете. Модель загружается снова при нажатии сочетания клавиш, обычно ещё пока вы говорите."
+          }
+        }
+      }
+    },
     "GPT-4o Transcribe" : {
       "shouldTranslate" : false
     },
@@ -1058,6 +1098,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Нужна настройка"
+          }
+        }
+      }
+    },
+    "Never" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Никогда"
           }
         }
       }
@@ -2161,6 +2211,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Недоступное устройство"
+          }
+        }
+      }
+    },
+    "Unload the model after" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выгружать модель через"
           }
         }
       }

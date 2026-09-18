@@ -77,6 +77,21 @@ struct RecognitionPane: View {
                             }
                         }
                     }
+                    LabeledContent {
+                        Picker("Unload the model after", selection: $model.settings.unloadModelAfterMinutes) {
+                            Text("Never").tag(0)
+                            Text("1 minute").tag(1)
+                            Text("5 minutes").tag(5)
+                            Text("15 minutes").tag(15)
+                        }
+                        .labelsHidden()
+                        .fixedSize()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("Unload the model after")
+                            InfoButton(text: "Frees memory while you are not dictating. The model loads again when you press the shortcut, usually while you are still speaking.")
+                        }
+                    }
                     LabeledContent("Models folder") {
                         HStack {
                             Text(AppPaths.modelsDirectory(for: model.settings).abbreviatingWithTildeInPath)

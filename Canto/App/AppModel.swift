@@ -118,6 +118,7 @@ final class AppModel {
     private(set) var jobsInFlight = 0
     private var whisper: WhisperTranscriber?
     private var parakeet: ParakeetTranscriber?
+    private var unloadTask: Task<Void, Never>?
     private var cachedAPIKey: String?
     private var downloadTasks: [WhisperModelKind: Task<Void, Never>] = [:]
     private var noticeTask: Task<Void, Never>?
@@ -218,6 +219,9 @@ final class AppModel {
         }
 
         microphoneStartedAt = Date()
+        // A model unloaded after idle loads again while the user speaks.
+        unloadTask?.cancel()
+        prewarmLocalModel()
         phaseResetTask?.cancel()
         phase = .listening(since: Date())
         // The start sound means "speak now", so it waits until the microphone delivers sound.
@@ -396,6 +400,21 @@ final class AppModel {
     private func updatePhaseAfterWork() {
         guard !isListening, jobsInFlight == 0 else { return }
         if phase == .transcribing { phase = .idle }
+        scheduleModelUnload()
+    }
+
+    /// Frees the local model's memory after the configured idle time; the next key press loads it again.
+    private func scheduleModelUnload() {
+        unloadTask?.cancel()
+        let minutes = settings.unloadModelAfterMinutes
+        guard minutes > 0, whisper != nil || parakeet != nil else { return }
+        unloadTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(minutes * 60))
+            guard !Task.isCancelled, let self, !self.isListening, self.jobsInFlight == 0 else { return }
+            self.whisper = nil
+            self.parakeet = nil
+            self.logger.info("model unloaded after \(minutes, privacy: .public) min idle")
+        }
     }
 
     private func recognize(_ segment: AudioSegment, settings: AppSettings) async -> Recognition? {
@@ -550,9 +569,17 @@ final class AppModel {
         }
         guard settings.transcriptionProvider == .local, activeWhisperModel(for: settings) != nil,
               let local = try? transcriber(for: settings) else { return }
-        Task.detached(priority: .utility) {
+        let logger = self.logger
+        Task.detached(priority: .userInitiated) {
+            let start = Date()
             if let whisper = local as? WhisperTranscriber { try? await whisper.prepare() }
             if let parakeet = local as? ParakeetTranscriber { try? await parakeet.prepare() }
+            let seconds = Date().timeIntervalSince(start)
+            // Already loaded models return at once; only real loads are worth a line.
+            if seconds > 0.05 {
+                logger.info("model ready in \(seconds, format: .fixed(precision: 2), privacy: .public)s")
+            }
+            await MainActor.run { AppModel.shared.scheduleModelUnload() }
         }
     }
 
@@ -638,6 +665,9 @@ final class AppModel {
         }
         if settings.whisperModelsDirectory != old.whisperModelsDirectory {
             refreshModels()
+        }
+        if settings.unloadModelAfterMinutes != old.unloadModelAfterMinutes {
+            scheduleModelUnload()
         }
         if settings.transcriptionProvider != old.transcriptionProvider || settings.whisperModel != old.whisperModel
             || settings.whisperUseGPU != old.whisperUseGPU || settings.whisperModelsDirectory != old.whisperModelsDirectory {

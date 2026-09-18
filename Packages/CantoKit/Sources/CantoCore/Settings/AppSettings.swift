@@ -182,6 +182,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var whisperModelsDirectory: String?
     public var whisperUseGPU = AppSettings.gpuRecommended
     public var whisperBeamSize = 1
+    /// Minutes without dictation after which the local model leaves memory; 0 keeps it loaded.
+    public var unloadModelAfterMinutes = 5
 
     public var textProcessingMode: TextProcessingMode = .basic
     /// File name of the active skill (a Markdown file in the skills folder); `nil` runs no AI step.
@@ -258,6 +260,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         var copy = self
         copy.silenceTimeoutMs = silenceTimeoutMs.clamped(to: 200...10_000)
         copy.whisperBeamSize = whisperBeamSize.clamped(to: 1...5)
+        copy.unloadModelAfterMinutes = unloadModelAfterMinutes.clamped(to: 0...120)
         copy.vadPreSpeechBufferMs = vadPreSpeechBufferMs.clamped(to: 50...2_000)
         copy.vadMinimumSpeechMs = vadMinimumSpeechMs.clamped(to: 50...2_000)
         copy.vadMaximumSegmentMs = vadMaximumSegmentMs.clamped(to: 1_000...120_000)
@@ -288,6 +291,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         whisperModelsDirectory = try c.decodeIfPresent(String.self, forKey: .whisperModelsDirectory)
         whisperUseGPU = try c.decodeIfPresent(Bool.self, forKey: .whisperUseGPU) ?? d.whisperUseGPU
         whisperBeamSize = try c.decodeIfPresent(Int.self, forKey: .whisperBeamSize) ?? d.whisperBeamSize
+        unloadModelAfterMinutes = try c.decodeIfPresent(Int.self, forKey: .unloadModelAfterMinutes) ?? d.unloadModelAfterMinutes
         textProcessingMode = try c.decodeIfPresent(TextProcessingMode.self, forKey: .textProcessingMode) ?? d.textProcessingMode
         skill = try c.decodeIfPresent(String.self, forKey: .skill)
         // An old AI mode continues as the skill that replaced it, on top of the basic cleanup.

@@ -7,6 +7,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RU = {
     "Starting the microphone…": "Подключаю микрофон…",
     "Skill": "Скилл",
+    "Unload the model after": "Выгружать модель через",
+    "Never": "Никогда",
+    "1 minute": "1 минуту",
+    "5 minutes": "5 минут",
+    "15 minutes": "15 минут",
+    "Frees memory while you are not dictating. The model loads again when you press the shortcut, usually while you are still speaking.": "Освобождает память, пока вы не диктуете. Модель загружается снова при нажатии сочетания клавиш, обычно ещё пока вы говорите.",
     "AI skill": "ИИ-скилл",
     "Runs on": "Где работает",
     "Local server": "Локальный сервер",
