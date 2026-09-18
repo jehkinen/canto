@@ -51,12 +51,21 @@ struct OpenAIChatClientTests {
         #expect(StubProtocol.requestCount == 2)
     }
 
+    @Test func retriesRateLimitOnce() async throws {
+        let client = OpenAIChatClient(apiKey: "k", session: StubProtocol.session([(429, ""), (200, Self.ok)]), retryDelay: .zero)
+        #expect(try await client.complete(Self.request) == "Hello")
+    }
+
     @Test func mapsErrors() async {
         await #expect(throws: ChatError.authentication) {
             try await OpenAIChatClient(apiKey: "k", session: StubProtocol.session([(401, "")]), retryDelay: .zero).complete(Self.request)
         }
+        let quota = #"{"error":{"code":"insufficient_quota","type":"insufficient_quota"}}"#
         await #expect(throws: ChatError.quotaExceeded) {
-            try await OpenAIChatClient(apiKey: "k", session: StubProtocol.session([(429, "")]), retryDelay: .zero).complete(Self.request)
+            try await OpenAIChatClient(apiKey: "k", session: StubProtocol.session([(429, quota)]), retryDelay: .zero).complete(Self.request)
+        }
+        await #expect(throws: ChatError.server(429)) {
+            try await OpenAIChatClient(apiKey: "k", session: StubProtocol.session([(429, ""), (429, "")]), retryDelay: .zero).complete(Self.request)
         }
         await #expect(throws: ChatError.emptyResponse) {
             try await OpenAIChatClient(apiKey: "k", session: StubProtocol.session([(200, #"{"choices":[]}"#)]), retryDelay: .zero).complete(Self.request)

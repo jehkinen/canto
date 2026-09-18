@@ -22,7 +22,8 @@ public struct OpenAITranscriber: Transcriber {
         let boundary = "canto-\(UUID().uuidString)"
         var request = URLRequest(url: Self.endpoint)
         request.httpMethod = "POST"
-        request.timeoutInterval = OpenAISession.stallTimeout
+        // Nothing comes back while the server works on the audio, which takes longer for long phrases.
+        request.timeoutInterval = OpenAISession.stallTimeout + segment.duration / 2
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         var fields = [("model", model), ("temperature", "0")]
@@ -43,10 +44,15 @@ public struct OpenAITranscriber: Transcriber {
                 let status = (response as? HTTPURLResponse)?.statusCode ?? 0
                 switch status {
                 case 200..<300:
-                    let payload = try? JSONDecoder().decode(Payload.self, from: data)
-                    return (payload?.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-                case 401:
+                    guard let payload = try? JSONDecoder().decode(Payload.self, from: data) else {
+                        throw TranscriptionError.server("unexpected reply: \(String(decoding: data.prefix(200), as: UTF8.self))")
+                    }
+                    return payload.text.trimmingCharacters(in: .whitespacesAndNewlines)
+                case 401, 403:
                     throw TranscriptionError.authentication
+                case 429 where OpenAIError.isQuota(data):
+                    // Out of credit: retrying will not help.
+                    throw TranscriptionError.quotaExceeded
                 case 408, 429, 500..<600:
                     if attempt == Self.maxAttempts {
                         throw status == 429 ? TranscriptionError.quotaExceeded : TranscriptionError.server("HTTP \(status)")

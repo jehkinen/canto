@@ -120,11 +120,26 @@ final class ModelDownloader: NSObject, URLSessionDownloadDelegate, @unchecked Se
             guard let status = (downloadTask.response as? HTTPURLResponse)?.statusCode, (200..<300).contains(status) else {
                 throw URLError(.badServerResponse)
             }
-            try? FileManager.default.removeItem(at: destination)
-            try FileManager.default.moveItem(at: location, to: destination)
+            // An error page or a cut-off body must not pass for a model.
+            try Self.validateModel(at: location, expectedBytes: expectedBytes)
+            if FileManager.default.fileExists(atPath: destination.path) {
+                _ = try FileManager.default.replaceItemAt(destination, withItemAt: location)
+            } else {
+                try FileManager.default.moveItem(at: location, to: destination)
+            }
         } catch {
             lock.withLock { fileError = error }
         }
+    }
+
+    /// A whisper.cpp model starts with the ggml magic (or GGUF) and is close to its published size.
+    static func validateModel(at url: URL, expectedBytes: Int64) throws {
+        let size = Int64((try url.resourceValues(forKeys: [.fileSizeKey])).fileSize ?? 0)
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+        let magic = try handle.read(upToCount: 4) ?? Data()
+        let knownMagic = magic == Data("lmgg".utf8) || magic == Data("GGUF".utf8)
+        guard knownMagic, size >= expectedBytes / 2 else { throw URLError(.cannotDecodeContentData) }
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {

@@ -35,7 +35,7 @@ public enum ChatError: Error, Equatable, Sendable {
     case emptyResponse
 }
 
-/// OpenAI `chat/completions`. A network error or a 5xx answer is retried once.
+/// OpenAI `chat/completions`. A network error, a 5xx answer or a rate limit is retried once.
 public struct OpenAIChatClient: ChatCompleting {
     static let endpoint = URL(string: "https://api.openai.com/v1/chat/completions")!
 
@@ -56,7 +56,8 @@ public struct OpenAIChatClient: ChatCompleting {
     public func complete(_ request: ChatCompletionRequest) async throws -> String {
         var urlRequest = URLRequest(url: Self.endpoint)
         urlRequest.httpMethod = "POST"
-        urlRequest.timeoutInterval = 20
+        // The reply is not streamed: nothing arrives until a long rewrite is complete.
+        urlRequest.timeoutInterval = 60
         urlRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         urlRequest.httpBody = try JSONEncoder().encode(Body(model: request.model, temperature: request.temperature, messages: request.messages))
@@ -84,9 +85,9 @@ public struct OpenAIChatClient: ChatCompleting {
                 return text
             case 401, 403:
                 throw ChatError.authentication
-            case 429:
+            case 429 where OpenAIError.isQuota(data):
                 throw ChatError.quotaExceeded
-            case 500..<600 where attempt == 1:
+            case 429 where attempt == 1, 500..<600 where attempt == 1:
                 try await Task.sleep(for: retryDelay)
             default:
                 throw ChatError.server(status)

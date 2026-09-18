@@ -41,8 +41,8 @@ chats, email, notes, code editors, the terminal.
 - **Clean text.** Keep the transcript as is, tidy it up, or let AI remove filler words, organize long thoughts into
   sections or format them as Markdown. Add your own AI styles.
 - **Vocabulary.** Terms like OpenAI, Node.js or AWS are spelled the way you write them.
-- **Small touches.** Spoken punctuation, numbers as words, a phrase that presses Return, a recording overlay,
-  history, English and Russian interface.
+- **Small touches.** Spoken punctuation, numbers as digits or words, currency symbols ("fifty bucks" → $50),
+  a phrase that presses Return, a recording overlay, history, English and Russian interface.
 
 ## Install
 
@@ -89,8 +89,8 @@ MIT. Canto is built on [whisper.cpp](https://github.com/ggml-org/whisper.cpp) an
 - **Чистый текст.** Оставить расшифровку как есть, аккуратно почистить или доверить ИИ: убрать слова-паразиты,
   разложить мысли по разделам, оформить в Markdown. Можно добавить свои стили.
 - **Словарь.** Термины вроде OpenAI, Node.js или AWS пишутся так, как вы их задали.
-- **Мелочи.** Произносимая пунктуация, числа прописью, фраза для нажатия Return, индикатор записи, история,
-  интерфейс на русском и английском.
+- **Мелочи.** Произносимая пунктуация, числа цифрами или прописью, знаки валют («пятьдесят евро» → 50 €),
+  фраза для нажатия Return, индикатор записи, история, интерфейс на русском и английском.
 
 ### Установка
 

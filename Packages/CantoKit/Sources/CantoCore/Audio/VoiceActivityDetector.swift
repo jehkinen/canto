@@ -26,6 +26,14 @@ public final class VoiceActivityDetector {
     private var segment: [Float] = []
     private var pending: [Float] = []
     private var silenceSamples = 0
+    /// Push-to-talk: whether the VAD heard a voice in each 20 ms frame of `segment`.
+    private var frameVoice: [Bool] = []
+
+    /// Push-to-talk recordings with less voice than this are silence or noise: Whisper would
+    /// only invent text for them.
+    static let minimumVoiceMs = 100
+    /// How far back from the length limit a long push-to-talk recording looks for a pause to split at.
+    static let splitSearchMs = 5_000
 
     public init(configuration: VADConfiguration) {
         self.configuration = configuration
@@ -48,6 +56,7 @@ public final class VoiceActivityDetector {
         pending.removeAll(keepingCapacity: true)
         preBuffer.removeAll()
         silenceSamples = 0
+        frameVoice.removeAll()
         fvad_reset(vad)
         fvad_set_mode(vad, 0)
         fvad_set_sample_rate(vad, Int32(AudioSegment.sampleRate))
@@ -56,14 +65,7 @@ public final class VoiceActivityDetector {
     /// Feeds 16 kHz mono samples and returns the events they completed.
     public func push(_ samples: [Float]) -> [Event] {
         if recordsEverything {
-            segment.append(contentsOf: samples)
-            let limit = AudioSegment.sampleCount(milliseconds: configuration.maximumSegmentMs)
-            var events: [Event] = []
-            while segment.count >= limit {
-                events.append(.speechEnded(AudioSegment(samples: Array(segment.prefix(limit)))))
-                segment.removeFirst(limit)
-            }
-            return events
+            return pushEverything(samples)
         }
         pending.append(contentsOf: samples)
         var events: [Event] = []
@@ -90,7 +92,14 @@ public final class VoiceActivityDetector {
     /// Ends push-to-talk: everything that was recorded counts, even if the VAD never fired.
     public func flushPushToTalk() -> AudioSegment? {
         if recordsEverything {
-            guard !segment.isEmpty else { return nil }
+            segment.append(contentsOf: pending)
+            pending.removeAll(keepingCapacity: true)
+            let voiced = hasVoice(frameVoice[...])
+            frameVoice.removeAll()
+            guard voiced, !segment.isEmpty else {
+                segment.removeAll(keepingCapacity: true)
+                return nil
+            }
             return takeSegment()
         }
         drainPendingFrames()
@@ -106,6 +115,58 @@ public final class VoiceActivityDetector {
         return nil
     }
 
+    /// Push-to-talk: keeps every sample, and still runs the VAD to know where the voice is.
+    private func pushEverything(_ samples: [Float]) -> [Event] {
+        pending.append(contentsOf: samples)
+        var offset = 0
+        while pending.count - offset >= Self.frameSamples {
+            let frame = Array(pending[offset..<offset + Self.frameSamples])
+            offset += Self.frameSamples
+            segment.append(contentsOf: frame)
+            frameVoice.append(isVoice(frame))
+        }
+        pending.removeFirst(offset)
+
+        var events: [Event] = []
+        let limitFrames = configuration.maximumSegmentMs / Self.frameMs
+        while frameVoice.count >= limitFrames {
+            let split = splitFrame(limit: limitFrames)
+            let voiced = hasVoice(frameVoice[..<split])
+            let samples = Array(segment.prefix(split * Self.frameSamples))
+            segment.removeFirst(split * Self.frameSamples)
+            frameVoice.removeFirst(split)
+            if voiced { events.append(.speechEnded(AudioSegment(samples: samples))) }
+        }
+        return events
+    }
+
+    /// Where to cut a recording that reached the length limit: the middle of the longest pause
+    /// in its last few seconds, so a word is not cut in two. Without a pause, at the limit.
+    private func splitFrame(limit: Int) -> Int {
+        let searchStart = max(1, limit - Self.splitSearchMs / Self.frameMs)
+        var best = (start: limit, length: 0)
+        var runStart: Int?
+        for index in searchStart...limit {
+            let isPause = index < limit && !frameVoice[index]
+            if isPause {
+                if runStart == nil { runStart = index }
+            } else if let start = runStart {
+                if index - start > best.length { best = (start, index - start) }
+                runStart = nil
+            }
+        }
+        return best.length > 0 ? best.start + best.length / 2 : limit
+    }
+
+    private func hasVoice(_ frames: ArraySlice<Bool>) -> Bool {
+        frames.lazy.filter { $0 }.count * Self.frameMs >= Self.minimumVoiceMs
+    }
+
+    private func isVoice(_ frame: [Float]) -> Bool {
+        let pcm = frame.map { Int16($0.clamped(to: -1...1) * Float(Int16.max)) }
+        return pcm.withUnsafeBufferPointer { fvad_process(vad, $0.baseAddress, $0.count) } == 1
+    }
+
     private func drainPendingFrames() {
         var offset = 0
         while pending.count - offset >= Self.frameSamples {
@@ -116,13 +177,12 @@ public final class VoiceActivityDetector {
     }
 
     private func process(_ frame: [Float]) -> Event? {
-        let pcm = frame.map { Int16($0.clamped(to: -1...1) * Float(Int16.max)) }
-        let isVoice = pcm.withUnsafeBufferPointer { fvad_process(vad, $0.baseAddress, $0.count) } == 1
+        let voice = isVoice(frame)
 
         switch state {
         case .idle:
             preBuffer.append(frame)
-            if isVoice {
+            if voice {
                 state = .speaking
                 silenceSamples = 0
                 segment = preBuffer.contents()
@@ -130,7 +190,7 @@ public final class VoiceActivityDetector {
             }
         case .speaking:
             segment.append(contentsOf: frame)
-            if isVoice {
+            if voice {
                 silenceSamples = 0
             } else {
                 silenceSamples += Self.frameSamples

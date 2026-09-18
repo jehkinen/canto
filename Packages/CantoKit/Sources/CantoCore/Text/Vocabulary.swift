@@ -24,43 +24,68 @@ public enum Vocabulary {
         return language == "ru" ? "Термины: " + joined : joined
     }
 
+    /// Restores the exact spelling of every term, in one pass: a shorter term never rewrites a
+    /// longer one's replacement ("JS" inside "Node.js").
     public static func apply(_ text: String, terms raw: [String]) -> String {
+        guard let (expression, ordered) = combinedExpression(for: raw) else { return text }
         var result = text
-        // Longer terms first, so "ChatGPT" wins over "GPT".
-        for term in terms(raw).sorted(by: { $0.count > $1.count }) {
-            guard let expression = expression(for: term) else { continue }
-            let range = NSRange(result.startIndex..., in: result)
-            result = expression.stringByReplacingMatches(in: result, range: range,
-                                                         withTemplate: NSRegularExpression.escapedTemplate(for: term))
+        let matches = expression.matches(in: result, range: NSRange(result.startIndex..., in: result))
+        for match in matches.reversed() {
+            guard let term = matchedTerm(match, terms: ordered), let range = Range(match.range, in: result) else { continue }
+            result.replaceSubrange(range, with: term)
         }
         return result
     }
 
-    /// Whisper answers near-silence with the prompt it was given: the whole list, part of it, or
-    /// a couple of terms. Text that is nothing but dictionary terms is such an echo, and a phrase
-    /// with a single term ("ChatGPT") is left alone because it is something people do dictate.
+    /// Whisper answers near-silence with the prompt it was given: the terms in the prompt's order,
+    /// each once, sometimes after the Russian framing word. A phrase with a single term
+    /// ("ChatGPT"), a repeated one ("Go, go, go!") or terms in another order is real speech.
     public static func isEchoOfPrompt(_ text: String, terms raw: [String]) -> Bool {
         let list = terms(raw)
-        guard !list.isEmpty else { return false }
-        var rest = text
-        var matches = 0
-        for term in list.sorted(by: { $0.count > $1.count }) {
-            guard let expression = expression(for: term) else { continue }
-            let range = NSRange(rest.startIndex..., in: rest)
-            matches += expression.numberOfMatches(in: rest, range: range)
-            rest = expression.stringByReplacingMatches(in: rest, range: range, withTemplate: "")
+        guard let (expression, ordered) = combinedExpression(for: raw) else { return false }
+        let body = text.replacingOccurrences(of: "^\\s*термины\\s*:?", with: "", options: [.regularExpression, .caseInsensitive])
+        let matches = expression.matches(in: body, range: NSRange(body.startIndex..., in: body))
+        let positions = matches.compactMap { matchedTerm($0, terms: ordered) }.compactMap { term in
+            list.firstIndex(of: term)
         }
-        let leftovers = rest.filter { $0.isLetter || $0.isNumber }
-        return matches >= 2 && leftovers.isEmpty
+        guard positions.count >= 2, zip(positions, positions.dropFirst()).allSatisfy({ $0 < $1 }) else { return false }
+        let rest = expression.stringByReplacingMatches(in: body, range: NSRange(body.startIndex..., in: body), withTemplate: "")
+        return !rest.contains { $0.isLetter || $0.isNumber }
     }
 
-    /// Matches the term's parts with optional spaces, hyphens or dots between them, as a whole word.
+    /// One expression for all terms, longest first so "ChatGPT" wins over "GPT"; group `i + 1`
+    /// matches `ordered[i]`.
+    static func combinedExpression(for raw: [String]) -> (NSRegularExpression, [String])? {
+        let ordered = terms(raw).sorted { $0.count > $1.count }
+        let bodies = ordered.compactMap(body(for:))
+        guard !ordered.isEmpty, bodies.count == ordered.count else { return nil }
+        let pattern = "(?<![\\p{L}\\p{N}])(?:" + bodies.map { "(\($0))" }.joined(separator: "|") + ")(?![\\p{L}\\p{N}])"
+        guard let expression = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { return nil }
+        return (expression, ordered)
+    }
+
+    private static func matchedTerm(_ match: NSTextCheckingResult, terms: [String]) -> String? {
+        (1..<match.numberOfRanges).first { match.range(at: $0).location != NSNotFound }.map { terms[$0 - 1] }
+    }
+
+    /// Matches the term's parts with optional spaces, hyphens or dots between them. Symbols before
+    /// or after the letters ("C++", "C#", ".NET") are required as written, so "plan c" stays.
     static func expression(for term: String) -> NSRegularExpression? {
+        body(for: term).flatMap { try? NSRegularExpression(pattern: "(?<![\\p{L}\\p{N}])(?:\($0))(?![\\p{L}\\p{N}])",
+                                                            options: [.caseInsensitive]) }
+    }
+
+    static func body(for term: String) -> String? {
         let parts = self.parts(of: term)
         guard !parts.isEmpty else { return nil }
-        // Between parts: nothing, a space, a dot, a hyphen or an underscore, optionally with spaces ("Node. js").
-        let body = parts.map { NSRegularExpression.escapedPattern(for: $0) }.joined(separator: "(?:\\s?[\\-_.]?\\s?)")
-        return try? NSRegularExpression(pattern: "(?<![\\p{L}\\p{N}])\(body)(?![\\p{L}\\p{N}])", options: [.caseInsensitive])
+        let isWordCharacter: (Character) -> Bool = { $0.isLetter || $0.isNumber }
+        let leading = String(term.prefix { !isWordCharacter($0) })
+        let trailing = String(term.reversed().prefix { !isWordCharacter($0) }.reversed())
+        // Between parts: nothing, a space, a hyphen or an underscore, or a dot ("Node. js"). A dot
+        // and a space before a capital letter ends a sentence: "open. AI" is not "OpenAI".
+        let separator = "(?:\\s?[\\-_]\\s?|\\s|\\.(?:\\s(?=(?-i:\\p{Ll})))?)?"
+        let core = parts.map { NSRegularExpression.escapedPattern(for: $0) }.joined(separator: separator)
+        return NSRegularExpression.escapedPattern(for: leading) + core + NSRegularExpression.escapedPattern(for: trailing)
     }
 
     /// "ChatGPT" → ["Chat", "GPT"], "OpenAI" → ["Open", "AI"], "gpt-4o" → ["gpt", "4o"].

@@ -15,3 +15,19 @@ public enum OpenAISession {
         return URLSession(configuration: configuration)
     }
 }
+
+/// OpenAI's error body: `{"error": {"code": "insufficient_quota", …}}`.
+enum OpenAIError {
+    /// A 429 because the account is out of credit, as opposed to a rate limit worth retrying.
+    static func isQuota(_ body: Data) -> Bool {
+        struct Envelope: Decodable {
+            struct Detail: Decodable {
+                let code: String?
+                let type: String?
+            }
+            let error: Detail
+        }
+        guard let detail = try? JSONDecoder().decode(Envelope.self, from: body).error else { return false }
+        return detail.code == "insufficient_quota" || detail.type == "insufficient_quota"
+    }
+}

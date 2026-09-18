@@ -38,10 +38,18 @@ public final class WhisperTranscriber: Transcriber, @unchecked Sendable {
         try await run { _ = try self.loadIfNeeded() }
     }
 
+    /// Cancelling the task stops whisper.cpp between computation steps, so the next phrase does
+    /// not wait for one nobody needs any more.
     public func transcribe(_ segment: AudioSegment, language: String?, prompt: String?) async throws -> String {
-        try await run {
-            let context = try self.loadIfNeeded()
-            return try self.infer(context: context, samples: segment.samples, language: language, prompt: prompt)
+        let abort = AbortFlag()
+        return try await withTaskCancellationHandler {
+            try await run {
+                guard !abort.isSet else { throw CancellationError() }
+                let context = try self.loadIfNeeded()
+                return try self.infer(context: context, samples: segment.samples, language: language, prompt: prompt, abort: abort)
+            }
+        } onCancel: {
+            abort.set()
         }
     }
 
@@ -68,7 +76,7 @@ public final class WhisperTranscriber: Transcriber, @unchecked Sendable {
         return loaded
     }
 
-    private func infer(context: OpaquePointer, samples: [Float], language: String?, prompt: String?) throws -> String {
+    private func infer(context: OpaquePointer, samples: [Float], language: String?, prompt: String?, abort: AbortFlag) throws -> String {
         let beamSize = Int32(configuration.beamSize)
         var parameters = whisper_full_default_params(beamSize > 1 ? WHISPER_SAMPLING_BEAM_SEARCH : WHISPER_SAMPLING_GREEDY)
         parameters.greedy.best_of = 1
@@ -84,6 +92,10 @@ public final class WhisperTranscriber: Transcriber, @unchecked Sendable {
         parameters.no_speech_thold = 0.55
         // Short phrases otherwise come back as sound tags like "*Police*" or "[Music]".
         parameters.suppress_nst = true
+        parameters.abort_callback = { data in
+            data.map { Unmanaged<AbortFlag>.fromOpaque($0).takeUnretainedValue().isSet } ?? false
+        }
+        parameters.abort_callback_user_data = Unmanaged.passUnretained(abort).toOpaque()
 
         // The C strings must outlive whisper_full, so the call happens inside both closures.
         let code: Int32 = (language ?? "auto").withCString { languagePointer in
@@ -95,6 +107,7 @@ public final class WhisperTranscriber: Transcriber, @unchecked Sendable {
                 }
             }
         }
+        guard !abort.isSet else { throw CancellationError() }
         guard code == 0 else {
             throw TranscriptionError.inferenceFailed("whisper_full returned \(code)")
         }
@@ -114,5 +127,17 @@ public final class WhisperTranscriber: Transcriber, @unchecked Sendable {
 
     private static func silenceLogging() {
         _ = silenceLoggingOnce
+    }
+}
+
+/// Set when the transcription task is cancelled; read by whisper.cpp from its own threads.
+private final class AbortFlag: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value = false
+
+    var isSet: Bool { lock.withLock { value } }
+
+    func set() {
+        lock.withLock { value = true }
     }
 }

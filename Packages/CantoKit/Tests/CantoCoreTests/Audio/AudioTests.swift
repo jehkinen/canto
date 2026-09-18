@@ -127,6 +127,26 @@ struct VoiceActivityDetectorTests {
         #expect(detector.flushPushToTalk() != nil)
     }
 
+    @Test func pushToTalkDropsRecordingsWithoutVoice() {
+        let detector = VoiceActivityDetector(configuration: Self.configuration())
+        detector.recordsEverything = true
+        for _ in 0..<60 { _ = detector.push(Self.silence) }
+        #expect(detector.flushPushToTalk() == nil)
+    }
+
+    @Test func pushToTalkSplitsLongRecordingsInAPause() {
+        let detector = VoiceActivityDetector(configuration: Self.configuration(maximumSegmentMs: 2_000))
+        detector.recordsEverything = true
+        var segments: [AudioSegment] = []
+        let frames = Array(repeating: Self.sine(0.6), count: 80) + Array(repeating: Self.silence, count: 15)
+            + Array(repeating: Self.sine(0.6), count: 30)
+        for frame in frames {
+            for case .speechEnded(let segment) in detector.push(frame) { segments.append(segment) }
+        }
+        #expect(segments.count == 1)
+        #expect((Self.frame * 80...Self.frame * 95).contains(segments.first?.samples.count ?? 0))
+    }
+
     @Test func ringBufferKeepsNewestSamples() {
         var buffer = RingBuffer(capacity: 3)
         buffer.append([1, 2])

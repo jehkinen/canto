@@ -55,7 +55,7 @@ struct TextCleanupTests {
         ("Hello Comma world Period", "Hello, world."),
         ("The periodic table, question mark", "The periodic table?"),
         ("с моей точка зрения это верно точка", "с моей точка зрения это верно."),
-        ("первая строка новая строка вторая", "первая строка\n вторая"),
+        ("первая строка новая строка вторая", "первая строка\n Вторая"),
         ("comma at the start stays", "comma at the start stays"),
     ])
     func spokenPunctuation(input: String, expected: String) {

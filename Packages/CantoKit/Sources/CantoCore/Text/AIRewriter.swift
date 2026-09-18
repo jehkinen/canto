@@ -23,9 +23,11 @@ public struct AIRewriter: Sendable {
     /// Strips what models sometimes wrap the answer in: code fences, the transcript tags, quotes.
     static func sanitize(_ reply: String) -> String {
         var text = reply.trimmingCharacters(in: .whitespacesAndNewlines)
-        if text.hasPrefix("```") {
+        // Only a reply that is one fenced block as a whole; Markdown with code inside stays as it is.
+        if text.hasPrefix("```"), text.hasSuffix("```"), text.count > 6,
+           text.dropFirst(3).dropLast(3).range(of: "```") == nil {
             text = text.split(separator: "\n", omittingEmptySubsequences: false).dropFirst().joined(separator: "\n")
-            if text.hasSuffix("```") { text = String(text.dropLast(3)) }
+            text = String(text.dropLast(3))
         }
         text = text.replacingOccurrences(of: "</?transcript>", with: "", options: .regularExpression)
         text = text.trimmingCharacters(in: .whitespacesAndNewlines)
