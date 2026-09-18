@@ -18,7 +18,7 @@ public enum TranscriptionProvider: String, Codable, CaseIterable, Sendable {
 public enum TextProcessingMode: String, Codable, CaseIterable, Sendable {
     case original
     case basic
-    // The AI modes of earlier versions, now the skills "Clean up", "Organize" and "Markdown".
+    // The AI modes of earlier versions, now the skill "Clean up".
     // They stay decodable for old settings and history.
     case optimization
     case structural
@@ -34,9 +34,7 @@ public enum TextProcessingMode: String, Codable, CaseIterable, Sendable {
     /// The skill that replaced an old AI mode.
     public var legacySkillFileName: String? {
         switch self {
-        case .optimization: "Clean up.md"
-        case .structural: "Organize.md"
-        case .mdStructural: "Markdown.md"
+        case .optimization, .structural, .mdStructural: "Clean up.md"
         case .original, .basic: nil
         }
     }
@@ -178,7 +176,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var transcriptionProvider: TranscriptionProvider = .local
     public var openAITranscriptionModel = "whisper-1"
     /// Names and terms to keep as written (OpenAI, ChatGPT…): they bias recognition and fix the spelling afterwards.
-    public var vocabulary = ["OpenAI", "ChatGPT"]
+    public var vocabulary: [String] = []
     public var whisperModel: WhisperModelKind = .base
     /// Custom models folder; `nil` uses Application Support/Canto/Models.
     public var whisperModelsDirectory: String?

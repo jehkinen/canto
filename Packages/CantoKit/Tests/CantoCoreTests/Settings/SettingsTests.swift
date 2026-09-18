@@ -78,7 +78,8 @@ struct AppSettingsTests {
     @Test func oldAIModesBecomeSkills() throws {
         let mode = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"textProcessingMode":"structural"}"#.utf8))
         #expect(mode.textProcessingMode == .basic)
-        #expect(mode.skill == "Organize.md")
+        #expect(mode.skill == "Clean up.md")
+        #expect(AppSettings().vocabulary.isEmpty)
         let chosen = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"textProcessingMode":"optimization","skill":"Mine.md"}"#.utf8))
         #expect(chosen.skill == "Mine.md")
         #expect(!AppSettings().needsAPIKey)

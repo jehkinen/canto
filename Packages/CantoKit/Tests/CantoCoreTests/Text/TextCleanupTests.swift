@@ -101,11 +101,10 @@ struct SkillStoreTests {
     @Test func seedsTheBundledSkills() throws {
         let store = makeStore()
         try store.ensureDirectory()
-        #expect(store.list().map(\.name) == ["Clean up", "Markdown", "Organize", "Software Engineer", "Translate to English"])
+        #expect(store.list().map(\.name) == ["Clean up", "Software Engineer"])
         let engineer = try #require(store.instructions(for: "Software Engineer.md"))
         #expect(!engineer.hasPrefix("#"))
         #expect(engineer.contains("«пуш» → push"))
-        #expect(store.instructions(for: "Organize.md")?.contains("no Markdown symbols") == true)
         #expect(store.instructions(for: "Clean up.md")?.contains("Never translate") == true)
     }
 
@@ -115,12 +114,12 @@ struct SkillStoreTests {
         let mine = store.directory.appendingPathComponent("Clean up.md")
         try "# Mine\n\nMy own cleanup.".write(to: mine, atomically: true, encoding: .utf8)
         try store.ensureDirectory()
-        #expect(store.list().count == 5)
+        #expect(store.list().count == 2)
         #expect(store.instructions(for: "Clean up.md") == "My own cleanup.")
         // A deleted bundled skill is not offered again.
-        try FileManager.default.removeItem(at: store.directory.appendingPathComponent("Markdown.md"))
+        try FileManager.default.removeItem(at: store.directory.appendingPathComponent("Software Engineer.md"))
         try store.ensureDirectory()
-        #expect(store.skill(named: "Markdown.md") == nil)
+        #expect(store.skill(named: "Software Engineer.md") == nil)
     }
 
     @Test func readsClaudeStyleFrontMatter() throws {

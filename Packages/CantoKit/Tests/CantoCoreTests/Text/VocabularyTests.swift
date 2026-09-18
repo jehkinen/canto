@@ -43,9 +43,9 @@ struct VocabularyTests {
     }
 
     @Test func detectsPromptEcho() {
-        let vocabulary = ["OpenAI", "ChatGPT", "Claude", "Kubernetes"]
+        let vocabulary = ["OpenAI", "ChatGPT", "Kubernetes", "PostgreSQL"]
         #expect(Vocabulary.isEchoOfPrompt("OpenAI, ChatGPT.", terms: vocabulary))
-        #expect(Vocabulary.isEchoOfPrompt("ChatGPT, Claude, Kubernetes.", terms: vocabulary))
+        #expect(Vocabulary.isEchoOfPrompt("ChatGPT, Kubernetes, PostgreSQL.", terms: vocabulary))
         #expect(!Vocabulary.isEchoOfPrompt("OpenAI сделала ChatGPT", terms: vocabulary))
         // A single term is a normal thing to dictate.
         #expect(!Vocabulary.isEchoOfPrompt("ChatGPT", terms: vocabulary))

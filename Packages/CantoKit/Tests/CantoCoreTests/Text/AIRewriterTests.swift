@@ -111,7 +111,7 @@ struct TextPipelineTests {
     }
 
     @Test func noConnectionOrMissingSkillFallsBack() async {
-        let noChat = await pipeline(nil).process("тест", settings: settings { $0.skill = "Organize.md" }, fallbackLanguage: "ru")
+        let noChat = await pipeline(nil).process("тест", settings: settings { $0.skill = "Clean up.md" }, fallbackLanguage: "ru")
         #expect(noChat.text == "Тест")
         #expect(noChat.rewriteFallbackReason == "no AI connection")
         let missing = await pipeline(FakeChat([])).process("тест", settings: settings { $0.skill = "Gone.md" }, fallbackLanguage: "ru")
