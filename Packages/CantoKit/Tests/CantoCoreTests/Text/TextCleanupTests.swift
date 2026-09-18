@@ -101,7 +101,7 @@ struct SkillStoreTests {
     @Test func seedsTheBundledSkills() throws {
         let store = makeStore()
         try store.ensureDirectory()
-        #expect(store.list().map(\.name) == ["Clean up", "Software Engineer"])
+        #expect(store.list().map(\.name) == ["Clean up", "Software Engineer", "Translate to English"])
         let engineer = try #require(store.instructions(for: "Software Engineer.md"))
         #expect(!engineer.hasPrefix("#"))
         #expect(engineer.contains("«пуш» → push"))
@@ -114,7 +114,7 @@ struct SkillStoreTests {
         let mine = store.directory.appendingPathComponent("Clean up.md")
         try "# Mine\n\nMy own cleanup.".write(to: mine, atomically: true, encoding: .utf8)
         try store.ensureDirectory()
-        #expect(store.list().count == 2)
+        #expect(store.list().count == 3)
         #expect(store.instructions(for: "Clean up.md") == "My own cleanup.")
         // A deleted bundled skill is not offered again.
         try FileManager.default.removeItem(at: store.directory.appendingPathComponent("Software Engineer.md"))
