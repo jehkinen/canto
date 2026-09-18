@@ -215,6 +215,7 @@ RU = {
     "The key could not be saved to the keychain": "Не удалось сохранить ключ в Связку ключей",
     "The microphone changed, listening stopped": "Микрофон изменился, запись остановлена",
     "The microphone could not be started": "Не удалось включить микрофон",
+    "The microphone did not respond. Try again or choose another one": "Микрофон не ответил. Попробуйте ещё раз или выберите другой",
     "The model download failed": "Не удалось загрузить модель",
     "The new language is used after a restart.": "Новый язык применится после перезапуска.",
     "The pause applies to Press to start and stop mode. Long phrases are split so each part is recognized quickly.": "Пауза действует в режиме «Нажатие — старт и стоп». Длинные фразы делятся на части, чтобы каждая распознавалась быстро.",

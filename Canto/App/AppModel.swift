@@ -124,6 +124,9 @@ final class AppModel {
     private var microphoneRestarts = 0
     private var microphoneStartedAt = Date()
     private var warmUpTask: Task<Void, Never>?
+    /// Identifies a listening session, so a microphone start that finishes late only
+    /// affects the session that asked for it.
+    private var listeningSession = 0
 
     private init() {
         if let data = UserDefaults.standard.data(forKey: Keys.settings),
@@ -213,23 +216,44 @@ final class AppModel {
         }
 
         microphoneStartedAt = Date()
-        do {
-            try recorder.start(deviceUID: settings.microphoneUID)
-        } catch {
-            logger.error("microphone start failed: \(error.localizedDescription, privacy: .public)")
-            fail(String(localized: "The microphone could not be started"))
-            return
-        }
         phaseResetTask?.cancel()
         phase = .listening(since: Date())
         // The start sound means "speak now", so it waits until the microphone delivers sound.
         microphoneWarmingUp = true
         warmUpTask?.cancel()
-        warmUpTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(2.5))
-            guard !Task.isCancelled else { return }
-            self?.microphoneBecameLive()
+        listeningSession += 1
+        let session = listeningSession
+        Task {
+            do {
+                try await recorder.start(deviceUID: settings.microphoneUID)
+            } catch {
+                microphoneStartFailed(error, session: session)
+                return
+            }
+            guard session == listeningSession, isListening, microphoneWarmingUp else { return }
+            warmUpTask = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(2.5))
+                guard !Task.isCancelled else { return }
+                self?.microphoneBecameLive()
+            }
         }
+    }
+
+    private func microphoneStartFailed(_ error: Error, session: Int) {
+        logger.error("microphone start failed: \(String(describing: error), privacy: .public)")
+        guard session == listeningSession else { return }
+        let message = (error as? AudioRecorderError) == .timedOut
+            ? String(localized: "The microphone did not respond. Try again or choose another one")
+            : String(localized: "The microphone could not be started")
+        if isListening {
+            // Nothing was recorded, so the session ends quietly.
+            microphoneWarmingUp = false
+            warmUpTask?.cancel()
+            detector = nil
+            recorder.stop()
+            phase = jobsInFlight > 0 ? .transcribing : .idle
+        }
+        fail(message)
     }
 
     private func microphoneBecameLive() {
@@ -246,11 +270,10 @@ final class AppModel {
         guard isListening, let detector else { return }
         microphoneWarmingUp = false
         warmUpTask?.cancel()
-        recorder.stop()
         self.detector = nil
         let pushToTalk = settings.activationMode == .pushToTalk
         // Runs after every chunk the tap already queued, so nothing recorded is lost.
-        recorder.processingQueue.async { [weak self] in
+        recorder.stop { [weak self] in
             let segment = pushToTalk ? detector.flushPushToTalk() : detector.flush()
             DispatchQueue.main.async {
                 guard let self else { return }
@@ -267,18 +290,31 @@ final class AppModel {
     private func microphoneInterrupted() {
         guard isListening || isMicrophoneTestRunning else { return }
         microphoneRestarts += 1
-        do {
-            guard microphoneRestarts <= 3 else { throw AudioRecorderError.noInputDevice }
-            try recorder.start(deviceUID: settings.microphoneUID)
-        } catch {
-            if isMicrophoneTestRunning {
-                isMicrophoneTestRunning = false
-                recorder.stop()
-            } else {
-                stopListening()
-            }
-            show(Notice(message: String(localized: "The microphone changed, listening stopped")))
+        guard microphoneRestarts <= 3 else {
+            microphoneLost()
+            return
         }
+        let session = listeningSession
+        Task {
+            do {
+                try await recorder.start(deviceUID: settings.microphoneUID)
+            } catch {
+                logger.error("microphone restart failed: \(String(describing: error), privacy: .public)")
+                if session == listeningSession { microphoneLost() }
+            }
+        }
+    }
+
+    private func microphoneLost() {
+        if isMicrophoneTestRunning {
+            isMicrophoneTestRunning = false
+            recorder.stop()
+        } else if isListening {
+            stopListening()
+        } else {
+            return
+        }
+        show(Notice(message: String(localized: "The microphone changed, listening stopped")))
     }
 
     /// Checks everything a dictation needs and explains what is missing.
@@ -506,8 +542,11 @@ final class AppModel {
     }
 
     private func fail(_ message: String, action: Notice.Action? = nil) {
-        phase = .failed(message)
         show(Notice(message: message, action: action))
+        // A phrase can fail while the next one is being recorded: the microphone is still on,
+        // and the phase has to keep saying so, or releasing the key would not stop it.
+        guard !isListening else { return }
+        phase = .failed(message)
         schedulePhaseReset(after: .seconds(3))
     }
 
@@ -656,11 +695,19 @@ final class AppModel {
         }
         recorder.setSampleHandler(nil)
         microphoneRestarts = 0
-        do {
-            try recorder.start(deviceUID: settings.microphoneUID)
-            isMicrophoneTestRunning = true
-        } catch {
-            show(Notice(message: String(localized: "The microphone could not be started")))
+        isMicrophoneTestRunning = true
+        listeningSession += 1
+        let session = listeningSession
+        Task {
+            do {
+                try await recorder.start(deviceUID: settings.microphoneUID)
+            } catch {
+                logger.error("microphone test failed: \(String(describing: error), privacy: .public)")
+                guard session == listeningSession, isMicrophoneTestRunning else { return }
+                isMicrophoneTestRunning = false
+                recorder.stop()
+                show(Notice(message: String(localized: "The microphone could not be started")))
+            }
         }
     }
 

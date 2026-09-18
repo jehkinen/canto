@@ -1935,6 +1935,16 @@
         }
       }
     },
+    "The microphone did not respond. Try again or choose another one" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Микрофон не ответил. Попробуйте ещё раз или выберите другой"
+          }
+        }
+      }
+    },
     "The model download failed" : {
       "localizations" : {
         "ru" : {

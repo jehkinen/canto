@@ -5,11 +5,17 @@ import CantoCore
 enum AudioRecorderError: Error {
     case noInputDevice
     case converterUnavailable
+    /// Core Audio did not answer: the start was abandoned so the app stays responsive.
+    case timedOut
 }
 
 /// Captures the microphone with AVAudioEngine and delivers 16 kHz mono Float32 chunks.
 /// A new engine is built for every session so device switches always take effect and the
 /// microphone indicator is only on while Canto is actually listening.
+///
+/// The engine is driven from a background queue, never the main thread: when devices change,
+/// AVAudioEngine can wait on Core Audio for good (seen after switching from AirPods to the
+/// built-in microphone), and on the main thread that froze the whole app.
 final class AudioRecorder {
     /// Called on the main queue, about 30 times a second.
     var onLevel: ((Float) -> Void)?
@@ -21,16 +27,14 @@ final class AudioRecorder {
 
     let processingQueue = DispatchQueue(label: "canto.audio.processing", qos: .userInitiated)
 
+    /// Only touched on the main thread. Replaced when a start hangs inside Core Audio.
+    private var controller = Controller()
     /// Only touched on `processingQueue`.
     private var sampleHandler: (([Float]) -> Void)?
-    private var engine: AVAudioEngine?
-    private var configurationObserver: NSObjectProtocol?
     private var meter = MicLevelMeter()
     /// Only touched on `processingQueue`.
     private var isLive = false
     private var lastLevelReport = DispatchTime.now()
-
-    var isRunning: Bool { engine?.isRunning ?? false }
 
     /// Sets the receiver of converted 16 kHz samples; it is called on `processingQueue`.
     func setSampleHandler(_ handler: (([Float]) -> Void)?) {
@@ -38,22 +42,60 @@ final class AudioRecorder {
     }
 
     /// Starts capturing from the device with `deviceUID`, or the system default if it is gone.
-    /// Returns the name of the device actually used.
-    @discardableResult
-    func start(deviceUID: String?) throws -> String? {
-        stop()
+    /// Throws `timedOut` when Core Audio does not answer in time.
+    @MainActor
+    func start(deviceUID: String?, timeout: TimeInterval = 5) async throws {
+        let controller = self.controller
+        let gate = ResumeGate()
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            controller.queue.async {
+                controller.session?.stop()
+                controller.session = nil
+                let result = Result { try self.makeSession(deviceUID: deviceUID) }
+                if gate.claim() {
+                    controller.session = try? result.get()
+                    continuation.resume(with: result.map { _ in () })
+                } else {
+                    // The caller gave up on this start; do not leave the microphone on.
+                    try? result.get().stop()
+                }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + timeout) {
+                guard gate.claim() else { return }
+                // The queue is stuck inside Core Audio. Later sessions get a fresh one, and
+                // whatever the stuck queue does once it wakes up cannot touch them.
+                if self.controller === controller { self.controller = Controller() }
+                continuation.resume(throwing: AudioRecorderError.timedOut)
+            }
+        }
+    }
+
+    /// Stops capturing. `completion` runs on `processingQueue` after the last captured chunk.
+    @MainActor
+    func stop(completion: (() -> Void)? = nil) {
+        let controller = self.controller
+        controller.queue.async {
+            controller.session?.stop()
+            controller.session = nil
+            self.processingQueue.async {
+                self.meter = MicLevelMeter()
+                DispatchQueue.main.async { self.onLevel?(0) }
+                completion?()
+            }
+        }
+    }
+
+    /// Runs on a controller's queue.
+    private func makeSession(deviceUID: String?) throws -> Session {
         processingQueue.sync { isLive = false }
         let engine = AVAudioEngine()
         let input = engine.inputNode
 
-        var device = deviceUID.flatMap(AudioDevices.device(uid:))
-        if let chosen = device, let unit = input.audioUnit {
+        if let chosen = deviceUID.flatMap(AudioDevices.device(uid:)), let unit = input.audioUnit {
             var id = chosen.id
-            let status = AudioUnitSetProperty(unit, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0,
-                                              &id, UInt32(MemoryLayout<AudioDeviceID>.size))
-            if status != noErr { device = nil }
+            AudioUnitSetProperty(unit, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0,
+                                 &id, UInt32(MemoryLayout<AudioDeviceID>.size))
         }
-        if device == nil { device = AudioDevices.defaultInputDevice() }
 
         let hardwareFormat = input.inputFormat(forBus: 0)
         guard hardwareFormat.sampleRate > 0, hardwareFormat.channelCount > 0 else {
@@ -100,7 +142,7 @@ final class AudioRecorder {
             }
         }
 
-        configurationObserver = NotificationCenter.default.addObserver(
+        let observer = NotificationCenter.default.addObserver(
             forName: .AVAudioEngineConfigurationChange, object: engine, queue: .main
         ) { [weak self] _ in
             self?.onInterruption?()
@@ -110,26 +152,11 @@ final class AudioRecorder {
         do {
             try engine.start()
         } catch {
+            NotificationCenter.default.removeObserver(observer)
             input.removeTap(onBus: 0)
             throw error
         }
-        self.engine = engine
-        return device?.name
-    }
-
-    func stop() {
-        if let configurationObserver {
-            NotificationCenter.default.removeObserver(configurationObserver)
-        }
-        configurationObserver = nil
-        guard let engine else { return }
-        engine.inputNode.removeTap(onBus: 0)
-        engine.stop()
-        self.engine = nil
-        processingQueue.async {
-            self.meter = MicLevelMeter()
-            DispatchQueue.main.async { self.onLevel?(0) }
-        }
+        return Session(engine: engine, observer: observer)
     }
 
     private func reportLevel(_ samples: [Float]) {
@@ -140,5 +167,38 @@ final class AudioRecorder {
         let level = meter.level
         meter.decay()
         DispatchQueue.main.async { self.onLevel?(level) }
+    }
+}
+
+/// A running capture engine.
+private struct Session {
+    let engine: AVAudioEngine
+    let observer: NSObjectProtocol
+
+    func stop() {
+        NotificationCenter.default.removeObserver(observer)
+        engine.inputNode.removeTap(onBus: 0)
+        engine.stop()
+    }
+}
+
+/// A serial queue and the engine it drives, replaced as a whole when a start hangs.
+private final class Controller: @unchecked Sendable {
+    let queue = DispatchQueue(label: "canto.audio.control", qos: .userInitiated)
+    /// Only touched on `queue`.
+    var session: Session?
+}
+
+/// Lets exactly one of two racing callbacks (the start or its timeout) resume a continuation.
+private final class ResumeGate: @unchecked Sendable {
+    private let lock = NSLock()
+    private var claimed = false
+
+    func claim() -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        if claimed { return false }
+        claimed = true
+        return true
     }
 }
