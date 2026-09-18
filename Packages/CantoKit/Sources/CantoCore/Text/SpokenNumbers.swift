@@ -7,10 +7,10 @@ public enum SpokenNumbers {
 
     /// Number words that stay words when they are the only number around: on its own "один"/"one"
     /// is usually an article or a pronoun ("одна из них"), not a quantity.
-    static let standaloneExceptions: Set<String> = ["один", "одна", "одно", "одни", "one"]
+    static let standaloneExceptions: Set<String> = ["один", "одна", "одно", "одну", "одни", "one"]
 
     static let units: [String: Int] = [
-        "ноль": 0, "нуль": 0, "один": 1, "одна": 1, "одно": 1, "два": 2, "две": 2, "три": 3, "четыре": 4,
+        "ноль": 0, "нуль": 0, "один": 1, "одна": 1, "одно": 1, "одну": 1, "два": 2, "две": 2, "три": 3, "четыре": 4,
         "пять": 5, "шесть": 6, "семь": 7, "восемь": 8, "девять": 9, "десять": 10, "одиннадцать": 11,
         "двенадцать": 12, "тринадцать": 13, "четырнадцать": 14, "пятнадцать": 15, "шестнадцать": 16,
         "семнадцать": 17, "восемнадцать": 18, "девятнадцать": 19, "двадцать": 20, "тридцать": 30,
@@ -52,18 +52,39 @@ public enum SpokenNumbers {
         var result = ""
         var index = 0
         while index < pieces.count {
+            // A numerator already in digits: "1 пятая", "2 трети".
+            if isDigits(pieces[index].word), let fraction = fraction(pieces, from: index, to: index) {
+                result += fraction.text
+                index = fraction.next
+                continue
+            }
             guard startsNumber(pieces, at: index) else {
                 result += pieces[index].word + pieces[index].separator
                 index += 1
                 continue
             }
+            // After a decimal point a multiplier is not part of the digits: "1 точка 5 миллиона" is 1.5 million.
+            let isFractionPart = followsDecimalPoint(pieces, at: index)
             var end = index
-            while end + 1 < pieces.count, continues(pieces, from: end) { end += 1 }
-            let next = end + 1 < pieces.count ? pieces[end + 1].word : ""
-            result += render(Array(pieces[index...end]), beforeOrdinal: isOrdinal(next))
+            while end + 1 < pieces.count, continues(pieces, from: end),
+                  !(isFractionPart && multipliers[pieces[end + 1].word.lowercased()] != nil) {
+                end += 1
+            }
+            if let decimal = wholeAndTenths(pieces, from: index, to: end) ?? fraction(pieces, from: index, to: end) {
+                result += decimal.text
+                index = decimal.next
+                continue
+            }
+            let run = Array(pieces[index...end])
+            if run.count == 1, standaloneExceptions.contains(run[0].word.lowercased()), !hasNumberNeighbour(pieces, from: index, to: end) {
+                result += run[0].word + run[0].separator
+            } else {
+                let next = end + 1 < pieces.count ? pieces[end + 1].word : ""
+                result += render(run, beforeOrdinal: isOrdinal(next))
+            }
             index = end + 1
         }
-        return result
+        return joinDecimals(result)
     }
 
     static func isOrdinal(_ word: String) -> Bool {
@@ -73,6 +94,10 @@ public enum SpokenNumbers {
     private static func isNumberWord(_ word: String) -> Bool {
         let lowered = word.lowercased()
         return units[lowered] != nil || multipliers[lowered] != nil
+    }
+
+    static func isNumeric(_ word: String) -> Bool {
+        isNumberWord(word) || isDigits(word)
     }
 
     private static func isDigits(_ word: String) -> Bool {
@@ -86,7 +111,7 @@ public enum SpokenNumbers {
         guard isDigits(pieces[index].word), pieces[index].separator == " ", index + 1 < pieces.count,
               multipliers[pieces[index + 1].word.lowercased()] != nil else { return false }
         if index > 0, isDigits(pieces[index - 1].word), [",", "."].contains(pieces[index - 1].separator) { return false }
-        return true
+        return !followsDecimalPoint(pieces, at: index)
     }
 
     /// Whether the word after `index` belongs to the same run of number words.
@@ -162,10 +187,200 @@ public enum SpokenNumbers {
             index += 1
         }
         finish()
-
-        // "один" alone is a word; next to other numbers ("восемь один два") it is a digit.
-        if run.count == 1, standaloneExceptions.contains(run[0].word.lowercased()) { return original }
         return parts.map(\.text).joined()
+    }
+
+    /// The value of a run that is one number ("двадцать одна"), not several ("пять шесть").
+    static func singleValue(_ run: ArraySlice<Piece>) -> Int? {
+        var builder = NumberBuilder()
+        for piece in run {
+            let lowered = piece.word.lowercased()
+            if isDigits(piece.word), builder.words == 0, let value = Int(piece.word) {
+                builder.seed(piece.word, value: value)
+                continue
+            }
+            guard isNumberWord(lowered) else { return nil }
+            let value = units[lowered] ?? multipliers[lowered] ?? 0
+            guard builder.accepts(lowered, value: value) else { return nil }
+            builder.add(piece.word, lowered: lowered, value: value)
+        }
+        return builder.value
+    }
+
+    // MARK: Neighbours, decimals and fractions
+
+    /// Words that link two numbers: "один и пять", "один или два", "один точка пять".
+    static let links: Set<String> = ["и", "или", "либо", "and", "or", "точка", "запятая", "point"]
+
+    /// Spoken decimal points and what they are written as.
+    static let decimalPoints: [String: String] = ["точка": ".", "point": ".", "запятая": ","]
+
+    private static func isSpace(_ separator: String) -> Bool {
+        !separator.isEmpty && separator.allSatisfy { $0 == " " || $0 == "\u{00A0}" }
+    }
+
+    /// Punctuation that still keeps two numbers together: "один, два", "один-два", "1/2".
+    private static func isListSeparator(_ separator: String) -> Bool {
+        let trimmed = separator.trimmingCharacters(in: .whitespaces)
+        return isSpace(separator) || [",", "-", "–", "—", "/"].contains(trimmed)
+    }
+
+    /// Whether "один" at `start...end` has another number next to it: "один и пять", "один, два".
+    private static func hasNumberNeighbour(_ pieces: [Piece], from start: Int, to end: Int) -> Bool {
+        func startsLowercase(_ word: String) -> Bool { word.first.map { !$0.isUppercase } ?? false }
+        if end + 1 < pieces.count {
+            let next = pieces[end + 1].word
+            if isListSeparator(pieces[end].separator), isNumeric(next) { return true }
+            if isSpace(pieces[end].separator), links.contains(next.lowercased()), end + 2 < pieces.count,
+               isSpace(pieces[end + 1].separator), isNumeric(pieces[end + 2].word),
+               // "пять точка Один из них": a capital starts a new sentence.
+               decimalPoints[next.lowercased()] == nil || startsLowercase(pieces[end + 2].word) {
+                return true
+            }
+        }
+        if start > 0 {
+            let previous = pieces[start - 1]
+            if isListSeparator(previous.separator), isNumeric(previous.word) { return true }
+            if isSpace(previous.separator), links.contains(previous.word.lowercased()), start > 1,
+               isSpace(pieces[start - 2].separator), isNumeric(pieces[start - 2].word) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /// The run at `index` comes right after a spoken decimal point: "пять" in "один точка пять".
+    private static func followsDecimalPoint(_ pieces: [Piece], at index: Int) -> Bool {
+        guard index > 1 else { return false }
+        return decimalPoints[pieces[index - 1].word.lowercased()] != nil && isSpace(pieces[index - 1].separator)
+            && isNumeric(pieces[index - 2].word) && isSpace(pieces[index - 2].separator)
+    }
+
+    /// Whether the "точка" or "запятая" between `before` and `after` is a decimal point, so spoken
+    /// punctuation leaves it for the numbers: "один точка пять" is 1.5, "два точка ноль точка один"
+    /// is 2.0.1. Commas between several numbers are a list: "один запятая два запятая три".
+    static func isDecimalPoint(_ word: String, before: some StringProtocol, after: some StringProtocol) -> Bool {
+        let left = split(String(before))
+        let right = split(String(after)).drop { $0.word.isEmpty }.map { $0 }
+        guard let last = left.last, isNumeric(last.word), last.separator.allSatisfy(\.isWhitespace),
+              let first = right.first, isNumeric(first.word), first.word.first?.isUppercase != true else { return false }
+        guard word.lowercased() == "запятая" else { return true }
+
+        func joinsAnotherNumber(_ separator: String, _ word: String, then next: Piece?) -> Bool {
+            if separator.trimmingCharacters(in: .whitespaces) == ",", isNumeric(word) { return true }
+            guard isSpace(separator), word.lowercased() == "запятая", let next else { return false }
+            return isNumeric(next.word)
+        }
+        var start = left.count - 1
+        while start > 0, isSpace(left[start - 1].separator), isNumeric(left[start - 1].word) { start -= 1 }
+        if start > 0 {
+            let previous = left[start - 1]
+            // Before the number: "три запятая" or "три, ".
+            if previous.separator.trimmingCharacters(in: .whitespaces) == ",", isNumeric(previous.word) { return false }
+            if isSpace(previous.separator), previous.word.lowercased() == "запятая", start > 1, isNumeric(left[start - 2].word) {
+                return false
+            }
+        }
+        var end = 0
+        while end + 1 < right.count, isSpace(right[end].separator), isNumeric(right[end + 1].word) { end += 1 }
+        if end + 1 < right.count,
+           joinsAnotherNumber(right[end].separator, right[end + 1].word, then: end + 2 < right.count ? right[end + 2] : nil) {
+            return false
+        }
+        return true
+    }
+
+    /// "1 точка 5" → "1.5", "2 точка 0 точка 1" → "2.0.1", "3 запятая 14" → "3,14": the digits after
+    /// the point, spoken as separate numbers ("ноль пять"), are written together.
+    static let decimalExpression = try! NSRegularExpression(pattern: """
+        (?<![\\p{L}\\p{N}.,])\\d+(?:[ \u{00A0}](?:точка|point)[ \u{00A0}]\\d+(?:[ \u{00A0}]\\d+)*)+(?![\\p{L}\\p{N}])\
+        |(?<![\\p{L}\\p{N}.,])\\d+[ \u{00A0}]запятая[ \u{00A0}]\\d+(?:[ \u{00A0}]\\d+)*(?![\\p{L}\\p{N}])
+        """, options: [.caseInsensitive])
+
+    private static func joinDecimals(_ text: String) -> String {
+        var result = text
+        for match in decimalExpression.matches(in: text, range: NSRange(text.startIndex..., in: text)).reversed() {
+            guard let range = Range(match.range, in: result) else { continue }
+            var joined = ""
+            for piece in split(String(result[range])) {
+                if let point = decimalPoints[piece.word.lowercased()] { joined += point } else { joined += piece.word }
+            }
+            result.replaceSubrange(range, with: joined)
+        }
+        return result
+    }
+
+    /// "одна целая пять десятых" → "1,5", "две целых двадцать пять сотых" → "2,25".
+    private static func wholeAndTenths(_ pieces: [Piece], from start: Int, to end: Int) -> (text: String, next: Int)? {
+        guard end + 2 < pieces.count, let whole = singleValue(pieces[start...end]), isSpace(pieces[end].separator),
+              ["целая", "целых", "целую", "целой"].contains(pieces[end + 1].word.lowercased()),
+              isSpace(pieces[end + 1].separator), startsNumber(pieces, at: end + 2) else { return nil }
+        var fractionEnd = end + 2
+        while fractionEnd + 1 < pieces.count, continues(pieces, from: fractionEnd) { fractionEnd += 1 }
+        guard fractionEnd + 1 < pieces.count, isSpace(pieces[fractionEnd].separator),
+              let tenths = singleValue(pieces[(end + 2)...fractionEnd]) else { return nil }
+        let unit = pieces[fractionEnd + 1].word.lowercased()
+        let places: Int
+        if unit.hasPrefix("десят") { places = 1 } else if unit.hasPrefix("сот") { places = 2 } else if unit.hasPrefix("тысячн") { places = 3 } else {
+            return nil
+        }
+        guard ["ая", "ых", "ую", "ой"].contains(where: unit.hasSuffix) else { return nil }
+        let digits = String(tenths)
+        guard digits.count <= places else { return nil }
+        let text = "\(whole),\(String(repeating: "0", count: places - digits.count))\(digits)" + pieces[fractionEnd + 1].separator
+        return (text, fractionEnd + 2)
+    }
+
+    /// Denominators: "пятая" after "одна", "пятых" after "две"…"десять", "трети", "fifth(s)".
+    static let singularDenominators: [String: Int] = {
+        var result: [String: Int] = ["третья": 3, "третью": 3, "треть": 3, "четверть": 4,
+                                     "half": 2, "third": 3, "fourth": 4, "fifth": 5, "sixth": 6, "seventh": 7,
+                                     "eighth": 8, "ninth": 9, "tenth": 10]
+        for (stem, value) in denominatorStems {
+            result[stem + "ая"] = value
+            result[stem + "ую"] = value
+        }
+        return result
+    }()
+
+    static let pluralDenominators: [String: Int] = {
+        var result: [String: Int] = ["третьих": 3, "трети": 3, "третей": 3, "четверти": 4, "четвертей": 4,
+                                     "thirds": 3, "fourths": 4, "fifths": 5, "sixths": 6, "sevenths": 7,
+                                     "eighths": 8, "ninths": 9, "tenths": 10]
+        for (stem, value) in denominatorStems { result[stem + "ых"] = value }
+        return result
+    }()
+
+    static let denominatorStems: [(String, Int)] = [
+        ("втор", 2), ("четверт", 4), ("четвёрт", 4), ("пят", 5), ("шест", 6), ("седьм", 7), ("восьм", 8),
+        ("девят", 9), ("десят", 10), ("сот", 100), ("тысячн", 1_000),
+    ]
+
+    static let singularNumerators: Set<String> = ["одна", "одну", "one"]
+    static let pluralNumerators: Set<String> = [
+        "две", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять", "десять",
+        "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+    ]
+
+    /// "одна пятая" → "1/5", "две трети" → "2/3", "three fifths" → "3/5". The numerator's form must
+    /// agree with the denominator, so the ordinal "двадцать пятая" stays a word.
+    private static func fraction(_ pieces: [Piece], from start: Int, to end: Int) -> (text: String, next: Int)? {
+        guard end + 1 < pieces.count, isSpace(pieces[end].separator), let numerator = singleValue(pieces[start...end]) else { return nil }
+        let last = pieces[end].word.lowercased()
+        let word = pieces[end + 1].word.lowercased()
+        let isSingular: Bool
+        if isDigits(last) {
+            isSingular = numerator % 10 == 1 && numerator % 100 != 11
+        } else if singularNumerators.contains(last) {
+            isSingular = true
+        } else if pluralNumerators.contains(last) {
+            isSingular = false
+        } else {
+            return nil
+        }
+        guard let denominator = isSingular ? singularDenominators[word] : pluralDenominators[word],
+              last.allSatisfy(\.isASCII) == word.allSatisfy(\.isASCII) || isDigits(last) else { return nil }
+        return ("\(numerator)/\(denominator)" + pieces[end + 1].separator, end + 2)
     }
 
     /// Adds up number words place by place, and refuses a word that would not fit

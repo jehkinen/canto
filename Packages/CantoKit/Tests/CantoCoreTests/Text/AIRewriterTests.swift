@@ -119,6 +119,16 @@ struct TextPipelineTests {
         #expect(missing.rewriteFallbackReason == "skill Gone.md not found")
     }
 
+    @Test func numbersTheSkillSpellsOutBecomeDigitsAgain() async {
+        let chat = FakeChat([.success("Один и пять.")])
+        let processed = await pipeline(chat).process("один и пять", settings: settings {
+            $0.skill = "Clean up.md"
+            $0.numberFormat = .digits
+        }, fallbackLanguage: "ru")
+        #expect(chat.requests.first?.messages[1].content.contains("1 и 5") == true)
+        #expect(processed.text == "1 и 5.")
+    }
+
     @Test func skillRunsAfterTheLocalStepsAndVocabularyFixesItsSpelling() async {
         let chat = FakeChat([.success("Деплоим 2 сервиса в aws.")])
         let processed = await pipeline(chat).process("деплоим два сервиса в aws", settings: settings {

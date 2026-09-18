@@ -165,6 +165,8 @@ public enum TextCleanup {
         /// Words before the command that make it an ordinary noun: "стартовая точка", "the trial period".
         var notAfter: Set<String> = []
         var notAfterEndings: [String] = []
+        /// Between two numbers the word is a decimal point, not punctuation: "один точка пять".
+        var decimalPoint = false
     }
 
     static let englishDeterminers: Set<String> = [
@@ -178,10 +180,10 @@ public enum TextCleanup {
         SpokenCommand(words: "восклицательный знак", symbol: "!", notAfter: russianPointers),
         SpokenCommand(words: "новый абзац", symbol: "\n\n", notAfter: ["этот", "тот", "один", "каждый"]),
         SpokenCommand(words: "новая строка", symbol: "\n", notAfter: russianPointers),
-        SpokenCommand(words: "запятая", symbol: ",", notAfter: russianPointers, notAfterEndings: ["ая", "яя"]),
+        SpokenCommand(words: "запятая", symbol: ",", notAfter: russianPointers, notAfterEndings: ["ая", "яя"], decimalPoint: true),
         SpokenCommand(words: "двоеточие", symbol: ":", notAfter: ["это", "то", "одно", "каждое"]),
         SpokenCommand(words: "точка(?!\\s+(?:зрения|отсч[её]та|опоры|кипения|доступа|входа|роста|невозврата|сборки))",
-                      symbol: ".", notAfter: russianPointers, notAfterEndings: ["ая", "яя"]),
+                      symbol: ".", notAfter: russianPointers, notAfterEndings: ["ая", "яя"], decimalPoint: true),
         SpokenCommand(words: "question mark", symbol: "?", notAfter: englishDeterminers),
         SpokenCommand(words: "exclamation mark", symbol: "!", notAfter: englishDeterminers),
         SpokenCommand(words: "exclamation point", symbol: "!", notAfter: englishDeterminers),
@@ -215,6 +217,11 @@ public enum TextCleanup {
                 let previous = result[..<range.lowerBound].split(whereSeparator: { !$0.isLetter && !$0.isNumber }).last
                     .map { $0.lowercased() } ?? ""
                 if command.notAfter.contains(previous) || command.notAfterEndings.contains(where: previous.hasSuffix) {
+                    continue
+                }
+                let spoken = result[range].trimmingCharacters(in: .whitespaces)
+                if command.decimalPoint, spoken.allSatisfy(\.isLetter),
+                   SpokenNumbers.isDecimalPoint(spoken, before: result[..<range.lowerBound], after: result[range.upperBound...]) {
                     continue
                 }
                 var rest = String(result[range.upperBound...])

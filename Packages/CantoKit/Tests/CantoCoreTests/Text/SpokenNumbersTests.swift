@@ -19,6 +19,48 @@ struct SpokenNumbersTests {
         #expect(SpokenNumbers.toDigits(input) == expected)
     }
 
+    @Test(arguments: [
+        ("один точка пять", "1.5"),
+        ("один точка ноль пять", "1.05"),
+        ("версия два точка ноль точка один", "версия 2.0.1"),
+        ("один точка пять миллиона", "1.5 миллиона"),
+        ("два запятая пять процента", "2,5 процента"),
+        ("один запятая два запятая три", "1, 2, 3"),
+        ("их было пять точка Один из них ушёл", "их было 5. Один из них ушёл"),
+        ("one point five", "1.5"),
+        ("1 точка 5", "1.5"),
+        ("одна целая пять десятых", "1,5"),
+        ("две целых двадцать пять сотых", "2,25"),
+    ])
+    func decimals(input: String, expected: String) {
+        #expect(SpokenNumbers.toDigits(TextCleanup.applySpokenPunctuation(input)) == expected)
+    }
+
+    @Test(arguments: [
+        ("одна пятая", "1/5"),
+        ("одну пятую часть", "1/5 часть"),
+        ("две третьих", "2/3"),
+        ("три четверти часа", "3/4 часа"),
+        ("2 трети", "2/3"),
+        ("two thirds of users", "2/3 of users"),
+        ("двадцать пятая годовщина", "двадцать пятая годовщина"),
+        ("one second please", "one second please"),
+    ])
+    func fractions(input: String, expected: String) {
+        #expect(SpokenNumbers.toDigits(input) == expected)
+    }
+
+    @Test(arguments: [
+        ("один и пять", "1 и 5"),
+        ("один или два раза", "1 или 2 раза"),
+        ("один, два, три", "1, 2, 3"),
+        ("один и тот же", "один и тот же"),
+        ("один из них", "один из них"),
+    ])
+    func oneNextToAnotherNumberIsADigit(input: String, expected: String) {
+        #expect(SpokenNumbers.toDigits(input) == expected)
+    }
+
     @Test func keepsTextItDoesNotUnderstand() {
         #expect(SpokenNumbers.toDigits("Мы пишем на Next.js и деплоим в AWS") == "Мы пишем на Next.js и деплоим в AWS")
         #expect(SpokenNumbers.toDigits("") == "")

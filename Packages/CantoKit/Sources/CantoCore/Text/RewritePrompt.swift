@@ -21,6 +21,7 @@ public enum RewritePrompt {
             Always:
             - Reply with the resulting text only: no preface, no comments, no quotation marks around it.
             - Keep the meaning, facts, names, numbers, dates and the speaker's person ("I", "we").
+            - Keep numbers as they are written: digits stay digits, "1/5" and "1.5" stay as they are.
             - Fix misrecognized words only when the intended word is clear from the context.
             """
         let terms = Vocabulary.terms(vocabulary)

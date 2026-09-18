@@ -47,17 +47,7 @@ public struct TextPipeline: Sendable {
             text = TextCleanup.basic(text)
         }
 
-        switch settings.numberFormat {
-        case .asHeard:
-            break
-        case .digits:
-            text = SpokenNumbers.toDigits(text)
-        case .words:
-            text = NumberWords.apply(text, language: settings.effectiveLanguage(fallback: fallbackLanguage))
-        }
-        if settings.currencySymbols {
-            text = SpokenNumbers.currencySymbols(text)
-        }
+        text = formatNumbers(text, settings: settings, fallbackLanguage: fallbackLanguage)
         if !settings.vocabulary.isEmpty {
             text = Vocabulary.apply(text, terms: settings.vocabulary)
         }
@@ -68,7 +58,8 @@ public struct TextPipeline: Sendable {
                 do {
                     text = try await AIRewriter(chat: chat, model: model)
                         .rewrite(text, skillName: skill.name, instructions: instructions, vocabulary: settings.vocabulary)
-                    // The model may still bend a term's spelling.
+                    // The model may spell a number out again or bend a term's spelling.
+                    text = formatNumbers(text, settings: settings, fallbackLanguage: fallbackLanguage)
                     if !settings.vocabulary.isEmpty {
                         text = Vocabulary.apply(text, terms: settings.vocabulary)
                     }
@@ -82,5 +73,21 @@ public struct TextPipeline: Sendable {
 
         return ProcessedText(text: text, pressEnter: enter.pressEnter, rewriteFallback: fallbackReason != nil,
                              rewriteFallbackReason: fallbackReason)
+    }
+
+    private func formatNumbers(_ text: String, settings: AppSettings, fallbackLanguage: String) -> String {
+        var text = text
+        switch settings.numberFormat {
+        case .asHeard:
+            break
+        case .digits:
+            text = SpokenNumbers.toDigits(text)
+        case .words:
+            text = NumberWords.apply(text, language: settings.effectiveLanguage(fallback: fallbackLanguage))
+        }
+        if settings.currencySymbols {
+            text = SpokenNumbers.currencySymbols(text)
+        }
+        return text
     }
 }
