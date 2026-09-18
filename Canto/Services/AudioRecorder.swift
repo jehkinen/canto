@@ -19,8 +19,9 @@ enum AudioRecorderError: Error, Equatable {
 /// to the built-in microphone could hang Core Audio for good.
 ///
 /// Units are started and stopped on a background queue with a timeout, never on the main
-/// thread, so a stuck Core Audio call can not freeze the app.
-final class AudioRecorder {
+/// thread, so a stuck Core Audio call can not freeze the app. State is split between the main
+/// thread and two serial queues, as marked on each property, hence the unchecked Sendable.
+final class AudioRecorder: @unchecked Sendable {
     /// Called on the main queue, about 30 times a second.
     var onLevel: ((Float) -> Void)?
     /// Called on the main queue when the input device disappears or changes format mid-session.

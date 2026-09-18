@@ -32,9 +32,15 @@ public enum Vocabulary {
         let matches = expression.matches(in: result, range: NSRange(result.startIndex..., in: result))
         for match in matches.reversed() {
             guard let term = matchedTerm(match, terms: ordered), let range = Range(match.range, in: result) else { continue }
-            result.replaceSubrange(range, with: term)
+            result.replaceSubrange(range, with: keepingCapital(of: result[range], in: term))
         }
         return result
+    }
+
+    /// A lowercase term keeps the capital the sentence gave it: "Запушить в main" stays capitalized.
+    private static func keepingCapital(of matched: Substring, in term: String) -> String {
+        guard let first = matched.first, first.isUppercase, let termFirst = term.first, termFirst.isLowercase else { return term }
+        return termFirst.uppercased() + term.dropFirst()
     }
 
     /// Whisper answers near-silence with the prompt it was given: the terms in the prompt's order,

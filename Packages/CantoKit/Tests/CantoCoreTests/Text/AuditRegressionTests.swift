@@ -99,6 +99,13 @@ struct AuditRegressionTests {
         #expect(Vocabulary.apply("open ai and Node. js", terms: ["OpenAI", "Node.js"]) == "OpenAI and Node.js")
     }
 
+    @Test func vocabularyKeepsSentenceCapital() {
+        let terms = ["git", "запушить", "OpenAI"]
+        #expect(Vocabulary.apply("Git нужно обновить. Запушить в main", terms: terms) == "Git нужно обновить. Запушить в main")
+        #expect(Vocabulary.apply("потом GIT и запушить", terms: terms) == "потом Git и запушить")
+        #expect(Vocabulary.apply("Openai", terms: terms) == "OpenAI")
+    }
+
     @Test func promptEcho() {
         let terms = ["OpenAI", "ChatGPT", "Node.js"]
         #expect(Vocabulary.isEchoOfPrompt("Термины: OpenAI, ChatGPT, Node.js.", terms: terms))
