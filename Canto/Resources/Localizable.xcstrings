@@ -686,6 +686,16 @@
         }
       }
     },
+    "Fastest, on the Neural Engine; the vocabulary only fixes spelling" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Самая быстрая, на Neural Engine; словарь только исправляет написание"
+          }
+        }
+      }
+    },
     "Feedback" : {
       "localizations" : {
         "ru" : {

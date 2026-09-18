@@ -45,6 +45,7 @@ enum Labels {
         case .base: "Base"
         case .small: "Small"
         case .largeV3Turbo: "Large v3 Turbo"
+        case .parakeetV3: "Parakeet v3"
         case .medium: "Medium"
         case .largeV3: "Large v3"
         }
@@ -55,6 +56,7 @@ enum Labels {
         case .base: "Fast, good for clear speech"
         case .small: "Balanced speed and accuracy"
         case .largeV3Turbo: "Nearly as accurate as Large, fast on Apple silicon"
+        case .parakeetV3: "Fastest, on the Neural Engine; the vocabulary only fixes spelling"
         case .medium: "Accurate, needs a recent Mac"
         case .largeV3: "Most accurate, slowest"
         }

@@ -17,6 +17,7 @@ let package = Package(
             dependencies: [
                 .product(name: "CantoCore", package: "CantoKit"),
                 .product(name: "LocalWhisper", package: "WhisperBridge"),
+                .product(name: "LocalParakeet", package: "WhisperBridge"),
             ],
             exclude: ["App/CantoApp.swift"],
             swiftSettings: [.define("SNAPSHOTS"), .swiftLanguageMode(.v5)]

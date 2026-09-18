@@ -34,6 +34,7 @@ RU = {
     "Names and terms to write exactly like this, such as OpenAI or ChatGPT, instead of spelling them out phonetically. They guide recognition and do not slow it down.": "Имена и термины, которые нужно писать именно так, например OpenAI или ChatGPT, а не русскими буквами. Они подсказывают распознаванию и не замедляют его.",
     "GPT-4o models usually recognize speech and terms more accurately than Whisper. For the fastest results without the internet, use Large v3 Turbo on this Mac.": "Модели GPT-4o обычно точнее Whisper распознают речь и термины. Быстрее всего и без интернета — Large v3 Turbo на этом Mac.",
     "Nearly as accurate as Large, fast on Apple silicon": "Почти как Large по точности, быстрая на Apple silicon",
+    "Fastest, on the Neural Engine; the vocabulary only fixes spelling": "Самая быстрая, на Neural Engine; словарь только исправляет написание",
     "Time from the end of the phrase to the inserted text": "Время от конца фразы до вставки текста",
     "GPT-4o mini Transcribe": "GPT-4o mini Transcribe",
     "GPT-4o Transcribe": "GPT-4o Transcribe",
@@ -260,7 +261,7 @@ RU = {
     "“42” becomes “forty-two”.": "«42» станет «сорок два».",
 }
 
-DO_NOT_TRANSLATE = {"andydev.space", "© 2026 Andrei Bogdanov", "GPT-4o mini Transcribe", "GPT-4o Transcribe", "Whisper", "Large v3 Turbo", "%@ (%@)", "%lld", "%lld %%", "English", "OpenAI", "Canto", "sk-…", "whisper-1", "·", "Русский"}
+DO_NOT_TRANSLATE = {"andydev.space", "© 2026 Andrei Bogdanov", "GPT-4o mini Transcribe", "GPT-4o Transcribe", "Whisper", "Large v3 Turbo", "Parakeet v3", "%@ (%@)", "%lld", "%lld %%", "English", "OpenAI", "Canto", "sk-…", "whisper-1", "·", "Русский"}
 
 def catalog(entries):
     strings = {}

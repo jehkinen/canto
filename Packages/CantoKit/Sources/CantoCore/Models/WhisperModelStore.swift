@@ -7,7 +7,9 @@ public struct WhisperModelInfo: Identifiable, Equatable, Sendable {
     public var id: WhisperModelKind { kind }
 }
 
-/// Lists and downloads ggml Whisper models from Hugging Face.
+/// Lists the speech models in the models folder and downloads ggml Whisper models from Hugging Face.
+/// Parakeet is downloaded by the app through FluidAudio; here it is only a folder that counts as
+/// installed once the app has marked it complete.
 public struct WhisperModelStore: Sendable {
     public let directory: URL
 
@@ -20,12 +22,28 @@ public struct WhisperModelStore: Sendable {
     }
 
     public func isInstalled(_ kind: WhisperModelKind) -> Bool {
-        var isDirectory: ObjCBool = false
-        return FileManager.default.fileExists(atPath: url(for: kind).path, isDirectory: &isDirectory) && !isDirectory.boolValue
+        guard kind.isAvailable else { return false }
+        switch kind.engine {
+        case .whisper:
+            var isDirectory: ObjCBool = false
+            return FileManager.default.fileExists(atPath: url(for: kind).path, isDirectory: &isDirectory) && !isDirectory.boolValue
+        case .parakeet:
+            return FileManager.default.fileExists(atPath: completionMarker(for: kind).path)
+        }
+    }
+
+    /// Written once every file of a folder-based model is in place, so an interrupted download
+    /// never counts as installed.
+    public func completionMarker(for kind: WhisperModelKind) -> URL {
+        url(for: kind).appendingPathComponent(".canto-complete")
+    }
+
+    public func markComplete(_ kind: WhisperModelKind) throws {
+        try Data().write(to: completionMarker(for: kind))
     }
 
     public func models() -> [WhisperModelInfo] {
-        WhisperModelKind.allCases.map { WhisperModelInfo(kind: $0, url: url(for: $0), isInstalled: isInstalled($0)) }
+        WhisperModelKind.available.map { WhisperModelInfo(kind: $0, url: url(for: $0), isInstalled: isInstalled($0)) }
     }
 
     public func delete(_ kind: WhisperModelKind) throws {

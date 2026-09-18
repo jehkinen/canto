@@ -1,4 +1,5 @@
 import AppKit
+import LocalParakeet
 import LocalWhisper
 import Observation
 import OSLog
@@ -116,6 +117,7 @@ final class AppModel {
     private var jobGeneration = 0
     private(set) var jobsInFlight = 0
     private var whisper: WhisperTranscriber?
+    private var parakeet: ParakeetTranscriber?
     private var cachedAPIKey: String?
     private var downloadTasks: [WhisperModelKind: Task<Void, Never>] = [:]
     private var noticeTask: Task<Void, Never>?
@@ -156,7 +158,7 @@ final class AppModel {
         AudioDevices.observeChanges { [weak self] in self?.refreshDevices() }
         refreshModels()
         refreshStyles()
-        prewarmWhisper()
+        prewarmLocalModel()
 
         NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main) { _ in
             MainActor.assumeIsolated { AppModel.shared.refreshPermissions() }
@@ -506,8 +508,15 @@ final class AppModel {
         case .local:
             // While the chosen model is still downloading, another downloaded one does the work.
             let model = activeWhisperModel(for: settings) ?? settings.whisperModel
+            let store = WhisperModelStore(directory: AppPaths.modelsDirectory(for: settings))
+            if model.engine == .parakeet {
+                if let parakeet, parakeet.directory == store.url(for: model) { return parakeet }
+                let fresh = ParakeetTranscriber(directory: store.url(for: model))
+                parakeet = fresh
+                return fresh
+            }
             let configuration = WhisperTranscriber.Configuration(
-                modelURL: WhisperModelStore(directory: AppPaths.modelsDirectory(for: settings)).url(for: model),
+                modelURL: store.url(for: model),
                 useGPU: settings.whisperUseGPU,
                 beamSize: settings.whisperBeamSize
             )
@@ -526,7 +535,7 @@ final class AppModel {
         return WhisperModelKind.allCases.first { store.isInstalled($0) }
     }
 
-    private func prewarmWhisper() {
+    private func prewarmLocalModel() {
         if settings.transcriptionProvider == .openAI {
             // Loading the AAC codec takes over a second the first time; do it before the first phrase.
             Task.detached(priority: .utility) {
@@ -535,9 +544,10 @@ final class AppModel {
             return
         }
         guard settings.transcriptionProvider == .local, activeWhisperModel(for: settings) != nil,
-              let whisper = try? transcriber(for: settings) as? WhisperTranscriber else { return }
+              let local = try? transcriber(for: settings) else { return }
         Task.detached(priority: .utility) {
-            try? await whisper.prepare()
+            if let whisper = local as? WhisperTranscriber { try? await whisper.prepare() }
+            if let parakeet = local as? ParakeetTranscriber { try? await parakeet.prepare() }
         }
     }
 
@@ -627,7 +637,8 @@ final class AppModel {
         if settings.transcriptionProvider != old.transcriptionProvider || settings.whisperModel != old.whisperModel
             || settings.whisperUseGPU != old.whisperUseGPU || settings.whisperModelsDirectory != old.whisperModelsDirectory {
             whisper = nil
-            prewarmWhisper()
+            parakeet = nil
+            prewarmLocalModel()
         }
         if !settings.keepHistory, old.keepHistory {
             clearHistory()
@@ -725,14 +736,26 @@ final class AppModel {
 
     func download(_ kind: WhisperModelKind) {
         guard downloadTasks[kind] == nil else { return }
-        downloads[kind] = DownloadProgress(receivedBytes: 0, totalBytes: Int64(kind.approximateSizeMB) * 1_000_000)
+        let total = Int64(kind.approximateSizeMB) * 1_000_000
+        downloads[kind] = DownloadProgress(receivedBytes: 0, totalBytes: total)
         let store = modelStore
+        let report: @Sendable (DownloadProgress) -> Void = { progress in
+            Task { @MainActor in
+                if AppModel.shared.downloads[kind] != nil { AppModel.shared.downloads[kind] = progress }
+            }
+        }
         downloadTasks[kind] = Task { [weak self] in
             do {
-                try await store.download(kind) { progress in
-                    Task { @MainActor in
-                        if AppModel.shared.downloads[kind] != nil { AppModel.shared.downloads[kind] = progress }
+                switch kind.engine {
+                case .whisper:
+                    try await store.download(kind, progress: report)
+                case .parakeet:
+                    // FluidAudio reports a fraction of the whole bundle; the size is its known total.
+                    try await ParakeetModels.download(to: store.url(for: kind)) { fraction in
+                        report(DownloadProgress(receivedBytes: Int64(Double(total) * fraction), totalBytes: total))
                     }
+                    try Task.checkCancellation()
+                    try store.markComplete(kind)
                 }
                 self?.finishDownload(kind, error: nil)
             } catch {
@@ -753,12 +776,16 @@ final class AppModel {
             show(Notice(message: String(localized: "The model download failed")))
         } else if error == nil, settings.whisperModel == kind {
             whisper = nil
-            prewarmWhisper()
+            parakeet = nil
+            prewarmLocalModel()
         }
     }
 
     func deleteModel(_ kind: WhisperModelKind) {
-        if settings.whisperModel == kind { whisper = nil }
+        if settings.whisperModel == kind {
+            whisper = nil
+            parakeet = nil
+        }
         try? modelStore.delete(kind)
         refreshModels()
     }

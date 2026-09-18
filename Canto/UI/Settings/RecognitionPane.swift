@@ -54,24 +54,27 @@ struct RecognitionPane: View {
                 }
 
                 Section {
-                    Toggle(isOn: $model.settings.whisperUseGPU) {
-                        Text("Use the GPU (Metal)")
-                        Text(AppSettings.gpuRecommended
-                             ? "Much faster on Apple silicon."
-                             : "On Intel Macs the processor is usually faster.")
-                    }
-                    LabeledContent {
-                        Picker("Decoding", selection: $model.settings.whisperBeamSize) {
-                            Text("Fast").tag(1)
-                            Text("Balanced").tag(3)
-                            Text("Thorough").tag(5)
+                    // GPU and decoding settings are Whisper's; Parakeet runs on the Neural Engine.
+                    if model.settings.whisperModel.engine == .whisper {
+                        Toggle(isOn: $model.settings.whisperUseGPU) {
+                            Text("Use the GPU (Metal)")
+                            Text(AppSettings.gpuRecommended
+                                 ? "Much faster on Apple silicon."
+                                 : "On Intel Macs the processor is usually faster.")
                         }
-                        .labelsHidden()
-                        .fixedSize()
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text("Decoding")
-                            InfoButton(text: "Fast takes the most likely word at each step. Balanced and Thorough compare several variants of the phrase: a little more accurate on unclear speech, but noticeably slower.")
+                        LabeledContent {
+                            Picker("Decoding", selection: $model.settings.whisperBeamSize) {
+                                Text("Fast").tag(1)
+                                Text("Balanced").tag(3)
+                                Text("Thorough").tag(5)
+                            }
+                            .labelsHidden()
+                            .fixedSize()
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text("Decoding")
+                                InfoButton(text: "Fast takes the most likely word at each step. Balanced and Thorough compare several variants of the phrase: a little more accurate on unclear speech, but noticeably slower.")
+                            }
                         }
                     }
                     LabeledContent("Models folder") {

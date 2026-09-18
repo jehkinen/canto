@@ -53,21 +53,51 @@ public enum WhisperModelKind: String, Codable, CaseIterable, Sendable {
     case small
     /// Large v3 Turbo, 5-bit quantized: near large-v3 accuracy at a fraction of the cost.
     case largeV3Turbo
+    /// NVIDIA Parakeet TDT 0.6B v3 on the Neural Engine: much faster than Whisper, 25 European
+    /// languages, but no prompt, so vocabulary terms are only fixed after recognition.
+    case parakeetV3
     case medium
     case largeV3
 
+    public enum Engine: Sendable {
+        case whisper, parakeet
+    }
+
+    public var engine: Engine {
+        self == .parakeetV3 ? .parakeet : .whisper
+    }
+
+    /// Parakeet needs the Neural Engine of Apple silicon.
+    public var isAvailable: Bool {
+        #if arch(arm64)
+        true
+        #else
+        engine == .whisper
+        #endif
+    }
+
+    /// The models this Mac can run, in the order they are offered.
+    public static var available: [WhisperModelKind] {
+        allCases.filter(\.isAvailable)
+    }
+
+    /// The ggml file of a Whisper model, or the folder of the Parakeet Core ML bundle.
     public var fileName: String {
         switch self {
         case .base: "ggml-base.bin"
         case .small: "ggml-small.bin"
         case .largeV3Turbo: "ggml-large-v3-turbo-q5_0.bin"
+        case .parakeetV3: "parakeet-tdt-0.6b-v3"
         case .medium: "ggml-medium.bin"
         case .largeV3: "ggml-large-v3.bin"
         }
     }
 
     public var downloadURL: URL {
-        URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/\(fileName)")!
+        switch engine {
+        case .whisper: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/\(fileName)")!
+        case .parakeet: URL(string: "https://huggingface.co/FluidInference/parakeet-tdt-0.6b-v3-coreml")!
+        }
     }
 
     public var approximateSizeMB: Int {
@@ -75,6 +105,7 @@ public enum WhisperModelKind: String, Codable, CaseIterable, Sendable {
         case .base: 141
         case .small: 466
         case .largeV3Turbo: 574
+        case .parakeetV3: 480
         case .medium: 1_500
         case .largeV3: 3_100
         }
