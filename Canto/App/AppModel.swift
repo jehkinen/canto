@@ -48,6 +48,8 @@ final class AppModel {
     /// When the current wait for recognition began, for the elapsed time in the UI.
     private(set) var transcribingSince: Date?
     private(set) var level: Float = 0
+    /// Listening has started but the microphone has not delivered sound yet (Bluetooth warm-up).
+    private(set) var microphoneWarmingUp = false
     private(set) var notice: Notice?
     private(set) var history: [TranscriptEntry]
     private(set) var devices: [AudioInputDevice] = []
@@ -120,6 +122,8 @@ final class AppModel {
     private var phaseResetTask: Task<Void, Never>?
     private var permissionPoll: Timer?
     private var microphoneRestarts = 0
+    private var microphoneStartedAt = Date()
+    private var warmUpTask: Task<Void, Never>?
 
     private init() {
         if let data = UserDefaults.standard.data(forKey: Keys.settings),
@@ -142,6 +146,7 @@ final class AppModel {
         }
 
         recorder.onLevel = { [weak self] level in self?.level = level }
+        recorder.onLive = { [weak self] in self?.microphoneBecameLive() }
         recorder.onInterruption = { [weak self] in self?.microphoneInterrupted() }
 
         refreshDevices()
@@ -198,6 +203,7 @@ final class AppModel {
 
         let detector = VoiceActivityDetector(configuration: settings.vadConfiguration)
         detector.endsOnSilence = settings.activationMode == .toggle
+        detector.recordsEverything = settings.activationMode == .pushToTalk
         self.detector = detector
         microphoneRestarts = 0
         recorder.setSampleHandler { [weak self] samples in
@@ -206,6 +212,7 @@ final class AppModel {
             }
         }
 
+        microphoneStartedAt = Date()
         do {
             try recorder.start(deviceUID: settings.microphoneUID)
         } catch {
@@ -215,11 +222,30 @@ final class AppModel {
         }
         phaseResetTask?.cancel()
         phase = .listening(since: Date())
+        // The start sound means "speak now", so it waits until the microphone delivers sound.
+        microphoneWarmingUp = true
+        warmUpTask?.cancel()
+        warmUpTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(2.5))
+            guard !Task.isCancelled else { return }
+            self?.microphoneBecameLive()
+        }
+    }
+
+    private func microphoneBecameLive() {
+        guard isListening, microphoneWarmingUp else { return }
+        microphoneWarmingUp = false
+        warmUpTask?.cancel()
+        let delay = Date().timeIntervalSince(microphoneStartedAt)
+        logger.info("microphone live after \(delay, format: .fixed(precision: 2), privacy: .public)s")
+        phase = .listening(since: Date())
         if settings.playSounds { SoundEffects.start() }
     }
 
     private func stopListening() {
         guard isListening, let detector else { return }
+        microphoneWarmingUp = false
+        warmUpTask?.cancel()
         recorder.stop()
         self.detector = nil
         let pushToTalk = settings.activationMode == .pushToTalk

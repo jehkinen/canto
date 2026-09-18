@@ -15,6 +15,9 @@ public final class VoiceActivityDetector {
     private enum State { case idle, speaking }
 
     public var endsOnSilence = true
+    /// Push-to-talk: keep every sample from the key press on. The detector would otherwise drop
+    /// speech that starts before it has learned the background noise, cutting off the first words.
+    public var recordsEverything = false
 
     private let configuration: VADConfiguration
     private let vad: OpaquePointer
@@ -52,6 +55,16 @@ public final class VoiceActivityDetector {
 
     /// Feeds 16 kHz mono samples and returns the events they completed.
     public func push(_ samples: [Float]) -> [Event] {
+        if recordsEverything {
+            segment.append(contentsOf: samples)
+            let limit = AudioSegment.sampleCount(milliseconds: configuration.maximumSegmentMs)
+            var events: [Event] = []
+            while segment.count >= limit {
+                events.append(.speechEnded(AudioSegment(samples: Array(segment.prefix(limit)))))
+                segment.removeFirst(limit)
+            }
+            return events
+        }
         pending.append(contentsOf: samples)
         var events: [Event] = []
         var offset = 0
@@ -76,6 +89,10 @@ public final class VoiceActivityDetector {
 
     /// Ends push-to-talk: everything that was recorded counts, even if the VAD never fired.
     public func flushPushToTalk() -> AudioSegment? {
+        if recordsEverything {
+            guard !segment.isEmpty else { return nil }
+            return takeSegment()
+        }
         drainPendingFrames()
         if !segment.isEmpty {
             state = .idle

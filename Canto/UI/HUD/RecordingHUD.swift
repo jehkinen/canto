@@ -131,6 +131,9 @@ struct RecordingHUDView: View {
     @ViewBuilder
     private var content: some View {
         switch model.phase {
+        case .listening where model.microphoneWarmingUp:
+            ProgressView().controlSize(.small)
+            Text("Starting the microphone…").font(.callout.weight(.medium))
         case .listening(let since):
             PulsingDot()
             Waveform(level: model.level, barCount: 22, maxHeight: 26)

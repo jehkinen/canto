@@ -15,6 +15,9 @@ final class AudioRecorder {
     var onLevel: ((Float) -> Void)?
     /// Called on the main queue when the input device disappears or changes format mid-session.
     var onInterruption: (() -> Void)?
+    /// Called on the main queue once per session, when the first real signal arrives. Bluetooth
+    /// headsets deliver silence for up to a second while they switch to their microphone.
+    var onLive: (() -> Void)?
 
     let processingQueue = DispatchQueue(label: "canto.audio.processing", qos: .userInitiated)
 
@@ -23,6 +26,8 @@ final class AudioRecorder {
     private var engine: AVAudioEngine?
     private var configurationObserver: NSObjectProtocol?
     private var meter = MicLevelMeter()
+    /// Only touched on `processingQueue`.
+    private var isLive = false
     private var lastLevelReport = DispatchTime.now()
 
     var isRunning: Bool { engine?.isRunning ?? false }
@@ -37,6 +42,7 @@ final class AudioRecorder {
     @discardableResult
     func start(deviceUID: String?) throws -> String? {
         stop()
+        processingQueue.sync { isLive = false }
         let engine = AVAudioEngine()
         let input = engine.inputNode
 
@@ -85,6 +91,10 @@ final class AudioRecorder {
             guard error == nil, output.frameLength > 0, let channel = output.floatChannelData?[0] else { return }
             let samples = Array(UnsafeBufferPointer(start: channel, count: Int(output.frameLength)))
             self.processingQueue.async {
+                if !self.isLive, samples.contains(where: { abs($0) > 0.001 }) {
+                    self.isLive = true
+                    DispatchQueue.main.async { self.onLive?() }
+                }
                 self.reportLevel(samples)
                 self.sampleHandler?(samples)
             }

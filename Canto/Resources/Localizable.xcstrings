@@ -1785,6 +1785,26 @@
         }
       }
     },
+    "Start speaking after the sound" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Начинайте говорить после звука"
+          }
+        }
+      }
+    },
+    "Starting the microphone…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подключаю микрофон…"
+          }
+        }
+      }
+    },
     "Stop" : {
       "localizations" : {
         "ru" : {

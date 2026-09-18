@@ -19,6 +19,9 @@ struct TextCleanupTests {
         ("[Music] Поехали", "Поехали"),
         ("Встретимся в пять (смех)", "Встретимся в пять"),
         ("Купи 5 (пять) яблок", "Купи 5 (пять) яблок"),
+        ("— В PR-е есть конфликты", "В PR-е есть конфликты"),
+        ("... и тогда поехали", "и тогда поехали"),
+        ("-5 градусов на улице", "-5 градусов на улице"),
     ])
     func removesWhisperArtifacts(input: String, expected: String) {
         #expect(TextCleanup.removeWhisperArtifacts(input) == expected)

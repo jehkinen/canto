@@ -195,6 +195,10 @@ private struct HeroCard: View {
     var body: some View {
         VStack(spacing: 10) {
             switch model.phase {
+            case .listening where model.microphoneWarmingUp:
+                ProgressView().controlSize(.regular).frame(height: 36)
+                Text("Starting the microphone…").font(.callout)
+                Text("Start speaking after the sound").font(.caption).foregroundStyle(.secondary)
             case .listening(let since):
                 Waveform(level: model.level, barCount: 30, maxHeight: 44)
                 TimelineView(.periodic(from: since, by: 1)) { context in

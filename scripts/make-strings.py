@@ -5,6 +5,8 @@ import json, os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 RU = {
+    "Starting the microphone…": "Подключаю микрофон…",
+    "Start speaking after the sound": "Начинайте говорить после звука",
     "Numbers": "Числа",
     "As dictated": "Как продиктовано",
     "Digits: 25": "Цифрами: 25",

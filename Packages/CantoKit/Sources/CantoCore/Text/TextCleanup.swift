@@ -44,6 +44,8 @@ public enum TextCleanup {
         while let range = lastSentenceRange(in: result), phantomSentences.contains(normalized(String(result[range]))) {
             result = String(result[..<range.lowerBound])
         }
+        // A recording that starts mid-word reads to Whisper like a line of dialogue: "— и тогда…".
+        result = result.replacingOccurrences(of: "^\\s*(?:[—–]|-(?=\\s)|\\.{3}|…)\\s*", with: "", options: .regularExpression)
         return result.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
