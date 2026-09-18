@@ -109,11 +109,27 @@ struct SkillStoreTests {
         #expect(store.instructions(for: "Clean up.md")?.contains("Never translate") == true)
     }
 
-    @Test func leavesAnExistingFolderAlone() throws {
+    @Test func fillsAnExistingFolderOnceAndKeepsTheUsersFiles() throws {
         let store = makeStore()
         try FileManager.default.createDirectory(at: store.directory, withIntermediateDirectories: true)
+        let mine = store.directory.appendingPathComponent("Clean up.md")
+        try "# Mine\n\nMy own cleanup.".write(to: mine, atomically: true, encoding: .utf8)
         try store.ensureDirectory()
-        #expect(store.list().isEmpty)
+        #expect(store.list().count == 5)
+        #expect(store.instructions(for: "Clean up.md") == "My own cleanup.")
+        // A deleted bundled skill is not offered again.
+        try FileManager.default.removeItem(at: store.directory.appendingPathComponent("Markdown.md"))
+        try store.ensureDirectory()
+        #expect(store.skill(named: "Markdown.md") == nil)
+    }
+
+    @Test func readsClaudeStyleFrontMatter() throws {
+        let store = makeStore()
+        try FileManager.default.createDirectory(at: store.directory, withIntermediateDirectories: true)
+        let file = store.directory.appendingPathComponent("example-business-ru.md")
+        try "---\nname: Business Russian\ndescription: Formal concise business tone\n---\n\nWrite in a formal tone.".write(to: file, atomically: true, encoding: .utf8)
+        #expect(store.skill(named: "example-business-ru.md")?.name == "Business Russian")
+        #expect(store.instructions(for: "example-business-ru.md") == "Write in a formal tone.")
     }
 
     @Test func importsMarkdownAndNamesItByHeading() throws {
