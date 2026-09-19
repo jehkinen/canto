@@ -15,6 +15,14 @@ final class RecordingHUDController {
     func start(model: AppModel) {
         self.model = model
         observe()
+        // Switching to another desktop or a full-screen app while recording: bring the capsule along.
+        NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.activeSpaceDidChangeNotification,
+                                                          object: nil, queue: .main) { _ in
+            MainActor.assumeIsolated {
+                guard let panel = RecordingHUDController.shared.panel, panel.alphaValue > 0 else { return }
+                panel.orderFrontRegardless()
+            }
+        }
     }
 
     private func observe() {
@@ -51,8 +59,10 @@ final class RecordingHUDController {
         position(panel)
         if !panel.isVisible {
             panel.alphaValue = 0
-            panel.orderFrontRegardless()
         }
+        // Every time, not only when hidden: a capsule macOS left on another desktop or behind a
+        // full-screen app is otherwise faded in where the user is not.
+        panel.orderFrontRegardless()
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.18
             panel.animator().alphaValue = 1
