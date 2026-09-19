@@ -19,12 +19,21 @@ public enum KeyRemapping {
     public static let f18: UInt64 = 0x7_0000_006D
     public static let capsLockToF18 = Mapping(source: capsLock, destination: f18)
 
-    public static func applying(capsLockToF18 enabled: Bool, to mappings: [Mapping]) -> [Mapping] {
+    /// `restoring` is the user's own Caps Lock remap that ours replaced ("Caps Lock → Escape"): it
+    /// comes back when ours is removed.
+    public static func applying(capsLockToF18 enabled: Bool, to mappings: [Mapping], restoring previous: Mapping? = nil) -> [Mapping] {
         if enabled {
             // A key has a single mapping, so ours replaces any other Caps Lock remap.
             return mappings.filter { $0.source != capsLock } + [capsLockToF18]
         }
-        return mappings.filter { $0 != capsLockToF18 }
+        let without = mappings.filter { $0 != capsLockToF18 }
+        guard let previous, previous.source == capsLock, !without.contains(where: { $0.source == capsLock }) else { return without }
+        return without + [previous]
+    }
+
+    /// The user's own Caps Lock remap that enabling ours would replace.
+    public static func userCapsLockMapping(in mappings: [Mapping]) -> Mapping? {
+        mappings.first { $0.source == capsLock && $0 != capsLockToF18 }
     }
 
     /// Parses `hidutil property --get UserKeyMapping`, which prints an NSArray description:

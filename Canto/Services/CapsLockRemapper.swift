@@ -4,13 +4,22 @@ import CantoCore
 /// Applies and removes the Caps Lock → F18 remapping with `/usr/bin/hidutil`.
 enum CapsLockRemapper {
     private static var applied = false
+    /// Where the user's own Caps Lock remap pointed before Canto replaced it, kept across launches.
+    private static let previousDestinationKey = "capsLockMappingBeforeCanto"
 
     static func setEnabled(_ enabled: Bool) throws {
         let current = KeyRemapping.parse(try hidutil(["property", "--get", "UserKeyMapping"]))
-        let updated = KeyRemapping.applying(capsLockToF18: enabled, to: current)
+        let defaults = UserDefaults.standard
+        if enabled, let own = KeyRemapping.userCapsLockMapping(in: current) {
+            defaults.set(String(own.destination), forKey: previousDestinationKey)
+        }
+        let previous = defaults.string(forKey: previousDestinationKey).flatMap(UInt64.init)
+            .map { KeyRemapping.Mapping(source: KeyRemapping.capsLock, destination: $0) }
+        let updated = KeyRemapping.applying(capsLockToF18: enabled, to: current, restoring: previous)
         if updated != current {
             _ = try hidutil(["property", "--set", KeyRemapping.setPayload(updated)])
         }
+        if !enabled { defaults.removeObject(forKey: previousDestinationKey) }
         applied = enabled
     }
 

@@ -21,8 +21,10 @@ enum KeychainStore {
         return SecItemCopyMatching(query as CFDictionary, nil) == errSecSuccess
     }
 
-    static func loadAPIKey() -> String? {
-        read(service: service)
+    /// The saved key, or nil when there is none. Throws when the keychain has the key but does not
+    /// hand it over: the user clicked Deny, or the keychain is locked.
+    static func loadAPIKey() throws -> String? {
+        try read(service: service)
     }
 
     static func saveAPIKey(_ key: String) throws {
@@ -38,8 +40,10 @@ enum KeychainStore {
         }
     }
 
-    static func deleteAPIKey() {
-        SecItemDelete(baseQuery(service: service) as CFDictionary)
+    static func deleteAPIKey() throws {
+        let status = SecItemDelete(baseQuery(service: service) as CFDictionary)
+        guard status != errSecItemNotFound else { return }
+        try check(status)
     }
 
     /// Generic passwords whose service, account or label mentions OpenAI. Only attributes are
@@ -78,15 +82,15 @@ enum KeychainStore {
         return String(data: data, encoding: .utf8)
     }
 
-    private static func read(service: String) -> String? {
+    private static func read(service: String) throws -> String? {
         var query = baseQuery(service: service)
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
         var result: CFTypeRef?
-        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess, let data = result as? Data else {
-            return nil
-        }
-        return String(data: data, encoding: .utf8)
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status != errSecItemNotFound else { return nil }
+        try check(status)
+        return (result as? Data).flatMap { String(data: $0, encoding: .utf8) }
     }
 
     private static func baseQuery(service: String) -> [String: Any] {

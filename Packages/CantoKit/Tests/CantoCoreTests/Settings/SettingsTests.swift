@@ -31,6 +31,16 @@ struct KeyRemappingTests {
             == [Self.rightCommandToEscape])
     }
 
+    @Test func disablingBringsBackTheUsersOwnCapsLockRemap() {
+        let escape = KeyRemapping.Mapping(source: KeyRemapping.capsLock, destination: 0x7_0000_0029)
+        let other = KeyRemapping.Mapping(source: 0x7_0000_0004, destination: 0x7_0000_0005)
+        #expect(KeyRemapping.userCapsLockMapping(in: [other, escape]) == escape)
+        let enabled = KeyRemapping.applying(capsLockToF18: true, to: [other, escape])
+        #expect(KeyRemapping.userCapsLockMapping(in: enabled) == nil)
+        #expect(KeyRemapping.applying(capsLockToF18: false, to: enabled, restoring: escape) == [other, escape])
+        #expect(KeyRemapping.applying(capsLockToF18: false, to: enabled) == [other])
+    }
+
     @Test func payloadIsJSON() throws {
         let payload = KeyRemapping.setPayload([KeyRemapping.capsLockToF18])
         let object = try JSONSerialization.jsonObject(with: Data(payload.utf8)) as? [String: [[String: UInt64]]]

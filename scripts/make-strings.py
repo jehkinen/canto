@@ -244,6 +244,8 @@ RU = {
     "Text": "Текст",
     "Text & AI": "Текст и ИИ",
     "The key could not be saved to the keychain": "Не удалось сохранить ключ в Связку ключей",
+    "The keychain did not give Canto the API key": "Связка ключей не отдала Canto ключ API",
+    "The key could not be removed from the keychain": "Не удалось удалить ключ из Связки ключей",
     "The microphone changed, listening stopped": "Микрофон изменился, запись остановлена",
     "The microphone could not be started": "Не удалось включить микрофон",
     "The microphone did not respond. Try again or choose another one": "Микрофон не ответил. Попробуйте ещё раз или выберите другой",

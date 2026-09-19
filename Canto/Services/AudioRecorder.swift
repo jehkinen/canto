@@ -1,3 +1,4 @@
+import Accelerate
 import AudioToolbox
 import AVFoundation
 import CoreAudio
@@ -54,6 +55,9 @@ final class AudioRecorder: @unchecked Sendable {
         let gate = ResumeGate()
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             controller.queue.async {
+                // The queue woke up after the caller gave up: a newer session owns the shared
+                // state (the resampler, the live flag), so this late start must not touch it.
+                guard !gate.isClaimed else { return }
                 controller.capture?.stop()
                 controller.capture = nil
                 let result = Result { try self.makeCapture(deviceUID: deviceUID) }
@@ -283,17 +287,19 @@ private final class Capture {
         guard status == noErr, let channels = buffer.floatChannelData else { return status }
 
         let count = Int(frames)
-        let channelCount = Int(buffer.format.channelCount)
-        var mono = Array(UnsafeBufferPointer(start: channels[0], count: count))
-        if channelCount > 1 {
-            for channel in 1..<channelCount {
-                let samples = channels[channel]
-                for index in 0..<count { mono[index] += samples[index] }
+        // An audio interface often has the microphone on one input and nothing on the others:
+        // averaging them would make the voice 6–18 dB quieter. The loudest channel carries it.
+        var loudest = 0
+        var loudestEnergy: Float = -1
+        for channel in 0..<Int(buffer.format.channelCount) {
+            var energy: Float = 0
+            vDSP_svesq(channels[channel], 1, &energy, vDSP_Length(count))
+            if energy > loudestEnergy {
+                loudest = channel
+                loudestEnergy = energy
             }
-            let scale = 1 / Float(channelCount)
-            for index in 0..<count { mono[index] *= scale }
         }
-        deliver(mono, sampleRate)
+        deliver(Array(UnsafeBufferPointer(start: channels[loudest], count: count)), sampleRate)
         return noErr
     }
 
@@ -367,5 +373,11 @@ private final class ResumeGate: @unchecked Sendable {
         if claimed { return false }
         claimed = true
         return true
+    }
+
+    var isClaimed: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return claimed
     }
 }

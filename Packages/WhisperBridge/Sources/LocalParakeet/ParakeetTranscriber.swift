@@ -31,25 +31,37 @@ public final class ParakeetTranscriber: Transcriber, @unchecked Sendable {
 
 private actor Engine {
     let directory: URL
-    private var loaded: AsrManager?
+    /// One load for everyone: a phrase that arrives while the startup preload runs waits for it
+    /// instead of loading and compiling the model a second time.
+    private var loading: Task<AsrManager, Error>?
 
     init(directory: URL) {
         self.directory = directory
     }
 
     func manager() async throws -> AsrManager {
-        if let loaded { return loaded }
+        if let loading { return try await loading.value }
         guard ParakeetModels.isInstalled(at: directory) else {
             throw TranscriptionError.modelNotFound(directory.path)
         }
+        let directory = self.directory
+        let task = Task {
+            do {
+                let models = try await AsrModels.load(from: directory, version: .v3)
+                let manager = AsrManager()
+                try await manager.loadModels(models)
+                return manager
+            } catch {
+                throw TranscriptionError.modelLoadFailed("Parakeet v3: \(error.localizedDescription)")
+            }
+        }
+        loading = task
         do {
-            let models = try await AsrModels.load(from: directory, version: .v3)
-            let manager = AsrManager()
-            try await manager.loadModels(models)
-            loaded = manager
-            return manager
+            return try await task.value
         } catch {
-            throw TranscriptionError.modelLoadFailed("Parakeet v3: \(error.localizedDescription)")
+            // A failed load is tried again next time.
+            if loading == task { loading = nil }
+            throw error
         }
     }
 

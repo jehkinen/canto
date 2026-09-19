@@ -9,7 +9,7 @@ final class CapsLockLight: @unchecked Sendable {
     static let shared = CapsLockLight()
 
     private let queue = DispatchQueue(label: "io.github.jehkinen.canto.capslock-light", qos: .userInitiated)
-    /// Opened once and kept; only touched on `queue`.
+    /// Opened once and kept; only touched on `queue`, where it also learns about connected keyboards.
     private var manager: IOHIDManager?
     private var isLit = false
 
@@ -53,6 +53,10 @@ final class CapsLockLight: @unchecked Sendable {
         IOHIDManagerSetDeviceMatching(manager, [kIOHIDDeviceUsagePageKey: kHIDPage_GenericDesktop,
                                                 kIOHIDDeviceUsageKey: kHIDUsage_GD_Keyboard] as CFDictionary)
         guard IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone)) == kIOReturnSuccess else { return nil }
+        // Without a queue the device list stays as it was at opening: a keyboard connected later,
+        // or a Bluetooth one after sleep, would never light up.
+        IOHIDManagerSetDispatchQueue(manager, queue)
+        IOHIDManagerActivate(manager)
         self.manager = manager
         return manager
     }

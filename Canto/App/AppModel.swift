@@ -93,13 +93,19 @@ final class AppModel {
         if !accessibilityGranted {
             issues.append(Notice(message: String(localized: "Allow Accessibility to insert text"), action: .grantAccessibility))
         }
-        if settings.transcriptionProvider == .local, activeWhisperModel(for: settings) == nil {
+        if settings.transcriptionProvider == .local, !hasUsableModel {
             issues.append(Notice(message: String(localized: "Download a speech model"), action: .openModels))
         }
         if settings.needsAPIKey, !hasAPIKey {
             issues.append(Notice(message: String(localized: "Add your OpenAI API key"), action: .openAPIKey))
         }
         return issues
+    }
+
+    /// Whether local recognition has a model, as `activeWhisperModel` decides, but read from `models`
+    /// so the UI updates after a download or a deletion.
+    private var hasUsableModel: Bool {
+        models.contains { $0.isInstalled && ($0.kind == settings.whisperModel || WhisperModelKind.available.contains($0.kind)) }
     }
 
     var modelStore: WhisperModelStore {
@@ -133,6 +139,8 @@ final class AppModel {
     /// A hold-or-tap take that continues without the key, until the next press.
     private(set) var isHandsFree = false
     private var cachedAPIKey: String?
+    /// The keychain has the key but refused it (Deny, a locked keychain).
+    private var keychainRefusedKey = false
     private var downloadTasks: [WhisperModelKind: Task<Void, Never>] = [:]
     private var noticeTask: Task<Void, Never>?
     private var phaseResetTask: Task<Void, Never>?
@@ -162,7 +170,7 @@ final class AppModel {
         hotkeys.onPress = { [weak self] in self?.hotkeyPressed() }
         hotkeys.onRelease = { [weak self] in self?.hotkeyReleased() }
         registerHotkey()
-        if settings.capsLockAsHotkey {
+        if settings.remapsCapsLock {
             applyCapsLockRemap(true)
         }
 
@@ -407,7 +415,8 @@ final class AppModel {
             return false
         }
         if settings.transcriptionProvider == .openAI, apiKey() == nil {
-            fail(String(localized: "Add your OpenAI API key"), action: .openAPIKey)
+            fail(keychainRefusedKey ? String(localized: "The keychain did not give Canto the API key")
+                                    : String(localized: "Add your OpenAI API key"), action: .openAPIKey)
             return false
         }
         return true
@@ -738,7 +747,8 @@ final class AppModel {
 
     /// The language Canto's interface runs in, used when Whisper detects the language itself.
     static var interfaceLanguage: String {
-        Bundle.main.preferredLocalizations.first?.hasPrefix("ru") == true ? "ru" : "en"
+        let language = Bundle.main.preferredLocalizations.first.map { String($0.prefix(2)) }
+        return language.flatMap { ["ru", "he"].contains($0) ? $0 : nil } ?? "en"
     }
 
     // MARK: Settings
@@ -750,8 +760,9 @@ final class AppModel {
         if settings.hotkey != old.hotkey || settings.isEnabled != old.isEnabled {
             registerHotkey()
         }
-        if settings.capsLockAsHotkey != old.capsLockAsHotkey {
-            applyCapsLockRemap(settings.capsLockAsHotkey)
+        // Switched off, Canto gives Caps Lock back.
+        if settings.remapsCapsLock != old.remapsCapsLock {
+            applyCapsLockRemap(settings.remapsCapsLock)
         }
         if settings.activationMode != old.activationMode, isListening {
             stopListening()
@@ -799,9 +810,7 @@ final class AppModel {
     }
 
     func resetSettings() {
-        let keepCapsLock = settings.capsLockAsHotkey
         settings = AppSettings()
-        if keepCapsLock { applyCapsLockRemap(false) }
     }
 
     // MARK: Devices and permissions
@@ -941,7 +950,14 @@ final class AppModel {
 
     private func apiKey() -> String? {
         if let cachedAPIKey { return cachedAPIKey }
-        cachedAPIKey = KeychainStore.loadAPIKey()
+        // After a Deny, every phrase would ask again; the next try is when the key is saved again.
+        guard !keychainRefusedKey else { return nil }
+        do {
+            cachedAPIKey = try KeychainStore.loadAPIKey()
+        } catch {
+            keychainRefusedKey = true
+            logger.error("keychain refused the API key: \(error.localizedDescription, privacy: .public)")
+        }
         return cachedAPIKey
     }
 
@@ -951,6 +967,7 @@ final class AppModel {
         do {
             try KeychainStore.saveAPIKey(trimmed)
             cachedAPIKey = trimmed
+            keychainRefusedKey = false
             hasAPIKey = true
         } catch {
             show(Notice(message: String(localized: "The key could not be saved to the keychain")))
@@ -958,8 +975,14 @@ final class AppModel {
     }
 
     func removeAPIKey() {
-        KeychainStore.deleteAPIKey()
+        do {
+            try KeychainStore.deleteAPIKey()
+        } catch {
+            show(Notice(message: String(localized: "The key could not be removed from the keychain")))
+            return
+        }
         cachedAPIKey = nil
+        keychainRefusedKey = false
         hasAPIKey = false
     }
 
@@ -1095,4 +1118,9 @@ final class AppModel {
             try? store.save(entries)
         }
     }
+}
+
+private extension AppSettings {
+    /// Caps Lock is F18 only while it is the dictation key and dictation is on.
+    var remapsCapsLock: Bool { capsLockAsHotkey && isEnabled }
 }

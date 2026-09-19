@@ -228,6 +228,8 @@ HE = {
     "Text": "טקסט",
     "Text & AI": "טקסט ו-AI",
     "The key could not be saved to the keychain": "לא ניתן לשמור את המפתח במחזיק המפתחות",
+    "The keychain did not give Canto the API key": "מחזיק המפתחות לא מסר ל-Canto את מפתח ה-API",
+    "The key could not be removed from the keychain": "לא ניתן להסיר את המפתח ממחזיק המפתחות",
     "The microphone changed, listening stopped": "המיקרופון השתנה, ההאזנה נעצרה",
     "The microphone could not be started": "לא ניתן להפעיל את המיקרופון",
     "The microphone did not respond. Try again or choose another one": "המיקרופון לא הגיב. אפשר לנסות שוב או לבחור מיקרופון אחר",

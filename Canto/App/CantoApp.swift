@@ -18,14 +18,17 @@ struct CantoApp: App {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    private var terminationSource: DispatchSourceSignal?
+    private var terminationSources: [DispatchSourceSignal] = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        signal(SIGTERM, SIG_IGN)
-        let source = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
-        source.setEventHandler { NSApp.terminate(nil) }
-        source.resume()
-        terminationSource = source
+        // Quit properly on kill, Ctrl-C in a terminal or a closed terminal, so Caps Lock is given back.
+        for signalNumber in [SIGTERM, SIGINT, SIGHUP] {
+            signal(signalNumber, SIG_IGN)
+            let source = DispatchSource.makeSignalSource(signal: signalNumber, queue: .main)
+            source.setEventHandler { NSApp.terminate(nil) }
+            source.resume()
+            terminationSources.append(source)
+        }
 
         let model = AppModel.shared
         model.start()
