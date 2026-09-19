@@ -7,6 +7,7 @@ enum Labels {
         switch mode {
         case .pushToTalk: "Hold to talk"
         case .toggle: "Press to start and stop"
+        case .holdOrTap: "Hold or tap"
         }
     }
 

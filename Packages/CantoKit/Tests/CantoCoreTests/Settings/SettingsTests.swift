@@ -109,6 +109,15 @@ struct AppSettingsTests {
         #expect(decoded == settings)
     }
 
+    @Test func holdOrTapIsTheDefaultAndKeepsWholeTakes() throws {
+        #expect(AppSettings().activationMode == .holdOrTap)
+        let saved = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"activationMode":"pushToTalk"}"#.utf8))
+        #expect(saved.activationMode == .pushToTalk)
+        #expect(ActivationMode.holdOrTap.recordsWholeTake)
+        #expect(ActivationMode.pushToTalk.recordsWholeTake)
+        #expect(!ActivationMode.toggle.recordsWholeTake)
+    }
+
     @Test func skillsAreTurnedOnInOrder() throws {
         var settings = AppSettings()
         settings.toggleSkill("B.md")

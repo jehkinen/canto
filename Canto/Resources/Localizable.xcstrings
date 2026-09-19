@@ -1350,18 +1350,50 @@
         }
       }
     },
-    "Hold it while you speak and release to insert the text." : {
+    "Hold it while you speak and release to insert the text, or tap it to dictate hands-free." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "מחזיקים אותו בזמן הדיבור ומשחררים כדי להכניס את הטקסט."
+            "value" : "מחזיקים אותו בזמן הדיבור ומשחררים כדי להכניס את הטקסט, או מקישים עליו כדי להכתיב בלי ידיים."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Удерживайте её, пока говорите, и отпустите, чтобы вставить текст."
+            "value" : "Удерживайте её, пока говорите, и отпустите, чтобы вставить текст, или коротко нажмите, чтобы диктовать без рук."
+          }
+        }
+      }
+    },
+    "Hold or tap" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "החזקה או הקשה"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удержание или нажатие"
+          }
+        }
+      }
+    },
+    "Hold the shortcut while you speak, or tap it to dictate hands-free and tap again to finish. The text is inserted when you finish." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מחזיקים את הקיצור בזמן הדיבור, או מקישים עליו כדי להכתיב בלי ידיים ומקישים שוב כדי לסיים. הטקסט מוכנס בסיום."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удерживайте сочетание, пока говорите, или коротко нажмите, чтобы диктовать без рук, и нажмите ещё раз, чтобы закончить. Текст вставляется в конце."
           }
         }
       }
@@ -1378,6 +1410,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Удерживайте сочетание клавиш, пока говорите, отпустите для вставки."
+          }
+        }
+      }
+    },
+    "Hold to dictate, or tap to dictate hands-free" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "להחזיק להכתבה, או להקיש להכתבה בלי ידיים"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удерживайте для диктовки или коротко нажмите, чтобы диктовать без рук"
           }
         }
       }

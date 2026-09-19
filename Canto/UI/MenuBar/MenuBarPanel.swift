@@ -44,8 +44,9 @@ struct MenuBarPanel: View {
         @Bindable var model = model
         return VStack(spacing: 0) {
             QuickRow(symbol: "hand.tap", title: "Mode") {
-                ValueMenu(title: model.settings.activationMode == .pushToTalk ? String(localized: "Hold") : String(localized: "Toggle")) {
+                ValueMenu(title: modeTitle) {
                     Picker("Mode", selection: $model.settings.activationMode) {
+                        Text("Hold or tap").tag(ActivationMode.holdOrTap)
                         Text("Hold").tag(ActivationMode.pushToTalk)
                         Text("Toggle").tag(ActivationMode.toggle)
                     }
@@ -226,7 +227,7 @@ private struct HeroCard: View {
                         Text(Duration.seconds(max(0, context.date.timeIntervalSince(since))), format: .time(pattern: .minuteSecond))
                             .font(.system(.body, design: .rounded).monospacedDigit())
                     }
-                    Text(model.settings.activationMode == .pushToTalk ? "Release to insert" : "Press the shortcut again to finish")
+                    Text(releaseToInsert ? "Release to insert" : "Press the shortcut again to finish")
                         .font(.caption).foregroundStyle(.secondary).lineLimit(1)
                 }
             case .transcribing:
@@ -267,13 +268,30 @@ private struct HeroCard: View {
             Label("This shortcut is used by another app", systemImage: "exclamationmark.triangle.fill")
                 .font(.caption).foregroundStyle(.orange).lineLimit(2)
         } else {
-            Text(model.settings.activationMode == .pushToTalk ? "Hold to dictate, release to insert" : "Press to start dictation, press again to finish")
+            Text(idleHintText)
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
         }
         Spacer(minLength: 0)
+    }
+
+    /// Holding the key: releasing it inserts. Hands-free or toggle: the next press finishes.
+    private var releaseToInsert: Bool {
+        switch model.settings.activationMode {
+        case .pushToTalk: true
+        case .toggle: false
+        case .holdOrTap: !model.isHandsFree
+        }
+    }
+
+    private var idleHintText: LocalizedStringKey {
+        switch model.settings.activationMode {
+        case .pushToTalk: "Hold to dictate, release to insert"
+        case .toggle: "Press to start dictation, press again to finish"
+        case .holdOrTap: "Hold to dictate, or tap to dictate hands-free"
+        }
     }
 
     private var heroTint: Color {
@@ -461,5 +479,15 @@ private extension MenuBarPanel {
         let names = model.settings.skills.compactMap { fileName in model.skills.first { $0.fileName == fileName }?.name }
         guard let first = names.first else { return String(localized: "None") }
         return names.count == 1 ? first : "\(first) +\(names.count - 1)"
+    }
+}
+
+private extension MenuBarPanel {
+    var modeTitle: String {
+        switch model.settings.activationMode {
+        case .holdOrTap: String(localized: "Hold or tap")
+        case .pushToTalk: String(localized: "Hold")
+        case .toggle: String(localized: "Toggle")
+        }
     }
 }

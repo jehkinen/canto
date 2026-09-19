@@ -11,6 +11,12 @@ struct DictationPane: View {
             Section {
                 Picker("Mode", selection: $model.settings.activationMode) {
                     VStack(alignment: .leading, spacing: 2) {
+                        Text("Hold or tap")
+                        Text("Hold the shortcut while you speak, or tap it to dictate hands-free and tap again to finish. The text is inserted when you finish.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                    .tag(ActivationMode.holdOrTap)
+                    VStack(alignment: .leading, spacing: 2) {
                         Text("Hold to talk")
                         Text("Hold the shortcut while you speak, release to insert.")
                             .font(.caption).foregroundStyle(.secondary)

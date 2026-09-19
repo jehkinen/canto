@@ -143,7 +143,7 @@ struct WelcomeView: View {
         @Bindable var model = model
         return VStack(alignment: .leading, spacing: 18) {
             StepTitle(symbol: "keyboard", title: "Your dictation key",
-                      subtitle: "Hold it while you speak and release to insert the text.")
+                      subtitle: "Hold it while you speak and release to insert the text, or tap it to dictate hands-free.")
             HStack {
                 Text("Shortcut")
                 Spacer()

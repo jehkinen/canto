@@ -6,6 +6,12 @@ public enum ActivationMode: String, Codable, CaseIterable, Sendable {
     case pushToTalk
     /// The hotkey toggles listening; speech is split into phrases by voice activity detection.
     case toggle
+    /// Hold to talk, or tap to keep recording hands-free until the next tap. Either way the whole
+    /// take is transcribed and inserted at the end, like holding.
+    case holdOrTap
+
+    /// Whether everything recorded is one take inserted at the end, rather than phrase by phrase.
+    public var recordsWholeTake: Bool { self != .toggle }
 }
 
 public enum TranscriptionProvider: String, Codable, CaseIterable, Sendable {
@@ -188,7 +194,7 @@ public struct Hotkey: Codable, Equatable, Hashable, Sendable {
 
 public struct AppSettings: Codable, Equatable, Sendable {
     public var isEnabled = true
-    public var activationMode: ActivationMode = .pushToTalk
+    public var activationMode: ActivationMode = .holdOrTap
     public var hotkey: Hotkey = .default
     public var capsLockAsHotkey = false
     /// The shortcut to restore when "Caps Lock as hotkey" is switched off again.

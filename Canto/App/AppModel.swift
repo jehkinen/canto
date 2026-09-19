@@ -125,6 +125,11 @@ final class AppModel {
     private var parakeet: ParakeetTranscriber?
     private var unloadTask: Task<Void, Never>?
     private var updateTask: Task<Void, Never>?
+    /// Hold or tap: a press shorter than this is a tap and keeps the take going hands-free.
+    private static let tapThreshold: TimeInterval = 0.3
+    private var pressStartedAt: Date?
+    /// A hold-or-tap take that continues without the key, until the next press.
+    private(set) var isHandsFree = false
     private var cachedAPIKey: String?
     private var downloadTasks: [WhisperModelKind: Task<Void, Never>] = [:]
     private var noticeTask: Task<Void, Never>?
@@ -197,20 +202,47 @@ final class AppModel {
             startListening()
         case .toggle:
             isListening ? stopListening() : startListening()
+        case .holdOrTap:
+            if !isListening {
+                pressStartedAt = Date()
+                startListening()
+            } else if isHandsFree {
+                // The tap that ends a hands-free take; its release is ignored.
+                stopListening()
+            }
         }
     }
 
     private func hotkeyReleased() {
-        guard settings.activationMode == .pushToTalk, isListening else { return }
-        stopListening()
+        guard isListening else { return }
+        switch settings.activationMode {
+        case .pushToTalk:
+            stopListening()
+        case .toggle:
+            break
+        case .holdOrTap:
+            guard !isHandsFree, let pressedAt = pressStartedAt else { return }
+            if Date().timeIntervalSince(pressedAt) < Self.tapThreshold {
+                isHandsFree = true
+            } else {
+                stopListening()
+            }
+        }
     }
 
     func toggleListeningFromUI() {
-        isListening ? stopListening() : startListening()
+        if isListening {
+            stopListening()
+        } else {
+            startListening()
+            // Started with the mouse, so there is no key to hold.
+            if settings.activationMode == .holdOrTap, isListening { isHandsFree = true }
+        }
     }
 
     private func startListening() {
         guard !isListening else { return }
+        isHandsFree = false
         guard preflight() else {
             if settings.playSounds { SoundEffects.failure() }
             return
@@ -219,7 +251,7 @@ final class AppModel {
 
         let detector = VoiceActivityDetector(configuration: settings.vadConfiguration, classifier: voiceClassifier())
         detector.endsOnSilence = settings.activationMode == .toggle
-        detector.recordsEverything = settings.activationMode == .pushToTalk
+        detector.recordsEverything = settings.activationMode.recordsWholeTake
         self.detector = detector
         microphoneRestarts = 0
         recorder.setSampleHandler { [weak self] samples in
@@ -292,10 +324,12 @@ final class AppModel {
 
     private func stopListening() {
         guard isListening, let detector else { return }
+        isHandsFree = false
+        pressStartedAt = nil
         microphoneWarmingUp = false
         warmUpTask?.cancel()
         self.detector = nil
-        let pushToTalk = settings.activationMode == .pushToTalk
+        let pushToTalk = settings.activationMode.recordsWholeTake
         // Runs after every chunk the tap already queued, so nothing recorded is lost.
         recorder.stop { [weak self] in
             let segment = pushToTalk ? detector.flushPushToTalk() : detector.flush()
