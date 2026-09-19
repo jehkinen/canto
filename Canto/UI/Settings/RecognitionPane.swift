@@ -51,6 +51,10 @@ struct RecognitionPane: View {
                     if let active = model.activeWhisperModel(for: model.settings), active != model.settings.whisperModel {
                         Text("Until \(Labels.model(model.settings.whisperModel)) is downloaded, \(Labels.model(active)) recognizes your speech.")
                     }
+                    if !model.settings.whisperModel.recognizes(language: model.settings.language) {
+                        Text("Parakeet does not recognize this language. Choose Large v3 Turbo.")
+                            .foregroundStyle(.orange)
+                    }
                 }
 
                 Section {

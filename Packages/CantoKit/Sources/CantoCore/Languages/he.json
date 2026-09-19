@@ -1,0 +1,24 @@
+{
+  "code": "he",
+  "notes": [
+    "Hebrew numbers are not converted yet, so «נקודה» and «פסיק» between numbers stay punctuation (no decimalPoint).",
+    "The article and prepositions are written together with the word («הנקודה», «בנקודה»), so those forms never match a command.",
+    "Whisper's Hebrew phantom sentences still need collecting from real dictation; only the common YouTube ones are here."
+  ],
+  "phantomSentences": ["תודה שצפיתם", "תודה על הצפייה", "הירשמו לערוץ"],
+  "soundWords": ["מוזיק\\w*", "צחוק\\w*", "מחיאות כפיים", "שקט"],
+  "intentionalRepeats": ["כן", "לא", "מאוד", "רגע", "טוב", "די"],
+  "wordSets": {
+    "pointers": ["זו", "זאת", "אותה", "כל", "אף", "עוד", "איזו", "אותו", "זה"]
+  },
+  "punctuation": [
+    { "words": "סימן שאלה", "symbol": "?", "notAfter": ["@pointers"] },
+    { "words": "סימן קריאה", "symbol": "!", "notAfter": ["@pointers"] },
+    { "words": "פסקה חדשה", "symbol": "\n\n", "notAfter": ["@pointers"] },
+    { "words": "שורה חדשה", "symbol": "\n", "notAfter": ["@pointers"] },
+    { "words": "נקודתיים", "symbol": ":", "notAfter": ["@pointers"] },
+    { "words": "פסיק", "symbol": ",", "notAfter": ["@pointers"] },
+    { "words": "נקודה", "symbol": ".", "notAfter": ["@pointers"],
+      "notBefore": ["חשובה", "טובה", "מעניינת", "נכונה", "חלשה", "חזקה", "אחת", "אחרת", "מרכזית", "עיקרית"] }
+  ]
+}

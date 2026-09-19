@@ -81,6 +81,13 @@ struct AppSettingsTests {
         #endif
     }
 
+    @Test func parakeetKnowsItsLanguages() {
+        #expect(WhisperModelKind.parakeetV3.recognizes(language: "ru"))
+        #expect(WhisperModelKind.parakeetV3.recognizes(language: nil))
+        #expect(!WhisperModelKind.parakeetV3.recognizes(language: "he"))
+        #expect(WhisperModelKind.largeV3Turbo.recognizes(language: "he"))
+    }
+
     @Test func leftoverModelsAreListedOnlyWhenOnDisk() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("canto-models-\(UUID())")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

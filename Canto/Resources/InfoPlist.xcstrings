@@ -3,6 +3,12 @@
   "strings" : {
     "CFBundleDisplayName" : {
       "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canto"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13,6 +19,12 @@
     },
     "NSMicrophoneUsageDescription" : {
       "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canto מקליט שמע מהמיקרופון כדי להפוך את הדיבור שלך לטקסט."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",

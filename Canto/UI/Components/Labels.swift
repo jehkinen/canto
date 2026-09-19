@@ -48,7 +48,7 @@ enum Labels {
     static let languages: [(code: String?, name: String)] = [
         (nil, String(localized: "Detect automatically")),
         ("en", "English"), ("ru", "Русский"), ("uk", "Українська"), ("de", "Deutsch"), ("fr", "Français"),
-        ("es", "Español"), ("it", "Italiano"), ("pt", "Português"), ("pl", "Polski"), ("tr", "Türkçe"),
+        ("es", "Español"), ("it", "Italiano"), ("pt", "Português"), ("pl", "Polski"), ("tr", "Türkçe"), ("he", "עברית"),
         ("zh", "中文"), ("ja", "日本語"), ("ko", "한국어"),
     ]
 

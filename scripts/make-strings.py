@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-"""Writes Canto/Resources/Localizable.xcstrings and InfoPlist.xcstrings (English source, Russian)."""
+"""Writes Canto/Resources/Localizable.xcstrings and InfoPlist.xcstrings (English source, Russian, Hebrew)."""
 import json, os
+
+from strings_he import HE, INFO_PLIST_HE
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -63,6 +65,8 @@ RU = {
     "The skill did not run: %@": "Скилл не сработал: %@",
     "The text goes through the same steps as dictation with the current settings: punctuation, numbers, vocabulary and the skill. History shows what the model heard under each entry.": "Текст проходит те же шаги, что и диктовка, с текущими настройками: пунктуацию, числа, словарь и скилл. В истории под каждой записью видно, что услышала модель.",
     "Fastest, on the Neural Engine; 25 European languages": "Самая быстрая, на Neural Engine; 25 европейских языков",
+    "Parakeet does not recognize this language. Choose Large v3 Turbo.": "Parakeet не распознаёт этот язык. Выберите Large v3 Turbo.",
+    "עברית": "עברית",
     "Time from the end of the phrase to the inserted text": "Время от конца фразы до вставки текста",
     "GPT-4o mini Transcribe": "GPT-4o mini Transcribe",
     "GPT-4o Transcribe": "GPT-4o Transcribe",
@@ -269,27 +273,33 @@ RU = {
     "“42” becomes “forty-two”.": "«42» станет «сорок два».",
 }
 
-DO_NOT_TRANSLATE = {"andydev.space", "© 2026 Andrei Bogdanov", "GPT-4o mini Transcribe", "GPT-4o Transcribe", "Whisper", "Large v3 Turbo", "Parakeet v3", "%@ (%@)", "%lld", "%lld %%", "English", "OpenAI", "Canto", "sk-…", "whisper-1", "·", "Русский"}
+DO_NOT_TRANSLATE = {"andydev.space", "© 2026 Andrei Bogdanov", "GPT-4o mini Transcribe", "GPT-4o Transcribe", "Whisper", "Large v3 Turbo", "Parakeet v3", "%@ (%@)", "%lld", "%lld %%", "English", "OpenAI", "Canto", "sk-…", "whisper-1", "·", "Русский", "עברית"}
 
-def catalog(entries):
+def unit(value):
+    return {"stringUnit": {"state": "translated", "value": value}}
+
+def catalog(entries, hebrew):
     strings = {}
     for key, value in sorted(entries.items()):
         if key in DO_NOT_TRANSLATE:
             strings[key] = {"shouldTranslate": False}
         else:
-            strings[key] = {"localizations": {"ru": {"stringUnit": {"state": "translated", "value": value}}}}
+            strings[key] = {"localizations": {"he": unit(hebrew[key]), "ru": unit(value)}}
     return {"sourceLanguage": "en", "strings": strings, "version": "1.0"}
 
-def write(name, entries):
+def write(name, entries, hebrew):
+    missing = [key for key in entries if key not in DO_NOT_TRANSLATE and key not in hebrew]
+    if missing:
+        raise SystemExit(f"{name}: no Hebrew for {missing}")
     path = os.path.join(ROOT, "Canto", "Resources", name)
     with open(path, "w", encoding="utf-8") as f:
-        json.dump(catalog(entries), f, ensure_ascii=False, indent=2, separators=(",", " : "))
+        json.dump(catalog(entries, hebrew), f, ensure_ascii=False, indent=2, separators=(",", " : "))
         f.write("\n")
     print(f"{name}: {len(entries)} strings")
 
 if __name__ == "__main__":
-    write("Localizable.xcstrings", RU)
+    write("Localizable.xcstrings", RU, HE)
     write("InfoPlist.xcstrings", {
         "CFBundleDisplayName": "Canto",
         "NSMicrophoneUsageDescription": "Canto записывает звук с микрофона, чтобы превратить вашу речь в текст.",
-    })
+    }, INFO_PLIST_HE)

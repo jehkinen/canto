@@ -65,6 +65,7 @@ struct GeneralPane: View {
                     Text("System").tag(AppLanguage.system)
                     Text("English").tag(AppLanguage.english)
                     Text("Русский").tag(AppLanguage.russian)
+                    Text("עברית").tag(AppLanguage.hebrew)
                 }
                 .onChange(of: appLanguage) { _, language in language.apply() }
                 if appLanguage != AppLanguage.launched {
@@ -87,14 +88,16 @@ struct GeneralPane: View {
 }
 
 enum AppLanguage: String {
-    case system, english = "en", russian = "ru"
+    case system, english = "en", russian = "ru", hebrew = "he"
 
     static let launched = current
 
     static var current: AppLanguage {
         guard let languages = UserDefaults.standard.persistentDomain(forName: Bundle.main.bundleIdentifier ?? "")?["AppleLanguages"] as? [String],
               let first = languages.first else { return .system }
-        return first.hasPrefix("ru") ? .russian : .english
+        if first.hasPrefix("ru") { return .russian }
+        if first.hasPrefix("he") { return .hebrew }
+        return .english
     }
 
     func apply() {

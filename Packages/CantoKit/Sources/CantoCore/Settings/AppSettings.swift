@@ -107,6 +107,18 @@ public enum WhisperModelKind: String, Codable, CaseIterable, Sendable {
 
     public var isOffered: Bool { Self.offered.contains(self) }
 
+    /// The 25 languages Parakeet v3 was trained on; anything else comes out as garbled text.
+    public static let parakeetLanguages: Set<String> = [
+        "bg", "hr", "cs", "da", "nl", "en", "et", "fi", "fr", "de", "el", "hu", "it", "lv", "lt", "mt", "pl", "pt", "ro",
+        "sk", "sl", "es", "sv", "ru", "uk",
+    ]
+
+    /// Whether the model recognizes speech in this language; `nil` is auto-detect.
+    public func recognizes(language: String?) -> Bool {
+        guard engine == .parakeet, let language else { return true }
+        return Self.parakeetLanguages.contains(language)
+    }
+
     /// The offered models this Mac can run, in the order they are shown.
     public static var available: [WhisperModelKind] {
         offered.filter(\.isAvailable)

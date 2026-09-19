@@ -67,7 +67,7 @@ public struct LanguagePack: Decodable, Sendable {
     public static let bundled: [LanguagePack] = {
         let urls = Bundle.module.urls(forResourcesWithExtension: "json", subdirectory: "Languages") ?? []
         let packs = urls.compactMap { url in (try? Data(contentsOf: url)).flatMap { try? JSONDecoder().decode(LanguagePack.self, from: $0) } }
-        let order = ["ru", "en"]
+        let order = ["ru", "en", "he"]
         return packs.sorted { (order.firstIndex(of: $0.code) ?? order.count, $0.code) < (order.firstIndex(of: $1.code) ?? order.count, $1.code) }
     }()
 }

@@ -81,6 +81,12 @@ final class WindowCoordinator: NSObject, NSWindowDelegate {
 
     private func present(_ window: NSWindow?) {
         guard let window else { return }
+        // A window left on another desktop or minimized to the Dock would otherwise be brought
+        // to the front there, and the button would seem to do nothing.
+        window.collectionBehavior.formUnion([.moveToActiveSpace, .fullScreenAuxiliary])
+        if window.isMiniaturized {
+            window.deminiaturize(nil)
+        }
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)

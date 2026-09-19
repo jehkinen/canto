@@ -1,12 +1,12 @@
 #!/bin/bash
 # Renders the UI to PNGs in the given language: scripts builds the tool, wraps it in a bundle with
 # the app's compiled strings (SwiftUI looks them up in Bundle.main) and runs it.
-#   Tools/Snapshots/render.sh <output-dir> [en|ru]
+#   Tools/Snapshots/render.sh <output-dir> [en|ru|he]
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 OUT="${1:?output dir}"
 LANGUAGE="${2:-en}"
-APP_RESOURCES="$HERE/../../build/Canto.app/Contents/Resources"
+APP_RESOURCES="${APP_RESOURCES:-$HERE/../../build/Canto.app/Contents/Resources}"
 
 swift build -c release --package-path "$HERE" >/dev/null
 BIN="$(swift build -c release --package-path "$HERE" --show-bin-path)/CantoSnapshots"
@@ -20,10 +20,10 @@ cat >"$BUNDLE/Contents/Info.plist" <<PLIST
 <key>CFBundleIdentifier</key><string>local.canto.snapshots</string>
 <key>CFBundleExecutable</key><string>CantoSnapshots</string>
 <key>CFBundleDevelopmentRegion</key><string>en</string>
-<key>CFBundleLocalizations</key><array><string>en</string><string>ru</string></array>
+<key>CFBundleLocalizations</key><array><string>en</string><string>ru</string><string>he</string></array>
 </dict></plist>
 PLIST
-LOCALE=$([ "$LANGUAGE" = ru ] && echo ru_RU || echo en_US)
+case "$LANGUAGE" in ru) LOCALE=ru_RU ;; he) LOCALE=he_IL ;; *) LOCALE=en_US ;; esac
 "$BUNDLE/Contents/MacOS/CantoSnapshots" "$OUT" -AppleLanguages "($LANGUAGE)" -AppleLocale "$LOCALE" &
 PID=$!
 for _ in $(seq 1 120); do kill -0 $PID 2>/dev/null || break; sleep 1; done
