@@ -35,10 +35,10 @@ var clock = Date()
 try await transcriber.prepare()
 print(String(format: "model loaded in %.2f s", Date().timeIntervalSince(clock)))
 clock = Date()
-// CANTO_VOCAB="Node.js, PHP" overrides the default vocabulary; "noprompt" as the 5th argument disables it.
+// CANTO_VOCAB="Node.js, PHP" sets the vocabulary (empty by default); "noprompt" as the 5th argument disables it.
 let usePrompt = arguments.count <= 5 || arguments[5] != "noprompt"
 let terms = ProcessInfo.processInfo.environment["CANTO_VOCAB"].map { $0.split(separator: ",").map(String.init) } ?? AppSettings().vocabulary
-let promptText = ProcessInfo.processInfo.environment["CANTO_PROMPT"] ?? Vocabulary.prompt(for: terms)
+let promptText = ProcessInfo.processInfo.environment["CANTO_PROMPT"] ?? Vocabulary.prompt(for: terms, language: language)
 let raw = try await transcriber.transcribe(segment, language: language, prompt: usePrompt ? promptText : nil)
 print(String(format: "transcribed in %.2f s", Date().timeIntervalSince(clock)))
 print("raw:       \(raw)")
@@ -46,6 +46,6 @@ print("raw:       \(raw)")
 var settings = AppSettings()
 settings.language = language
 settings.vocabulary = usePrompt ? terms : []
-let store = StyleStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent("canto-smoke-styles"))
-let processed = await TextPipeline(chat: nil, styles: store).process(raw, settings: settings, fallbackLanguage: "en")
+let skills = SkillStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent("canto-smoke-skills"))
+let processed = await TextPipeline(chat: nil, skills: skills).process(raw, settings: settings, fallbackLanguage: "en")
 print("processed: \(processed.text)")

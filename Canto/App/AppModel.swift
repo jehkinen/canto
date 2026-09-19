@@ -142,6 +142,8 @@ final class AppModel {
     /// Identifies a listening session, so a microphone start that finishes late only
     /// affects the session that asked for it.
     private var listeningSession = 0
+    /// The last phrase inserted, so the next one of the same take gets a space before it.
+    private var lastInsertion: (take: Int, app: pid_t?, text: String)?
 
     private init() {
         if let data = UserDefaults.standard.data(forKey: Keys.settings),
@@ -255,6 +257,8 @@ final class AppModel {
             return
         }
         stopMicrophoneTest()
+        listeningSession += 1
+        let session = listeningSession
 
         let detector = VoiceActivityDetector(configuration: settings.vadConfiguration, classifier: voiceClassifier())
         detector.endsOnSilence = settings.activationMode == .toggle
@@ -263,7 +267,7 @@ final class AppModel {
         microphoneRestarts = 0
         recorder.setSampleHandler { [weak self] samples in
             for case .speechEnded(let segment) in detector.push(samples) {
-                DispatchQueue.main.async { self?.enqueue(segment) }
+                DispatchQueue.main.async { self?.enqueue(segment, take: session) }
             }
         }
 
@@ -276,8 +280,6 @@ final class AppModel {
         // The start sound means "speak now", so it waits until the microphone delivers sound.
         microphoneWarmingUp = true
         warmUpTask?.cancel()
-        listeningSession += 1
-        let session = listeningSession
         Task {
             do {
                 try await recorder.start(deviceUID: settings.microphoneUID)
@@ -337,12 +339,13 @@ final class AppModel {
         warmUpTask?.cancel()
         self.detector = nil
         let pushToTalk = settings.activationMode.recordsWholeTake
+        let take = listeningSession
         // Runs after every chunk the tap already queued, so nothing recorded is lost.
         recorder.stop { [weak self] in
             let segment = pushToTalk ? detector.flushPushToTalk() : detector.flush()
             DispatchQueue.main.async {
                 guard let self else { return }
-                if let segment { self.enqueue(segment) }
+                if let segment { self.enqueue(segment, take: take) }
                 self.updatePhaseAfterWork()
             }
         }
@@ -424,7 +427,8 @@ final class AppModel {
 
     /// Phrases are recognized as soon as they end, in parallel, so one slow request does not hold
     /// up the next ones; they are still inserted strictly in the order they were spoken.
-    private func enqueue(_ segment: AudioSegment) {
+    /// `take` is the listening session the phrase was recorded in.
+    private func enqueue(_ segment: AudioSegment, take: Int) {
         jobsInFlight += 1
         if !isListening { phase = .transcribing }
         let endedAt = Date()
@@ -438,7 +442,7 @@ final class AppModel {
             let result = await recognition.value
             guard let self, generation == self.jobGeneration else { return }
             if let result {
-                await self.deliver(result, segment: segment, endedAt: endedAt, settings: settings)
+                await self.deliver(result, segment: segment, take: take, endedAt: endedAt, settings: settings)
             }
             self.recognitionTasks.removeAll { $0 == recognition }
             self.jobsInFlight -= 1
@@ -545,14 +549,22 @@ final class AppModel {
         return ProcessingTrial(text: processed.text, seconds: Date().timeIntervalSince(start), problem: problem)
     }
 
-    private func deliver(_ result: Recognition, segment: AudioSegment, endedAt: Date, settings: AppSettings) async {
+    private func deliver(_ result: Recognition, segment: AudioSegment, take: Int, endedAt: Date, settings: AppSettings) async {
         // Text without letters or digits ("---", "…") is an artifact of a noise-only phrase.
         let hasContent = result.text.contains { $0.isLetter || $0.isNumber }
         guard hasContent || result.pressEnter else { return }
 
-        let appName = NSWorkspace.shared.frontmostApplication?.localizedName
-        let outcome = await TextInserter.insert(hasContent ? result.text : "", method: settings.insertionMethod,
-                                                pressReturn: result.pressEnter && settings.pressEnterOnTrigger)
+        let app = NSWorkspace.shared.frontmostApplication
+        let appName = app?.localizedName
+        let pressedReturn = result.pressEnter && settings.pressEnterOnTrigger
+        var text = hasContent ? result.text : ""
+        // The next phrase of the same take continues the text in the same app: it needs a space.
+        if let previous = lastInsertion, previous.take == take, previous.app == app?.processIdentifier {
+            text = PhraseJoiner.separator(after: previous.text, before: text) + text
+        }
+        let outcome = await TextInserter.insert(text, method: settings.insertionMethod, pressReturn: pressedReturn)
+        lastInsertion = outcome == .inserted && !pressedReturn && hasContent
+            ? (take, app?.processIdentifier, result.text) : nil
         let latency = Date().timeIntervalSince(endedAt)
         logger.info("""
             phrase \(segment.duration, format: .fixed(precision: 1), privacy: .public)s via \(result.provider.rawValue, privacy: .public)\
