@@ -217,7 +217,10 @@ private struct ModelRow: View {
         }
         .padding(.vertical, 2)
         .contentShape(Rectangle())
-        .onTapGesture { model.settings.whisperModel = info.kind }
+        .onTapGesture {
+            // A model no longer offered can be kept or deleted, not chosen again.
+            if info.kind.isOffered { model.settings.whisperModel = info.kind }
+        }
     }
 }
 

@@ -233,9 +233,16 @@ private struct WelcomeModelRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: model.settings.whisperModel == kind ? "checkmark.circle.fill" : "circle")
-                .font(.title3)
-                .foregroundStyle(model.settings.whisperModel == kind ? Color.accentColor : .secondary)
+            // A button, not only the row's tap gesture, so the keyboard and VoiceOver can choose it.
+            Button {
+                model.settings.whisperModel = kind
+            } label: {
+                Image(systemName: model.settings.whisperModel == kind ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundStyle(model.settings.whisperModel == kind ? Color.accentColor : .secondary)
+            }
+            .buttonStyle(.plain)
+            .help(Text("Use this model"))
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(Labels.model(kind)) · \(kind.approximateSizeMB) MB").font(.headline)
                 Text(Labels.modelDescription(kind)).font(.callout).foregroundStyle(.secondary)
@@ -246,6 +253,13 @@ private struct WelcomeModelRow: View {
                     ProgressView(value: download.fraction).frame(width: 130)
                     DownloadCaption(download: download)
                 }
+                Button {
+                    model.cancelDownload(kind)
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                }
+                .buttonStyle(.borderless)
+                .help(Text("Cancel download"))
             } else if installed {
                 Label("Ready", systemImage: "checkmark").foregroundStyle(.green)
             } else {
