@@ -192,7 +192,7 @@ struct SkillStoreTests {
     @Test func seedsTheBundledSkills() throws {
         let store = makeStore()
         try store.ensureDirectory()
-        #expect(store.list().map(\.name) == ["Clean up", "Remove profanity", "Software Engineer", "Translate to English"])
+        #expect(store.list().map(\.name) == ["Chat style", "Clean up", "Remove profanity", "Software Engineer", "Translate to English"])
         let engineer = try #require(store.instructions(for: "Software Engineer.md"))
         #expect(!engineer.hasPrefix("#"))
         #expect(engineer.contains("«пуш» → push"))
