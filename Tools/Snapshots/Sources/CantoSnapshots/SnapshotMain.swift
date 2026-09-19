@@ -83,7 +83,7 @@ enum SnapshotMain {
         downloadTabs.selectedTabViewItemIndex = 5
         renderWindow(downloadWindow, name: "window-settings-about", to: output)
 
-        print("wrote snapshots to \(output.path)")
+        print("wrote snapshots to \(output.path) (AppKit layout direction: \(NSApp.userInterfaceLayoutDirection == .rightToLeft ? "right to left" : "left to right"))")
     }
 
     static func renderWindow(_ window: NSWindow, name: String, to output: URL) {
@@ -97,8 +97,13 @@ enum SnapshotMain {
         try? rep.representation(using: .png, properties: [:])?.write(to: output.appendingPathComponent("\(name).png"))
     }
 
+    /// Hebrew and other right-to-left languages: the app mirrors on its own, offscreen hosting views
+    /// need to be told.
+    static let layoutDirection: LayoutDirection =
+        Locale.Language(identifier: Locale.preferredLanguages.first ?? "en").characterDirection == .rightToLeft ? .rightToLeft : .leftToRight
+
     static func render<V: View>(_ view: V, width: CGFloat, name: String, appearance: NSAppearance.Name, to output: URL) {
-        let host = NSHostingView(rootView: view.environment(AppModel.shared))
+        let host = NSHostingView(rootView: view.environment(AppModel.shared).environment(\.layoutDirection, layoutDirection))
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: width, height: 100), styleMask: [.borderless], backing: .buffered, defer: false)
         window.appearance = NSAppearance(named: appearance)
         window.backgroundColor = appearance == .aqua ? NSColor(white: 0.93, alpha: 1) : NSColor(white: 0.16, alpha: 1)

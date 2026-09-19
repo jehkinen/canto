@@ -85,7 +85,7 @@ final class RecordingHUDController {
         panel.ignoresMouseEvents = true
         panel.hidesOnDeactivate = false
         if let model {
-            let host = NSHostingView(rootView: RecordingHUDView().environment(model))
+            let host = NSHostingView(rootView: RecordingHUDView().environment(model).environment(\.layoutDirection, AppLanguage.layoutDirection))
             host.sizingOptions = []
             panel.contentView = host
         }

@@ -92,6 +92,13 @@ enum AppLanguage: String {
 
     static let launched = current
 
+    /// Right to left for Hebrew. Set on every hosted view: SwiftUI inside AppKit windows does not
+    /// always pick the direction up from the app's language.
+    static let layoutDirection: LayoutDirection = {
+        let language = Bundle.main.preferredLocalizations.first ?? "en"
+        return Locale.Language(identifier: language).characterDirection == .rightToLeft ? .rightToLeft : .leftToRight
+    }()
+
     static var current: AppLanguage {
         guard let languages = UserDefaults.standard.persistentDomain(forName: Bundle.main.bundleIdentifier ?? "")?["AppleLanguages"] as? [String],
               let first = languages.first else { return .system }

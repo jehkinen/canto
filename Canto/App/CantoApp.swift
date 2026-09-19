@@ -9,6 +9,7 @@ struct CantoApp: App {
         MenuBarExtra {
             MenuBarPanel()
                 .environment(model)
+                .environment(\.layoutDirection, AppLanguage.layoutDirection)
         } label: {
             MenuBarIcon(phase: model.phase, isEnabled: model.settings.isEnabled)
         }

@@ -49,7 +49,8 @@ final class WindowCoordinator: NSObject, NSWindowDelegate {
                                   styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                                   backing: .buffered, defer: false)
             window.title = String(localized: "History")
-            window.contentViewController = NSHostingController(rootView: HistoryView().environment(AppModel.shared))
+            window.contentViewController = NSHostingController(rootView: HistoryView().environment(AppModel.shared)
+                .environment(\.layoutDirection, AppLanguage.layoutDirection))
             window.minSize = NSSize(width: 460, height: 360)
             window.isReleasedWhenClosed = false
             window.delegate = self
@@ -70,7 +71,7 @@ final class WindowCoordinator: NSObject, NSWindowDelegate {
             window.contentViewController = NSHostingController(rootView: WelcomeView { [weak self] in
                 AppModel.shared.completeOnboarding()
                 self?.welcomeWindow?.close()
-            }.environment(AppModel.shared))
+            }.environment(AppModel.shared).environment(\.layoutDirection, AppLanguage.layoutDirection))
             window.isReleasedWhenClosed = false
             window.delegate = self
             window.center()
@@ -123,7 +124,8 @@ final class SettingsTabViewController: NSTabViewController {
     }
 
     private func add<Content: View>(_ view: Content, title: String, symbol: String, model: AppModel) {
-        let controller = NSHostingController(rootView: view.environment(model).frame(maxWidth: .infinity, maxHeight: .infinity))
+        let controller = NSHostingController(rootView: view.environment(model).environment(\.layoutDirection, AppLanguage.layoutDirection)
+            .frame(maxWidth: .infinity, maxHeight: .infinity))
         // Every tab has the same size, so switching tabs never resizes or clips the window.
         controller.sizingOptions = []
         controller.preferredContentSize = Self.contentSize
