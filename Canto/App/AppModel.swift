@@ -4,6 +4,7 @@ import LocalWhisper
 import Observation
 import OSLog
 import CantoCore
+import SileroVAD
 
 enum DictationPhase: Equatable {
     case idle
@@ -159,6 +160,7 @@ final class AppModel {
         AudioDevices.observeChanges { [weak self] in self?.refreshDevices() }
         refreshModels()
         refreshSkills()
+        SileroVoiceClassifier.prepare()
         prewarmLocalModel()
 
         NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main) { _ in
@@ -207,7 +209,7 @@ final class AppModel {
         }
         stopMicrophoneTest()
 
-        let detector = VoiceActivityDetector(configuration: settings.vadConfiguration)
+        let detector = VoiceActivityDetector(configuration: settings.vadConfiguration, classifier: voiceClassifier())
         detector.endsOnSilence = settings.activationMode == .toggle
         detector.recordsEverything = settings.activationMode == .pushToTalk
         self.detector = detector
@@ -243,6 +245,14 @@ final class AppModel {
                 self?.microphoneBecameLive()
             }
         }
+    }
+
+    /// Silero once its model has loaded; libfvad until then or if it can not load, so a recording
+    /// never waits for the model.
+    private func voiceClassifier() -> any VoiceClassifier {
+        if let silero = SileroVoiceClassifier.make() { return silero }
+        logger.notice("Silero VAD is not loaded, this recording uses libfvad")
+        return WebRTCVoiceClassifier()
     }
 
     private func microphoneStartFailed(_ error: Error, session: Int) {

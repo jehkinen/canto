@@ -88,7 +88,7 @@ HE = {
     "Back": "חזרה",
     "Balanced": "מאוזן",
     "Basic cleanup": "ניקוי בסיסי",
-    "Built with whisper.cpp (MIT), FluidAudio (Apache 2.0) and libfvad (BSD).": "נבנה עם whisper.cpp (MIT), FluidAudio (Apache 2.0) ו-libfvad (BSD).",
+    "Built with whisper.cpp (MIT), FluidAudio (Apache 2.0), Silero VAD (MIT) and libfvad (BSD).": "נבנה עם whisper.cpp (MIT), FluidAudio (Apache 2.0), Silero VAD (MIT) ו-libfvad (BSD).",
     "Cancel download": "ביטול ההורדה",
     "Caps Lock could not be remapped": "לא ניתן למפות מחדש את Caps Lock",
     "Choose…": "בחירה…",

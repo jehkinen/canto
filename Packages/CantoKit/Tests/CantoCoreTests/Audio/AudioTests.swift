@@ -54,7 +54,7 @@ struct WAVEncoderTests {
 }
 
 struct VoiceActivityDetectorTests {
-    static let frame = VoiceActivityDetector.frameSamples
+    static let frame = WebRTCVoiceClassifier.defaultFrameSamples
 
     static func sine(_ amplitude: Float) -> [Float] {
         (0..<frame).map { amplitude * sin(2 * .pi * 440 * Float($0) / 16_000) }
@@ -152,6 +152,118 @@ struct VoiceActivityDetectorTests {
         buffer.append([1, 2])
         buffer.append([3, 4, 5])
         #expect(buffer.contents() == [3, 4, 5])
+    }
+}
+
+/// Hears a voice in frames of loud samples, the way a model hears it in speech.
+final class FakeVoiceClassifier: VoiceClassifier {
+    let frameSamples: Int
+    let onsetMs: Int
+    private(set) var judgedFrames: [Int] = []
+    private(set) var resets = 0
+
+    init(frameSamples: Int = 512, onsetMs: Int = 60) {
+        self.frameSamples = frameSamples
+        self.onsetMs = onsetMs
+    }
+
+    func isVoice(_ frame: [Float]) -> Bool {
+        judgedFrames.append(frame.count)
+        return frame.allSatisfy { abs($0) >= 0.5 }
+    }
+
+    func reset() {
+        resets += 1
+    }
+}
+
+struct VoiceClassifierTests {
+    static let frame = 512
+    static let voice = [Float](repeating: 0.8, count: frame)
+    static let quiet = [Float](repeating: 0, count: frame)
+
+    static func configuration(maximumSegmentMs: Int = 30_000) -> VADConfiguration {
+        VADConfiguration(preSpeechBufferMs: 300, minimumSpeechMs: 100, silenceTimeoutMs: 200, maximumSegmentMs: maximumSegmentMs)
+    }
+
+    @Test func framesFollowTheClassifier() {
+        let classifier = FakeVoiceClassifier()
+        let detector = VoiceActivityDetector(configuration: Self.configuration(), classifier: classifier)
+        #expect(detector.frameSamples == Self.frame)
+        _ = detector.push([Float](repeating: 0, count: 1_000))
+        _ = detector.push([Float](repeating: 0, count: 100))
+        #expect(classifier.judgedFrames == [Self.frame, Self.frame])
+    }
+
+    @Test func singleVoicedFramesDoNotStartSpeech() {
+        let detector = VoiceActivityDetector(configuration: Self.configuration(), classifier: FakeVoiceClassifier())
+        var events: [VoiceActivityDetector.Event] = []
+        for _ in 0..<20 {
+            events += detector.push(Self.voice)
+            events += detector.push(Self.quiet)
+        }
+        #expect(events.isEmpty)
+    }
+
+    @Test func speechStartsOnceItLastsTheOnset() {
+        let detector = VoiceActivityDetector(configuration: Self.configuration(), classifier: FakeVoiceClassifier(onsetMs: 60))
+        #expect(detector.push(Self.voice).isEmpty)
+        #expect(detector.push(Self.voice) == [.speechStarted])
+    }
+
+    @Test func phraseKeepsTheAudioBeforeSpeech() throws {
+        let detector = VoiceActivityDetector(configuration: Self.configuration(), classifier: FakeVoiceClassifier())
+        var phrases: [AudioSegment] = []
+        let frames = Array(repeating: Self.quiet, count: 20) + Array(repeating: Self.voice, count: 10)
+            + Array(repeating: Self.quiet, count: 10)
+        for frame in frames {
+            for case .speechEnded(let phrase) in detector.push(frame) { phrases.append(phrase) }
+        }
+        // 300 ms before the first voiced frame, the voice, and the 200 ms pause that ended it (7 frames).
+        let phrase = try #require(phrases.first)
+        #expect(phrases.count == 1)
+        #expect(phrase.samples.count == 4_800 + 10 * Self.frame + 7 * Self.frame)
+        #expect(phrase.samples[4_799] == 0)
+        #expect(phrase.samples[4_800] == 0.8)
+    }
+
+    @Test(arguments: zip([3, 4], [false, true]))
+    func pushToTalkNeedsAHundredMillisecondsOfVoice(voicedFrames: Int, kept: Bool) {
+        let detector = VoiceActivityDetector(configuration: Self.configuration(), classifier: FakeVoiceClassifier())
+        detector.recordsEverything = true
+        for index in 0..<30 { _ = detector.push(index < voicedFrames ? Self.voice : Self.quiet) }
+        #expect((detector.flushPushToTalk() != nil) == kept)
+    }
+
+    @Test func pushToTalkSplitsInAPauseWithAnyFrameSize() {
+        let detector = VoiceActivityDetector(configuration: Self.configuration(maximumSegmentMs: 2_000), classifier: FakeVoiceClassifier())
+        detector.recordsEverything = true
+        var segments: [AudioSegment] = []
+        let frames = Array(repeating: Self.voice, count: 40) + Array(repeating: Self.quiet, count: 10)
+            + Array(repeating: Self.voice, count: 30)
+        for frame in frames {
+            for case .speechEnded(let segment) in detector.push(frame) { segments.append(segment) }
+        }
+        // 2 s is 62 frames of 32 ms; the cut falls in the middle of the pause.
+        #expect(segments.map(\.samples.count) == [45 * Self.frame])
+    }
+
+    @Test func resetStartsTheClassifierOver() {
+        let classifier = FakeVoiceClassifier()
+        let detector = VoiceActivityDetector(configuration: Self.configuration(), classifier: classifier)
+        _ = detector.push(Self.voice)
+        detector.reset()
+        #expect(classifier.resets == 1)
+        // The voiced frame before the reset does not count toward the onset.
+        #expect(detector.push(Self.voice).isEmpty)
+    }
+
+    @Test func webRTCJudgesLongerFramesByTheirStart() {
+        let classifier = WebRTCVoiceClassifier(frameSamples: Self.frame)
+        let tone = (0..<Self.frame).map { 0.6 * sin(2 * Float.pi * 440 * Float($0) / 16_000) }
+        #expect((0..<20).contains { _ in classifier.isVoice(tone) })
+        classifier.reset()
+        #expect(!(0..<20).contains { _ in classifier.isVoice(Self.quiet) })
     }
 }
 

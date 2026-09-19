@@ -102,7 +102,7 @@ RU = {
     "Back": "Назад",
     "Balanced": "Сбалансированно",
     "Basic cleanup": "Базовая очистка",
-    "Built with whisper.cpp (MIT), FluidAudio (Apache 2.0) and libfvad (BSD).": "Создано на основе whisper.cpp (MIT), FluidAudio (Apache 2.0) и libfvad (BSD).",
+    "Built with whisper.cpp (MIT), FluidAudio (Apache 2.0), Silero VAD (MIT) and libfvad (BSD).": "Создано на основе whisper.cpp (MIT), FluidAudio (Apache 2.0), Silero VAD (MIT) и libfvad (BSD).",
     "Cancel download": "Отменить загрузку",
     "Caps Lock could not be remapped": "Не удалось переназначить Caps Lock",
     "Choose…": "Выбрать…",

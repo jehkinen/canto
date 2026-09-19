@@ -63,8 +63,9 @@ or the text is sent to OpenAI. Your API key is kept in the macOS Keychain.
 ## License
 
 MIT. Canto is built on [whisper.cpp](https://github.com/ggml-org/whisper.cpp),
-[FluidAudio](https://github.com/FluidInference/FluidAudio) and [libfvad](https://github.com/dpirch/libfvad). The English
-list of Whisper hallucinations comes from [DSP-AGH/ICASSP2025_Whisper_Hallucination](https://github.com/DSP-AGH/ICASSP2025_Whisper_Hallucination)
+[FluidAudio](https://github.com/FluidInference/FluidAudio), [Silero VAD](https://github.com/snakers4/silero-vad) and
+[libfvad](https://github.com/dpirch/libfvad). The English list of Whisper hallucinations comes from
+[DSP-AGH/ICASSP2025_Whisper_Hallucination](https://github.com/DSP-AGH/ICASSP2025_Whisper_Hallucination)
 (MIT, see `Packages/CantoKit/Sources/CantoCore/Languages/LICENSE-whisper-hallucinations.txt`).
 
 ---

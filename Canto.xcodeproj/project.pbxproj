@@ -10,6 +10,7 @@
 		A10000000000000000000001 /* CantoCore in Frameworks */ = {isa = PBXBuildFile; productRef = A20000000000000000000001 /* CantoCore */; };
 		A10000000000000000000002 /* LocalWhisper in Frameworks */ = {isa = PBXBuildFile; productRef = A20000000000000000000002 /* LocalWhisper */; };
 		A10000000000000000000003 /* LocalParakeet in Frameworks */ = {isa = PBXBuildFile; productRef = A20000000000000000000003 /* LocalParakeet */; };
+		A10000000000000000000004 /* SileroVAD in Frameworks */ = {isa = PBXBuildFile; productRef = A20000000000000000000004 /* SileroVAD */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +34,7 @@
 				A10000000000000000000001 /* CantoCore in Frameworks */,
 				A10000000000000000000002 /* LocalWhisper in Frameworks */,
 				A10000000000000000000003 /* LocalParakeet in Frameworks */,
+				A10000000000000000000004 /* SileroVAD in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -87,6 +89,7 @@
 				A20000000000000000000001 /* CantoCore */,
 				A20000000000000000000002 /* LocalWhisper */,
 				A20000000000000000000003 /* LocalParakeet */,
+				A20000000000000000000004 /* SileroVAD */,
 			);
 			productName = Canto;
 			productReference = A30000000000000000000001 /* Canto.app */;
@@ -317,6 +320,10 @@
 		A20000000000000000000003 /* LocalParakeet */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = LocalParakeet;
+		};
+		A20000000000000000000004 /* SileroVAD */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SileroVAD;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

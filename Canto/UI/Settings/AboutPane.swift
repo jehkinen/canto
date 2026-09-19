@@ -17,7 +17,7 @@ struct AboutPane: View {
             }
             .padding(.top, 6)
             Spacer()
-            Text("Built with whisper.cpp (MIT), FluidAudio (Apache 2.0) and libfvad (BSD).")
+            Text("Built with whisper.cpp (MIT), FluidAudio (Apache 2.0), Silero VAD (MIT) and libfvad (BSD).")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

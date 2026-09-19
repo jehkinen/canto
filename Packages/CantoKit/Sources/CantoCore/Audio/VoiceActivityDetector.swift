@@ -1,16 +1,12 @@
-import CFvad
 import Foundation
 
-/// Splits a 16 kHz mono stream into phrases with the WebRTC voice activity detector (libfvad):
-/// a pre-speech buffer, a silence timeout, a minimum phrase length and a hard maximum length.
+/// Splits a 16 kHz mono stream into phrases: a pre-speech buffer, a silence timeout, a minimum
+/// phrase length and a hard maximum length. A `VoiceClassifier` tells which frames hold a voice.
 public final class VoiceActivityDetector {
     public enum Event: Equatable, Sendable {
         case speechStarted
         case speechEnded(AudioSegment)
     }
-
-    static let frameMs = 20
-    static let frameSamples = AudioSegment.sampleCount(milliseconds: frameMs)
 
     private enum State { case idle, speaking }
 
@@ -19,14 +15,21 @@ public final class VoiceActivityDetector {
     /// speech that starts before it has learned the background noise, cutting off the first words.
     public var recordsEverything = false
 
+    /// Samples in each frame the classifier judges.
+    public let frameSamples: Int
+
     private let configuration: VADConfiguration
-    private let vad: OpaquePointer
+    private let classifier: any VoiceClassifier
+    /// Voiced frames in a row that start a phrase in continuous listening.
+    private let onsetFrames: Int
     private var state = State.idle
     private var preBuffer: RingBuffer
     private var segment: [Float] = []
     private var pending: [Float] = []
     private var silenceSamples = 0
-    /// Push-to-talk: whether the VAD heard a voice in each 20 ms frame of `segment`.
+    /// Continuous listening: voiced frames in a row heard while idle.
+    private var voicedRun = 0
+    /// Push-to-talk: whether the classifier heard a voice in each frame of `segment`.
     private var frameVoice: [Bool] = []
 
     /// Push-to-talk recordings with less voice than this are silence or noise: Whisper would
@@ -35,19 +38,14 @@ public final class VoiceActivityDetector {
     /// How far back from the length limit a long push-to-talk recording looks for a pause to split at.
     static let splitSearchMs = 5_000
 
-    public init(configuration: VADConfiguration) {
+    public init(configuration: VADConfiguration, classifier: any VoiceClassifier = WebRTCVoiceClassifier()) {
         self.configuration = configuration
-        vad = fvad_new()
-        fvad_set_mode(vad, 0)  // "quality", the least aggressive mode
-        fvad_set_sample_rate(vad, Int32(AudioSegment.sampleRate))
-        preBuffer = RingBuffer(capacity: max(
-            AudioSegment.sampleCount(milliseconds: configuration.preSpeechBufferMs),
-            Self.frameSamples
-        ))
-    }
-
-    deinit {
-        fvad_free(vad)
+        self.classifier = classifier
+        frameSamples = classifier.frameSamples
+        onsetFrames = max(1, (AudioSegment.sampleCount(milliseconds: classifier.onsetMs) + frameSamples - 1) / frameSamples)
+        // The audio kept before speech, plus the frames that confirmed it.
+        preBuffer = RingBuffer(capacity: AudioSegment.sampleCount(milliseconds: configuration.preSpeechBufferMs)
+            + onsetFrames * frameSamples)
     }
 
     public func reset() {
@@ -56,10 +54,9 @@ public final class VoiceActivityDetector {
         pending.removeAll(keepingCapacity: true)
         preBuffer.removeAll()
         silenceSamples = 0
+        voicedRun = 0
         frameVoice.removeAll()
-        fvad_reset(vad)
-        fvad_set_mode(vad, 0)
-        fvad_set_sample_rate(vad, Int32(AudioSegment.sampleRate))
+        classifier.reset()
     }
 
     /// Feeds 16 kHz mono samples and returns the events they completed.
@@ -70,9 +67,9 @@ public final class VoiceActivityDetector {
         pending.append(contentsOf: samples)
         var events: [Event] = []
         var offset = 0
-        while pending.count - offset >= Self.frameSamples {
-            let frame = Array(pending[offset..<offset + Self.frameSamples])
-            offset += Self.frameSamples
+        while pending.count - offset >= frameSamples {
+            let frame = Array(pending[offset..<offset + frameSamples])
+            offset += frameSamples
             if let event = process(frame) {
                 events.append(event)
             }
@@ -119,21 +116,21 @@ public final class VoiceActivityDetector {
     private func pushEverything(_ samples: [Float]) -> [Event] {
         pending.append(contentsOf: samples)
         var offset = 0
-        while pending.count - offset >= Self.frameSamples {
-            let frame = Array(pending[offset..<offset + Self.frameSamples])
-            offset += Self.frameSamples
+        while pending.count - offset >= frameSamples {
+            let frame = Array(pending[offset..<offset + frameSamples])
+            offset += frameSamples
             segment.append(contentsOf: frame)
-            frameVoice.append(isVoice(frame))
+            frameVoice.append(classifier.isVoice(frame))
         }
         pending.removeFirst(offset)
 
         var events: [Event] = []
-        let limitFrames = configuration.maximumSegmentMs / Self.frameMs
+        let limitFrames = max(1, AudioSegment.sampleCount(milliseconds: configuration.maximumSegmentMs) / frameSamples)
         while frameVoice.count >= limitFrames {
             let split = splitFrame(limit: limitFrames)
             let voiced = hasVoice(frameVoice[..<split])
-            let samples = Array(segment.prefix(split * Self.frameSamples))
-            segment.removeFirst(split * Self.frameSamples)
+            let samples = Array(segment.prefix(split * frameSamples))
+            segment.removeFirst(split * frameSamples)
             frameVoice.removeFirst(split)
             if voiced { events.append(.speechEnded(AudioSegment(samples: samples))) }
         }
@@ -143,7 +140,7 @@ public final class VoiceActivityDetector {
     /// Where to cut a recording that reached the length limit: the middle of the longest pause
     /// in its last few seconds, so a word is not cut in two. Without a pause, at the limit.
     private func splitFrame(limit: Int) -> Int {
-        let searchStart = max(1, limit - Self.splitSearchMs / Self.frameMs)
+        let searchStart = max(1, limit - AudioSegment.sampleCount(milliseconds: Self.splitSearchMs) / frameSamples)
         var best = (start: limit, length: 0)
         var runStart: Int?
         for index in searchStart...limit {
@@ -159,48 +156,49 @@ public final class VoiceActivityDetector {
     }
 
     private func hasVoice(_ frames: ArraySlice<Bool>) -> Bool {
-        frames.lazy.filter { $0 }.count * Self.frameMs >= Self.minimumVoiceMs
-    }
-
-    private func isVoice(_ frame: [Float]) -> Bool {
-        let pcm = frame.map { Int16($0.clamped(to: -1...1) * Float(Int16.max)) }
-        return pcm.withUnsafeBufferPointer { fvad_process(vad, $0.baseAddress, $0.count) } == 1
+        frames.lazy.filter { $0 }.count * frameSamples >= AudioSegment.sampleCount(milliseconds: Self.minimumVoiceMs)
     }
 
     private func drainPendingFrames() {
         var offset = 0
-        while pending.count - offset >= Self.frameSamples {
-            _ = process(Array(pending[offset..<offset + Self.frameSamples]))
-            offset += Self.frameSamples
+        while pending.count - offset >= frameSamples {
+            _ = process(Array(pending[offset..<offset + frameSamples]))
+            offset += frameSamples
         }
         pending.removeFirst(offset)
     }
 
     private func process(_ frame: [Float]) -> Event? {
-        let voice = isVoice(frame)
+        let voice = classifier.isVoice(frame)
 
         switch state {
         case .idle:
             preBuffer.append(frame)
-            if voice {
-                state = .speaking
-                silenceSamples = 0
-                segment = preBuffer.contents()
-                return .speechStarted
+            guard voice else {
+                voicedRun = 0
+                return nil
             }
+            // A single voiced frame is often a click or a breath: speech has to last `onsetFrames`.
+            voicedRun += 1
+            guard voicedRun >= onsetFrames else { return nil }
+            voicedRun = 0
+            state = .speaking
+            silenceSamples = 0
+            segment = preBuffer.contents()
+            return .speechStarted
         case .speaking:
             segment.append(contentsOf: frame)
             if voice {
                 silenceSamples = 0
             } else {
-                silenceSamples += Self.frameSamples
+                silenceSamples += frameSamples
                 if endsOnSilence,
                    silenceSamples >= AudioSegment.sampleCount(milliseconds: configuration.silenceTimeoutMs) {
                     if segment.count >= AudioSegment.sampleCount(milliseconds: configuration.minimumSpeechMs) {
                         state = .idle
                         return .speechEnded(takeSegment())
                     }
-                    // Too short to be a phrase: drop it but keep the VAD's noise model.
+                    // Too short to be a phrase: drop it, but keep the classifier's state.
                     state = .idle
                     segment.removeAll(keepingCapacity: true)
                     preBuffer.removeAll()

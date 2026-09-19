@@ -506,18 +506,18 @@
         }
       }
     },
-    "Built with whisper.cpp (MIT), FluidAudio (Apache 2.0) and libfvad (BSD)." : {
+    "Built with whisper.cpp (MIT), FluidAudio (Apache 2.0), Silero VAD (MIT) and libfvad (BSD)." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "נבנה עם whisper.cpp (MIT), FluidAudio (Apache 2.0) ו-libfvad (BSD)."
+            "value" : "נבנה עם whisper.cpp (MIT), FluidAudio (Apache 2.0), Silero VAD (MIT) ו-libfvad (BSD)."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Создано на основе whisper.cpp (MIT), FluidAudio (Apache 2.0) и libfvad (BSD)."
+            "value" : "Создано на основе whisper.cpp (MIT), FluidAudio (Apache 2.0), Silero VAD (MIT) и libfvad (BSD)."
           }
         }
       }
