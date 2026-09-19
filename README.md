@@ -38,11 +38,15 @@ chats, email, notes, code editors, the terminal.
   the Neural Engine. Nothing leaves your Mac unless you choose OpenAI.
 - **OpenAI when you want it.** GPT-4o Transcribe or Whisper in the cloud, with a fallback to a downloaded local
   model when the network does not answer.
-- **Clean text.** Keep the transcript as is, tidy it up, or let AI remove filler words, organize long thoughts into
-  sections or format them as Markdown. Add your own AI styles.
+- **Fewer invented words.** Silero VAD cuts silence and noise before recognition, and known Whisper hallucinations
+  ("Thanks for watching", subtitle credits, loops of the same phrase) are removed.
+- **Clean text.** Keep the transcript as is or tidy it up. Optional AI skills, Markdown files you can edit or add:
+  remove filler words, fix technical terms, translate, drop profanity. Turn on several at once; they run in one
+  request on OpenAI or a local model (Ollama, LM Studio).
 - **Vocabulary.** Terms like OpenAI, Node.js or AWS are spelled the way you write them.
-- **Small touches.** Spoken punctuation, numbers as digits or words, currency symbols ("fifty bucks" → $50),
-  a phrase that presses Return, a recording overlay, history, English and Russian interface.
+- **Small touches.** Spoken punctuation, numbers as digits or words (including decimals, fractions and Russian
+  cases), currency symbols ("fifty bucks" → $50), a phrase that presses Return, a recording overlay, history,
+  English, Russian and Hebrew interface.
 
 ## Install
 
@@ -57,8 +61,9 @@ Requires macOS 14 Sonoma or later, on Apple silicon or Intel.
 
 ## Privacy
 
-Audio and text stay on your Mac with on-device recognition. With OpenAI recognition or an AI text mode, the audio
-or the text is sent to OpenAI. Your API key is kept in the macOS Keychain.
+Audio and text stay on your Mac with on-device recognition. With OpenAI recognition or an AI skill on OpenAI, the
+audio or the text is sent to OpenAI; skills on a local model keep the text on your Mac. Your API key is kept in the
+macOS Keychain.
 
 ## License
 
@@ -89,11 +94,15 @@ MIT. Canto is built on [whisper.cpp](https://github.com/ggml-org/whisper.cpp),
   на Neural Engine и никуда не отправляется, если вы не выбрали OpenAI.
 - **OpenAI по желанию.** GPT-4o Transcribe или Whisper в облаке. Если сеть не отвечает, Canto распознаёт скачанной
   локальной моделью.
-- **Чистый текст.** Оставить расшифровку как есть, аккуратно почистить или доверить ИИ: убрать слова-паразиты,
-  разложить мысли по разделам, оформить в Markdown. Можно добавить свои стили.
+- **Меньше выдуманных слов.** Silero VAD отсекает тишину и шум ещё до распознавания, а известные галлюцинации
+  Whisper («Спасибо за просмотр», титры субтитров, повторы одной фразы) убираются.
+- **Чистый текст.** Оставить расшифровку как есть или аккуратно почистить. По желанию ИИ-скиллы, Markdown-файлы,
+  которые можно править и добавлять: убрать слова-паразиты, поправить технические термины, перевести, убрать мат.
+  Можно включить несколько сразу, они работают одним запросом через OpenAI или локальную модель (Ollama, LM Studio).
 - **Словарь.** Термины вроде OpenAI, Node.js или AWS пишутся так, как вы их задали.
-- **Мелочи.** Произносимая пунктуация, числа цифрами или прописью, знаки валют («пятьдесят евро» → 50 €),
-  фраза для нажатия Return, индикатор записи, история, интерфейс на русском и английском.
+- **Мелочи.** Произносимая пунктуация, числа цифрами или прописью (с десятичными, дробями и падежами: «до пяти» →
+  «до 5»), знаки валют («пятьдесят евро» → 50 €), фраза для нажатия Return, индикатор записи, история, интерфейс
+  на русском, английском и иврите.
 
 ### Установка
 
@@ -108,5 +117,6 @@ MIT. Canto is built on [whisper.cpp](https://github.com/ggml-org/whisper.cpp),
 
 ### Приватность
 
-При локальном распознавании звук и текст остаются на вашем Mac. При распознавании через OpenAI или в ИИ-режимах
-звук или текст отправляются в OpenAI. Ключ API хранится в Связке ключей macOS.
+При локальном распознавании звук и текст остаются на вашем Mac. При распознавании через OpenAI или со скиллом
+через OpenAI звук или текст отправляются в OpenAI; скиллы на локальной модели оставляют текст на Mac. Ключ API
+хранится в Связке ключей macOS.
