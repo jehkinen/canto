@@ -20,7 +20,7 @@ enum Labels {
     static func processingDescription(_ mode: TextProcessingMode) -> LocalizedStringKey {
         switch mode {
         case .original: "The transcript as is, without cleanup."
-        case .basic, .optimization, .structural, .mdStructural: "Removes hallucinations, fixes spacing and capitalization."
+        case .basic, .optimization, .structural, .mdStructural: "Removes repeated words, fixes spacing and capitalization."
         }
     }
 

@@ -320,12 +320,12 @@
         }
       }
     },
-    "Built with whisper.cpp (MIT) and libfvad (BSD)." : {
+    "Built with whisper.cpp (MIT), FluidAudio (Apache 2.0) and libfvad (BSD)." : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Создано на основе whisper.cpp (MIT) и libfvad (BSD)."
+            "value" : "Создано на основе whisper.cpp (MIT), FluidAudio (Apache 2.0) и libfvad (BSD)."
           }
         }
       }
@@ -543,12 +543,12 @@
         }
       }
     },
-    "Dictate anywhere on your Mac. Speech is recognized on device with Whisper, cleaned up and typed into the app you are using." : {
+    "Dictate anywhere on your Mac. Speech is recognized on device, cleaned up and typed into the app you are using." : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Диктуйте в любом приложении на Mac. Речь распознаётся на устройстве с помощью Whisper, очищается и вставляется туда, где вы работаете."
+            "value" : "Диктуйте в любом приложении на Mac. Речь распознаётся на устройстве, очищается и вставляется туда, где вы работаете."
           }
         }
       }
@@ -1475,22 +1475,22 @@
         }
       }
     },
-    "Removes hallucinations, fixes spacing and capitalization." : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Убирает галлюцинации, исправляет пробелы и заглавные буквы."
-          }
-        }
-      }
-    },
     "Removes low rumble, evens out loudness and skips silent recordings." : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Убирает низкочастотный гул, выравнивает громкость и пропускает тихие записи."
+          }
+        }
+      }
+    },
+    "Removes repeated words, fixes spacing and capitalization." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Убирает повторы слов, исправляет пробелы и заглавные буквы."
           }
         }
       }

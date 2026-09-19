@@ -8,7 +8,7 @@ struct AboutPane: View {
                 .shadow(color: .purple.opacity(0.3), radius: 18, y: 8)
             Text("Canto").font(.largeTitle.weight(.semibold))
             Text("Version \(version)").foregroundStyle(.secondary)
-            Text("Dictate anywhere on your Mac. Speech is recognized on device with Whisper, cleaned up and typed into the app you are using.")
+            Text("Dictate anywhere on your Mac. Speech is recognized on device, cleaned up and typed into the app you are using.")
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 380)
             VStack(spacing: 4) {
@@ -17,7 +17,7 @@ struct AboutPane: View {
             }
             .padding(.top, 6)
             Spacer()
-            Text("Built with whisper.cpp (MIT) and libfvad (BSD).")
+            Text("Built with whisper.cpp (MIT), FluidAudio (Apache 2.0) and libfvad (BSD).")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -26,9 +26,6 @@ struct AboutPane: View {
     }
 
     private var version: String {
-        let info = Bundle.main.infoDictionary
-        let short = info?["CFBundleShortVersionString"] as? String ?? "–"
-        let build = info?["CFBundleVersion"] as? String ?? "–"
-        return "\(short) (\(build))"
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "–"
     }
 }
