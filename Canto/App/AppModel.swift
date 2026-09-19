@@ -45,6 +45,7 @@ final class AppModel {
             } else {
                 transcribingSince = nil
             }
+            updateCapsLockLight()
         }
     }
     /// When the current wait for recognition began, for the elapsed time in the UI.
@@ -186,7 +187,13 @@ final class AppModel {
 
     func prepareForQuit() {
         recorder.stop()
+        CapsLockLight.shared.turnOffNow()
         CapsLockRemapper.restoreOnQuit()
+    }
+
+    /// The Caps Lock LED is on exactly while Canto records, if the user asked for it.
+    private func updateCapsLockLight() {
+        CapsLockLight.shared.set(isListening && settings.capsLockAsHotkey && settings.lightCapsLockWhileRecording)
     }
 
     func completeOnboarding() {
@@ -741,6 +748,9 @@ final class AppModel {
         }
         if settings.unloadModelAfterMinutes != old.unloadModelAfterMinutes {
             scheduleModelUnload()
+        }
+        if settings.lightCapsLockWhileRecording != old.lightCapsLockWhileRecording || settings.capsLockAsHotkey != old.capsLockAsHotkey {
+            updateCapsLockLight()
         }
         if settings.checkForUpdates != old.checkForUpdates {
             if !settings.checkForUpdates { availableUpdate = nil }

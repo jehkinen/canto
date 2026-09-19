@@ -217,6 +217,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var unloadModelAfterMinutes = 5
     /// Ask GitHub once a day whether a newer Canto is out.
     public var checkForUpdates = true
+    /// Light the Caps Lock LED while recording (Caps Lock as the dictation key only).
+    public var lightCapsLockWhileRecording = false
 
     public var textProcessingMode: TextProcessingMode = .basic
     /// File names of the active skills (Markdown files in the skills folder), in the order they were
@@ -340,6 +342,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         whisperBeamSize = try c.decodeIfPresent(Int.self, forKey: .whisperBeamSize) ?? d.whisperBeamSize
         unloadModelAfterMinutes = try c.decodeIfPresent(Int.self, forKey: .unloadModelAfterMinutes) ?? d.unloadModelAfterMinutes
         checkForUpdates = try c.decodeIfPresent(Bool.self, forKey: .checkForUpdates) ?? d.checkForUpdates
+        lightCapsLockWhileRecording = try c.decodeIfPresent(Bool.self, forKey: .lightCapsLockWhileRecording) ?? d.lightCapsLockWhileRecording
         textProcessingMode = try c.decodeIfPresent(TextProcessingMode.self, forKey: .textProcessingMode) ?? d.textProcessingMode
         let legacy = try decoder.container(keyedBy: LegacyCodingKeys.self)
         let oneSkill = try legacy.decodeIfPresent(String.self, forKey: .skill)

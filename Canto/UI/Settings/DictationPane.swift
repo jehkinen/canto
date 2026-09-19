@@ -48,6 +48,25 @@ struct DictationPane: View {
                     Text("Use Caps Lock as the dictation key")
                     Text("While Canto runs, Caps Lock acts as F18 and becomes the shortcut. Turn this off or quit Canto to get Caps Lock back.")
                 }
+                if model.settings.capsLockAsHotkey {
+                    Toggle(isOn: Binding(get: { model.settings.lightCapsLockWhileRecording },
+                                         set: { on in
+                                             if on, !CapsLockLight.isAllowed { CapsLockLight.requestAccess() }
+                                             model.settings.lightCapsLockWhileRecording = on
+                                         })) {
+                        Text("Light Caps Lock while recording")
+                        Text("macOS asks to allow Input Monitoring: Canto needs it only to switch the light on and off.")
+                    }
+                    if model.settings.lightCapsLockWhileRecording, !CapsLockLight.isAllowed {
+                        LabeledContent {
+                            Button("Open Input Monitoring") {
+                                NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent")!)
+                            }
+                        } label: {
+                            Text("Allow Canto in Input Monitoring, then restart Canto.").foregroundStyle(.orange)
+                        }
+                    }
+                }
             } header: {
                 Text("Shortcut")
             }

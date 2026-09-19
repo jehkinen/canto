@@ -314,6 +314,22 @@
         }
       }
     },
+    "Allow Canto in Input Monitoring, then restart Canto." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "יש לאשר את Canto ב\"ניטור קלט\" ולהפעיל מחדש את Canto."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешите Canto в «Мониторинге ввода» и перезапустите Canto."
+          }
+        }
+      }
+    },
     "Allow microphone access" : {
       "localizations" : {
         "he" : {
@@ -1622,6 +1638,22 @@
         }
       }
     },
+    "Light Caps Lock while recording" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדלקת נורית Caps Lock בזמן הקלטה"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подсвечивать Caps Lock во время записи"
+          }
+        }
+      }
+    },
     "Listening" : {
       "localizations" : {
         "he" : {
@@ -2066,6 +2098,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Открыть папку"
+          }
+        }
+      }
+    },
+    "Open Input Monitoring" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פתיחת \"ניטור קלט\""
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыть «Мониторинг ввода»"
           }
         }
       }
@@ -4075,6 +4123,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "например «отправить»"
+          }
+        }
+      }
+    },
+    "macOS asks to allow Input Monitoring: Canto needs it only to switch the light on and off." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS יבקש לאשר \"ניטור קלט\": Canto צריך אותו רק כדי להדליק ולכבות את הנורית."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS попросит разрешить «Мониторинг ввода»: он нужен Canto только чтобы включать и выключать лампочку."
           }
         }
       }
