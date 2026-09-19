@@ -142,6 +142,11 @@ struct RecordingHUDView: View {
                     .font(.system(.callout, design: .rounded).monospacedDigit())
                     .foregroundStyle(.secondary)
             }
+            // Hands-free after a tap: the key that finishes the take.
+            if model.isHandsFree {
+                KeyCaps(hotkey: model.settings.hotkey)
+                    .help(Text("Press the shortcut again to finish"))
+            }
         case .transcribing:
             ProgressView().controlSize(.small)
             Text("Transcribing…").font(.callout.weight(.medium))
