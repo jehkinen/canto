@@ -8,7 +8,8 @@ struct Waveform: View {
     var maxHeight: CGFloat = 36
 
     var body: some View {
-        TimelineView(.animation) { timeline in
+        // 30 frames a second look the same as the display's 60–120 and cost a fraction of the CPU.
+        TimelineView(.animation(minimumInterval: 1.0 / 30)) { timeline in
             let time = timeline.date.timeIntervalSinceReferenceDate
             HStack(alignment: .center, spacing: 3) {
                 ForEach(0..<barCount, id: \.self) { index in
