@@ -16,6 +16,7 @@ let package = Package(
             name: "CantoSnapshots",
             dependencies: [
                 .product(name: "CantoCore", package: "CantoKit"),
+                .product(name: "SileroVAD", package: "CantoKit"),
                 .product(name: "LocalWhisper", package: "WhisperBridge"),
                 .product(name: "LocalParakeet", package: "WhisperBridge"),
             ],
