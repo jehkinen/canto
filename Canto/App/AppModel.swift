@@ -65,6 +65,10 @@ final class AppModel {
     private(set) var keychainSearchMessage: String?
     var isChoosingKeychainItem = false
     private(set) var skills: [Skill] = []
+    /// A newer release on GitHub, found by the daily check.
+    private(set) var availableUpdate: AppRelease?
+    /// The outcome of a check started from About; nil until one runs.
+    private(set) var updateCheckMessage: String?
     private(set) var hotkeyConflict = false
     private(set) var isMicrophoneTestRunning = false
     var isRecordingShortcut = false {
@@ -120,6 +124,7 @@ final class AppModel {
     private var whisper: WhisperTranscriber?
     private var parakeet: ParakeetTranscriber?
     private var unloadTask: Task<Void, Never>?
+    private var updateTask: Task<Void, Never>?
     private var cachedAPIKey: String?
     private var downloadTasks: [WhisperModelKind: Task<Void, Never>] = [:]
     private var noticeTask: Task<Void, Never>?
@@ -162,6 +167,9 @@ final class AppModel {
         refreshSkills()
         SileroVoiceClassifier.prepare()
         prewarmLocalModel()
+        #if !SNAPSHOTS
+        scheduleUpdateChecks()
+        #endif
 
         NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main) { _ in
             MainActor.assumeIsolated { AppModel.shared.refreshPermissions() }
@@ -700,6 +708,10 @@ final class AppModel {
         if settings.unloadModelAfterMinutes != old.unloadModelAfterMinutes {
             scheduleModelUnload()
         }
+        if settings.checkForUpdates != old.checkForUpdates {
+            if !settings.checkForUpdates { availableUpdate = nil }
+            scheduleUpdateChecks()
+        }
         if settings.transcriptionProvider != old.transcriptionProvider || settings.whisperModel != old.whisperModel
             || settings.whisperUseGPU != old.whisperUseGPU || settings.whisperModelsDirectory != old.whisperModelsDirectory {
             whisper = nil
@@ -937,6 +949,35 @@ final class AppModel {
     private static func skillModel(for settings: AppSettings) -> String {
         let local = settings.aiServerModel.trimmingCharacters(in: .whitespacesAndNewlines)
         return settings.aiProvider == .localServer && !local.isEmpty ? local : AIRewriter.model
+    }
+
+    // MARK: Updates
+
+    /// Checks shortly after launch and then once a day while Canto runs.
+    private func scheduleUpdateChecks() {
+        updateTask?.cancel()
+        guard settings.checkForUpdates else { return }
+        updateTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(10))
+            while !Task.isCancelled {
+                await self?.checkForUpdates(userInitiated: false)
+                try? await Task.sleep(for: .seconds(24 * 60 * 60))
+            }
+        }
+    }
+
+    func checkForUpdates(userInitiated: Bool) async {
+        do {
+            let release = try await ReleaseChecker.latest()
+            let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
+            availableUpdate = ReleaseChecker.isNewer(release.version, than: current) ? release : nil
+            if userInitiated {
+                updateCheckMessage = availableUpdate == nil ? String(localized: "Canto is up to date.") : nil
+            }
+        } catch {
+            logger.notice("update check failed: \(String(describing: error), privacy: .public)")
+            if userInitiated { updateCheckMessage = String(localized: "Could not check for updates.") }
+        }
     }
 
     func refreshSkills() {

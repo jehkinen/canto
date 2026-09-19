@@ -63,7 +63,7 @@ Requires macOS 14 Sonoma or later, on Apple silicon or Intel.
 
 Audio and text stay on your Mac with on-device recognition. With OpenAI recognition or an AI skill on OpenAI, the
 audio or the text is sent to OpenAI; skills on a local model keep the text on your Mac. Your API key is kept in the
-macOS Keychain.
+macOS Keychain. Once a day Canto asks GitHub whether a new version is out; turn it off in Settings → About.
 
 ## License
 
@@ -119,4 +119,5 @@ MIT. Canto is built on [whisper.cpp](https://github.com/ggml-org/whisper.cpp),
 
 При локальном распознавании звук и текст остаются на вашем Mac. При распознавании через OpenAI или со скиллом
 через OpenAI звук или текст отправляются в OpenAI; скиллы на локальной модели оставляют текст на Mac. Ключ API
-хранится в Связке ключей macOS.
+хранится в Связке ключей macOS. Раз в день Canto спрашивает у GitHub, вышла ли новая версия; это выключается в
+«Настройки → О программе».

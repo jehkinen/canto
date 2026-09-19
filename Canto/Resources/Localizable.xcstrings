@@ -557,6 +557,38 @@
     "Canto" : {
       "shouldTranslate" : false
     },
+    "Canto %@ is available. Download it from GitHub." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canto %@ זמין. להורדה מ-GitHub."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доступна Canto %@. Скачать с GitHub."
+          }
+        }
+      }
+    },
+    "Canto is up to date." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canto מעודכן."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "У вас последняя версия Canto."
+          }
+        }
+      }
+    },
     "Canto needs to hear you and to type for you. You can change this later in System Settings." : {
       "localizations" : {
         "he" : {
@@ -585,6 +617,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не удалось переназначить Caps Lock"
+          }
+        }
+      }
+    },
+    "Check for Updates" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בדיקת עדכונים"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверить обновления"
+          }
+        }
+      }
+    },
+    "Check for updates automatically" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בדיקת עדכונים אוטומטית"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверять обновления автоматически"
           }
         }
       }
@@ -729,6 +793,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Скопировать"
+          }
+        }
+      }
+    },
+    "Could not check for updates." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא ניתן לבדוק עדכונים."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось проверить обновления."
           }
         }
       }
@@ -937,6 +1017,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Загрузить"
+          }
+        }
+      }
+    },
+    "Download %@" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הורדת %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скачать %@"
           }
         }
       }
@@ -1874,6 +1970,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "На этом Mac: речь никуда не отправляется, работает без интернета. Скорость и точность зависят от загруженной модели.\n\nOpenAI: нужны интернет и ключ API, оплата поминутная. Если OpenAI не отвечает, Canto распознаёт загруженной моделью на этом Mac."
+          }
+        }
+      }
+    },
+    "Once a day Canto asks GitHub whether a new version is out. Nothing about you is sent." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פעם ביום Canto בודק ב-GitHub אם יצאה גרסה חדשה. שום מידע עליך לא נשלח."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Раз в день Canto спрашивает у GitHub, вышла ли новая версия. О вас ничего не отправляется."
           }
         }
       }

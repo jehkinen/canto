@@ -146,6 +146,15 @@ struct MenuBarPanel: View {
             } label: {
                 Label("History", systemImage: "clock")
             }
+            if let update = model.availableUpdate {
+                Button {
+                    NSWorkspace.shared.open(update.pageURL)
+                } label: {
+                    Label(update.version, systemImage: "arrow.down.circle.fill")
+                }
+                .foregroundStyle(Color.accentColor)
+                .help(Text("Canto \(update.version) is available. Download it from GitHub."))
+            }
             Spacer()
             Button {
                 NSApp.terminate(nil)
