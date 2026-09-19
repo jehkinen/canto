@@ -27,12 +27,9 @@ struct HistoryView: View {
                 .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
 
                 Button("Copy") { copySelection() }
-                    .disabled(selection.isEmpty)
-                Button("Delete") {
-                    model.deleteHistory(selection)
-                    selection.removeAll()
-                }
-                .disabled(selection.isEmpty)
+                    .disabled(selectedEntries.isEmpty)
+                Button("Delete", action: deleteSelection)
+                    .disabled(selectedEntries.isEmpty)
                 Button("Clear All…") { confirmClear = true }
                     .disabled(model.history.isEmpty)
             }
@@ -62,12 +59,10 @@ struct HistoryView: View {
                 }
                 .listStyle(.inset)
                 .onCopyCommand {
-                    selectedEntries.map { NSItemProvider(object: $0.text as NSString) }
+                    // One text, like the Copy button: most apps paste only the first of several items.
+                    [NSItemProvider(object: selectedText as NSString)]
                 }
-                .onDeleteCommand {
-                    model.deleteHistory(selection)
-                    selection.removeAll()
-                }
+                .onDeleteCommand(perform: deleteSelection)
             }
         }
         .frame(minWidth: 460, minHeight: 360)
@@ -76,12 +71,22 @@ struct HistoryView: View {
         }
     }
 
+    /// Selected rows the search still shows: rows it hides are never copied or deleted.
     private var selectedEntries: [TranscriptEntry] {
-        model.history.filter { selection.contains($0.id) }
+        entries.filter { selection.contains($0.id) }
+    }
+
+    private var selectedText: String {
+        selectedEntries.map(\.text).joined(separator: "\n\n")
     }
 
     private func copySelection() {
-        TextInserter.copyToPasteboard(selectedEntries.map(\.text).joined(separator: "\n\n"))
+        TextInserter.copyToPasteboard(selectedText)
+    }
+
+    private func deleteSelection() {
+        model.deleteHistory(Set(selectedEntries.map(\.id)))
+        selection.removeAll()
     }
 
     private var groupedByDay: [(day: Date, entries: [TranscriptEntry])] {

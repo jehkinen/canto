@@ -10,6 +10,8 @@ struct ShortcutRecorder: View {
 
     @State private var isRecording = false
     @State private var monitor: Any?
+    /// A closed window keeps its views, so `onDisappear` may never come; it always stops being key.
+    @Environment(\.controlActiveState) private var activeState
 
     var body: some View {
         Button {
@@ -35,6 +37,9 @@ struct ShortcutRecorder: View {
             }
         }
         .onDisappear(perform: stop)
+        .onChange(of: activeState) { _, state in
+            if state != .key { stop() }
+        }
         .help(Text("Click and press a new shortcut"))
     }
 

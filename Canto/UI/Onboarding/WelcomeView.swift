@@ -61,9 +61,17 @@ struct WelcomeView: View {
     }
 
     private func move(_ delta: Int) {
+        // Return in the key field presses Continue: a typed key is saved, not left behind.
+        if step == .recognition { saveKeyDraft() }
         withAnimation(.smooth(duration: 0.3)) {
             step = Step(rawValue: step.rawValue + delta) ?? step
         }
+    }
+
+    private func saveKeyDraft() {
+        guard !keyDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        model.saveAPIKey(keyDraft)
+        keyDraft = ""
     }
 
     private var welcome: some View {
@@ -121,11 +129,9 @@ struct WelcomeView: View {
             } else {
                 HStack {
                     SecureField("API key", text: $keyDraft, prompt: Text("sk-…"))
-                    Button("Save") {
-                        model.saveAPIKey(keyDraft)
-                        keyDraft = ""
-                    }
-                    .disabled(keyDraft.isEmpty)
+                        .onSubmit(saveKeyDraft)
+                    Button("Save", action: saveKeyDraft)
+                        .disabled(keyDraft.isEmpty)
                 }
                 HStack {
                     Button("Find in Keychain…") { model.findAPIKeyInKeychain() }
