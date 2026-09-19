@@ -215,6 +215,8 @@ public enum TextCleanup {
                 let second = words[index + length..<index + 2 * length].map(normalized)
                 guard first == second, first.allSatisfy({ !$0.isEmpty }) else { continue }
                 if length == 1, intentionalRepeats.contains(first[0]) { continue }
+                // "Я купил хлеб. Хлеб был свежий." repeats across a sentence end on purpose.
+                if words[index..<index + 2 * length - 1].contains(where: endsSentence) { continue }
                 // Numbers repeat for real: "пять пять пять", "код один один два".
                 if first.allSatisfy(isNumber) { continue }
                 // Keep the second copy: it carries the punctuation that follows the phrase.
@@ -227,16 +229,23 @@ public enum TextCleanup {
         return words.joined(separator: " ")
     }
 
+    /// Whether a word closes a sentence: "хлеб.", "да?!", "конец.»".
+    static func endsSentence(_ word: String) -> Bool {
+        word.reversed().prefix { !$0.isLetter && !$0.isNumber }.contains { ".!?…".contains($0) }
+    }
+
     /// Single spaces, no space before punctuation, one space after it before a word.
     public static func normalizeSpacing(_ text: String) -> String {
         var result = text
         let rules: [(String, String)] = [
             ("[ \\t]+", " "),
             (" *\\n *", "\n"),
-            (" +([,.;:!?…)»])", "$1"),
+            // A dot that starts a word stays apart: ".gitignore", ".NET".
+            (" +([,;:!?…)»]|\\.(?![\\p{L}\\p{N}]))", "$1"),
             ("([(«]) +", "$1"),
             ("([,;:!?])(?=[\\p{L}])", "$1 "),
-            ("(?<=[\\p{L}])\\.(?=[\\p{Lu}])", ". "),
+            // Two sentences run together ("будет.А выпущен"), but not "ASP.NET" or "U.S.A.".
+            ("(?<=\\p{Ll}\\p{Ll})\\.(?=\\p{Lu}(?:\\p{Ll}|\\s|$))", ". "),
         ]
         for (pattern, template) in rules {
             result = result.replacingOccurrences(of: pattern, with: template, options: .regularExpression)
@@ -252,8 +261,13 @@ public enum TextCleanup {
             || numberWords.contains(word)
     }
 
+    /// Capitalizes the first word, unless the text starts with something else: a number ("5 минут"),
+    /// a path or file (".gitignore"), a link, or a term with its own case ("iPhone", "macOS").
     public static func capitalizeFirstLetter(_ text: String) -> String {
-        guard let index = text.firstIndex(where: \.isLetter) else { return text }
+        guard let index = text.firstIndex(where: { !$0.isWhitespace && !"\"'«„“([—–-".contains($0) }),
+              text[index].isLowercase else { return text }
+        let word = text[index...].prefix { !$0.isWhitespace }
+        guard !word.contains(where: \.isUppercase), !word.contains("://"), !word.contains("@") else { return text }
         return text.replacingCharacters(in: index...index, with: text[index].uppercased())
     }
 
@@ -265,6 +279,7 @@ public enum TextCleanup {
         /// Words before the command that make it an ordinary noun: "стартовая точка", "the trial period".
         var notAfter: Set<String> = []
         var notAfterEndings: [String] = []
+        var endingExceptions: Set<String> = []
         /// Between two numbers the word is a decimal point, not punctuation: "один точка пять".
         var decimalPoint = false
     }
@@ -275,7 +290,8 @@ public enum TextCleanup {
         pack.punctuation.map { command in
             let setPhrases = command.notBefore.isEmpty ? "" : "(?!\\s+(?:\(command.notBefore.joined(separator: "|"))))"
             return SpokenCommand(words: command.words + setPhrases, symbol: command.symbol, notAfter: pack.expand(command.notAfter),
-                                 notAfterEndings: command.notAfterEndings, decimalPoint: command.decimalPoint)
+                                 notAfterEndings: command.notAfterEndings, endingExceptions: pack.expand(command.endingExceptions),
+                                 decimalPoint: command.decimalPoint)
         }
     }
 
@@ -295,7 +311,8 @@ public enum TextCleanup {
                 guard let range = Range(match.range, in: result) else { continue }
                 let previous = result[..<range.lowerBound].split(whereSeparator: { !$0.isLetter && !$0.isNumber }).last
                     .map { $0.lowercased() } ?? ""
-                if command.notAfter.contains(previous) || command.notAfterEndings.contains(where: previous.hasSuffix) {
+                if command.notAfter.contains(previous)
+                    || (command.notAfterEndings.contains(where: previous.hasSuffix) && !command.endingExceptions.contains(previous)) {
                     continue
                 }
                 let spoken = result[range].trimmingCharacters(in: .whitespaces)

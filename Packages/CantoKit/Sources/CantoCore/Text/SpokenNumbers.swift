@@ -526,7 +526,8 @@ public enum SpokenNumbers {
     /// Amount words and how they are written: "$50" for dollars, "50 €" for euro.
     static let currencies: [(words: [String], symbol: String, prefix: Bool)] = [
         (["долларов", "доллара", "доллар", "баксов", "бакса", "бакс", "dollars", "dollar", "bucks", "buck", "usd"], "$", true),
-        (["фунтов", "фунта", "фунт", "pounds", "pound", "gbp"], "£", true),
+        // A bare "pounds" or "фунта" is as often a weight: "I lost 10 pounds", "2 фунта картошки".
+        (["фунтов стерлингов", "фунта стерлингов", "фунт стерлингов", "pounds sterling", "pound sterling", "gbp"], "£", true),
         (["евро", "euros", "euro", "eur"], "€", false),
         (["рублей", "рубля", "рубль", "руб", "roubles", "rubles", "rub"], "₽", false),
     ]

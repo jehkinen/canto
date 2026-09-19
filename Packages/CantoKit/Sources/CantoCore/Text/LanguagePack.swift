@@ -26,13 +26,15 @@ public struct LanguagePack: Decodable, Sendable {
         /// Words before the command that make it an ordinary noun: "стартовая точка", "the trial period".
         public var notAfter: [String] = []
         public var notAfterEndings: [String] = []
+        /// Words that end like `notAfterEndings` but are nouns, so the command still works: "мая", "Китая".
+        public var endingExceptions: [String] = []
         /// Regular expression fragments for words after it that make a set phrase: "точка зрения".
         public var notBefore: [String] = []
         /// Between two numbers the word is a decimal point: "один точка пять".
         public var decimalPoint = false
 
         enum CodingKeys: String, CodingKey {
-            case words, symbol, notAfter, notAfterEndings, notBefore, decimalPoint
+            case words, symbol, notAfter, notAfterEndings, endingExceptions, notBefore, decimalPoint
         }
 
         public init(from decoder: Decoder) throws {
@@ -41,6 +43,7 @@ public struct LanguagePack: Decodable, Sendable {
             symbol = try c.decode(String.self, forKey: .symbol)
             notAfter = try c.decodeIfPresent([String].self, forKey: .notAfter) ?? []
             notAfterEndings = try c.decodeIfPresent([String].self, forKey: .notAfterEndings) ?? []
+            endingExceptions = try c.decodeIfPresent([String].self, forKey: .endingExceptions) ?? []
             notBefore = try c.decodeIfPresent([String].self, forKey: .notBefore) ?? []
             decimalPoint = try c.decodeIfPresent(Bool.self, forKey: .decimalPoint) ?? false
         }

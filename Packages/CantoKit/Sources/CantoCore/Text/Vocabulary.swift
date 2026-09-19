@@ -37,9 +37,11 @@ public enum Vocabulary {
         return result
     }
 
-    /// A lowercase term keeps the capital the sentence gave it: "Запушить в main" stays capitalized.
+    /// A lowercase term keeps the capital the sentence gave it: "Main" at the start of a sentence.
+    /// A term with its own capitals is a brand and stays exactly as written: "iPhone", "macOS".
     private static func keepingCapital(of matched: Substring, in term: String) -> String {
-        guard let first = matched.first, first.isUppercase, let termFirst = term.first, termFirst.isLowercase else { return term }
+        guard let first = matched.first, first.isUppercase, !term.contains(where: \.isUppercase),
+              let termFirst = term.first else { return term }
         return termFirst.uppercased() + term.dropFirst()
     }
 
@@ -90,7 +92,14 @@ public enum Vocabulary {
         // Between parts: nothing, a space, a hyphen or an underscore, or a dot ("Node. js"). A dot
         // and a space before a capital letter ends a sentence: "open. AI" is not "OpenAI".
         let separator = "(?:\\s?[\\-_]\\s?|\\s|\\.(?:\\s(?=(?-i:\\p{Ll})))?)?"
-        let core = parts.map { NSRegularExpression.escapedPattern(for: $0) }.joined(separator: separator)
+        // Next to a one-letter part a space is an ordinary word break: "I phone" is not "iPhone".
+        // A one-digit part still takes a space: "GPT 4" is "GPT-4".
+        let tight = "(?:[\\-_.])?"
+        let isLetter: (String) -> Bool = { $0.count == 1 && $0.first?.isLetter == true }
+        var core = NSRegularExpression.escapedPattern(for: parts[0])
+        for (previous, part) in zip(parts, parts.dropFirst()) {
+            core += (isLetter(previous) || isLetter(part) ? tight : separator) + NSRegularExpression.escapedPattern(for: part)
+        }
         return NSRegularExpression.escapedPattern(for: leading) + core + NSRegularExpression.escapedPattern(for: trailing)
     }
 

@@ -93,7 +93,9 @@ struct SpokenNumbersTests {
         ("50 евро за ночь", "50\u{00A0}€ за ночь"),
         ("1000 рублей", "1000\u{00A0}₽"),
         ("it costs 20 dollars", "it costs $20"),
-        ("30 pounds", "£30"),
+        ("30 pounds sterling", "£30"),
+        ("I lost 10 pounds last month", "I lost 10 pounds last month"),
+        ("купи 2 фунта картошки", "купи 2 фунта картошки"),
         ("50 долларовых купюр", "50 долларовых купюр"),
     ])
     func amountsBecomeSymbols(input: String, expected: String) {

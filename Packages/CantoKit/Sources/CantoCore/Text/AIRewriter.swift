@@ -23,14 +23,22 @@ public struct AIRewriter: Sendable {
         return text
     }
 
-    /// Strips what models sometimes wrap the answer in: code fences, the transcript tags, quotes.
+    /// Strips what models sometimes wrap the answer in: their reasoning, code fences, the transcript
+    /// tags, quotes.
     static func sanitize(_ reply: String) -> String {
-        var text = reply.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Reasoning models on a local server (DeepSeek-R1, Qwen3) put their thinking before the answer.
+        var text = reply.replacingOccurrences(of: "(?s)^\\s*<think>.*?(?:</think>|$)", with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
         // Only a reply that is one fenced block as a whole; Markdown with code inside stays as it is.
         if text.hasPrefix("```"), text.hasSuffix("```"), text.count > 6,
            text.dropFirst(3).dropLast(3).range(of: "```") == nil {
-            text = text.split(separator: "\n", omittingEmptySubsequences: false).dropFirst().joined(separator: "\n")
-            text = String(text.dropLast(3))
+            if text.contains("\n") {
+                // The first line holds the fence and its language tag.
+                text = text.split(separator: "\n", omittingEmptySubsequences: false).dropFirst().joined(separator: "\n")
+                text = String(text.dropLast(3))
+            } else {
+                text = String(text.dropFirst(3).dropLast(3))
+            }
         }
         text = text.replacingOccurrences(of: "</?transcript>", with: "", options: .regularExpression)
         text = text.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -53,6 +53,24 @@
       "ваша",
       "каждая",
       "любая"
+    ],
+    "nounsEndingInAya": [
+      "мая",
+      "чая",
+      "края",
+      "рая",
+      "лая",
+      "сарая",
+      "китая",
+      "николая",
+      "алтая",
+      "трамвая",
+      "урожая",
+      "случая",
+      "обычая",
+      "попугая",
+      "негодяя",
+      "разгильдяя"
     ]
   },
   "punctuation": [
@@ -97,6 +115,9 @@
         "ая",
         "яя"
       ],
+      "endingExceptions": [
+        "@nounsEndingInAya"
+      ],
       "decimalPoint": true
     },
     {
@@ -118,6 +139,9 @@
       "notAfterEndings": [
         "ая",
         "яя"
+      ],
+      "endingExceptions": [
+        "@nounsEndingInAya"
       ],
       "decimalPoint": true,
       "notBefore": [
