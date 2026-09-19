@@ -76,13 +76,8 @@ public enum Vocabulary {
         (1..<match.numberOfRanges).first { match.range(at: $0).location != NSNotFound }.map { terms[$0 - 1] }
     }
 
-    /// Matches the term's parts with optional spaces, hyphens or dots between them. Symbols before
-    /// or after the letters ("C++", "C#", ".NET") are required as written, so "plan c" stays.
-    static func expression(for term: String) -> NSRegularExpression? {
-        body(for: term).flatMap { try? NSRegularExpression(pattern: "(?<![\\p{L}\\p{N}])(?:\($0))(?![\\p{L}\\p{N}])",
-                                                            options: [.caseInsensitive]) }
-    }
-
+    /// The pattern for one term: its parts with optional spaces, hyphens or dots between them.
+    /// Symbols before or after the letters ("C++", "C#", ".NET") are required as written, so "plan c" stays.
     static func body(for term: String) -> String? {
         let parts = self.parts(of: term)
         guard !parts.isEmpty else { return nil }

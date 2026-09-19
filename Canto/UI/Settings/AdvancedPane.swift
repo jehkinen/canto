@@ -21,7 +21,7 @@ struct AdvancedPane: View {
                 MillisecondsSlider(title: "Pause that ends a phrase", value: $model.settings.silenceTimeoutMs, range: 200...3_000, step: 50)
                 MillisecondsSlider(title: "Audio kept before speech", value: $model.settings.vadPreSpeechBufferMs, range: 50...2_000, step: 50)
                 MillisecondsSlider(title: "Shortest phrase", value: $model.settings.vadMinimumSpeechMs, range: 50...2_000, step: 50)
-                MillisecondsSlider(title: "Longest phrase", value: $model.settings.vadMaximumSegmentMs, range: 5_000..<120_001, step: 5_000)
+                MillisecondsSlider(title: "Longest phrase", value: $model.settings.vadMaximumSegmentMs, range: 5_000...120_000, step: 5_000)
             } header: {
                 Text("Speech detection")
             } footer: {
@@ -54,17 +54,6 @@ private struct MillisecondsSlider: View {
     @Binding var value: Int
     let range: ClosedRange<Int>
     let step: Int
-
-    init(title: LocalizedStringKey, value: Binding<Int>, range: ClosedRange<Int>, step: Int) {
-        self.title = title
-        _value = value
-        self.range = range
-        self.step = step
-    }
-
-    init(title: LocalizedStringKey, value: Binding<Int>, range: Range<Int>, step: Int) {
-        self.init(title: title, value: value, range: range.lowerBound...(range.upperBound - 1), step: step)
-    }
 
     var body: some View {
         LabeledContent(title) {

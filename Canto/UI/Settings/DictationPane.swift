@@ -3,7 +3,6 @@ import CantoCore
 
 struct DictationPane: View {
     @Environment(AppModel.self) private var model
-    @State private var triggerDraft = ""
 
     var body: some View {
         @Bindable var model = model

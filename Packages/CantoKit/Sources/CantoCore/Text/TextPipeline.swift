@@ -3,17 +3,17 @@ import Foundation
 public struct ProcessedText: Equatable, Sendable {
     public var text: String
     public var pressEnter: Bool
-    /// The AI mode could not be used and the text was cleaned up the basic way instead.
-    public var rewriteFallback: Bool
+    /// Why the skills could not run; the text was then cleaned up without them.
     public var rewriteFallbackReason: String?
     /// Names of the skills that processed the text.
     public var skills: [String]
 
-    public init(text: String, pressEnter: Bool, rewriteFallback: Bool = false, rewriteFallbackReason: String? = nil,
-                skills: [String] = []) {
+    /// The skills could not run and the text was cleaned up without them.
+    public var rewriteFallback: Bool { rewriteFallbackReason != nil }
+
+    public init(text: String, pressEnter: Bool, rewriteFallbackReason: String? = nil, skills: [String] = []) {
         self.text = text
         self.pressEnter = pressEnter
-        self.rewriteFallback = rewriteFallback
         self.rewriteFallbackReason = rewriteFallbackReason
         self.skills = skills
     }
@@ -79,8 +79,7 @@ public struct TextPipeline: Sendable {
             }
         }
 
-        return ProcessedText(text: text, pressEnter: enter.pressEnter, rewriteFallback: fallbackReason != nil,
-                             rewriteFallbackReason: fallbackReason, skills: applied)
+        return ProcessedText(text: text, pressEnter: enter.pressEnter, rewriteFallbackReason: fallbackReason, skills: applied)
     }
 
     private func formatNumbers(_ text: String, settings: AppSettings, fallbackLanguage: String) -> String {

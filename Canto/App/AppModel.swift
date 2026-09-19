@@ -270,7 +270,6 @@ final class AppModel {
         let session = listeningSession
 
         let detector = VoiceActivityDetector(configuration: settings.vadConfiguration, classifier: voiceClassifier())
-        detector.endsOnSilence = settings.activationMode == .toggle
         detector.recordsEverything = settings.activationMode.recordsWholeTake
         self.detector = detector
         microphoneRestarts = 0

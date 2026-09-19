@@ -10,7 +10,6 @@ public final class VoiceActivityDetector {
 
     private enum State { case idle, speaking }
 
-    public var endsOnSilence = true
     /// Push-to-talk: keep every sample from the key press on. The detector would otherwise drop
     /// speech that starts before it has learned the background noise, cutting off the first words.
     public var recordsEverything = false
@@ -78,38 +77,25 @@ public final class VoiceActivityDetector {
         return events
     }
 
-    /// Ends continuous listening: returns the phrase in progress, if any.
+    /// Ends continuous listening: returns the phrase in progress, if any. `push` has already judged
+    /// every whole frame; the few samples of an incomplete one are too short to matter.
     public func flush() -> AudioSegment? {
-        drainPendingFrames()
         guard state == .speaking, !segment.isEmpty else { return nil }
         state = .idle
         return takeSegment()
     }
 
-    /// Ends push-to-talk: everything that was recorded counts, even if the VAD never fired.
+    /// Ends push-to-talk (`recordsEverything`): the rest of the take, unless it holds too little voice.
     public func flushPushToTalk() -> AudioSegment? {
-        if recordsEverything {
-            segment.append(contentsOf: pending)
-            pending.removeAll(keepingCapacity: true)
-            let voiced = hasVoice(frameVoice[...])
-            frameVoice.removeAll()
-            guard voiced, !segment.isEmpty else {
-                segment.removeAll(keepingCapacity: true)
-                return nil
-            }
-            return takeSegment()
+        segment.append(contentsOf: pending)
+        pending.removeAll(keepingCapacity: true)
+        let voiced = hasVoice(frameVoice[...])
+        frameVoice.removeAll()
+        guard voiced, !segment.isEmpty else {
+            segment.removeAll(keepingCapacity: true)
+            return nil
         }
-        drainPendingFrames()
-        if !segment.isEmpty {
-            state = .idle
-            return takeSegment()
-        }
-        let buffered = preBuffer.contents()
-        if buffered.count >= AudioSegment.sampleCount(milliseconds: configuration.minimumSpeechMs) {
-            reset()
-            return AudioSegment(samples: buffered)
-        }
-        return nil
+        return takeSegment()
     }
 
     /// Push-to-talk: keeps every sample, and still runs the VAD to know where the voice is.
@@ -159,15 +145,6 @@ public final class VoiceActivityDetector {
         frames.lazy.filter { $0 }.count * frameSamples >= AudioSegment.sampleCount(milliseconds: Self.minimumVoiceMs)
     }
 
-    private func drainPendingFrames() {
-        var offset = 0
-        while pending.count - offset >= frameSamples {
-            _ = process(Array(pending[offset..<offset + frameSamples]))
-            offset += frameSamples
-        }
-        pending.removeFirst(offset)
-    }
-
     private func process(_ frame: [Float]) -> Event? {
         let voice = classifier.isVoice(frame)
 
@@ -192,8 +169,7 @@ public final class VoiceActivityDetector {
                 silenceSamples = 0
             } else {
                 silenceSamples += frameSamples
-                if endsOnSilence,
-                   silenceSamples >= AudioSegment.sampleCount(milliseconds: configuration.silenceTimeoutMs) {
+                if silenceSamples >= AudioSegment.sampleCount(milliseconds: configuration.silenceTimeoutMs) {
                     if segment.count >= AudioSegment.sampleCount(milliseconds: configuration.minimumSpeechMs) {
                         state = .idle
                         return .speechEnded(takeSegment())

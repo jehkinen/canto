@@ -73,16 +73,6 @@ struct VoiceActivityDetectorTests {
         }
     }
 
-    @Test func silenceDoesNotEndWhenDisabled() {
-        let detector = VoiceActivityDetector(configuration: Self.configuration(minimumSpeechMs: 100, silenceTimeoutMs: 100))
-        detector.endsOnSilence = false
-        _ = detector.push(Self.sine(0.8))
-        for _ in 0..<20 {
-            let ended = detector.push(Self.silence).contains { if case .speechEnded = $0 { true } else { false } }
-            #expect(!ended)
-        }
-    }
-
     @Test func speechStartAndEndTransitions() {
         let detector = VoiceActivityDetector(configuration: Self.configuration(minimumSpeechMs: 100, silenceTimeoutMs: 100))
         var events: [VoiceActivityDetector.Event] = []
@@ -99,12 +89,6 @@ struct VoiceActivityDetectorTests {
             for case .speechEnded in detector.push(Self.sine(0.6)) { chunks += 1 }
         }
         #expect(chunks >= 1)
-    }
-
-    @Test func pushToTalkKeepsAudioEvenWithoutVoice() {
-        let detector = VoiceActivityDetector(configuration: Self.configuration(minimumSpeechMs: 100))
-        for _ in 0..<10 { _ = detector.push(Self.silence) }
-        #expect(detector.flushPushToTalk() != nil)
     }
 
     @Test func pushToTalkKeepsEverythingFromTheFirstSample() {

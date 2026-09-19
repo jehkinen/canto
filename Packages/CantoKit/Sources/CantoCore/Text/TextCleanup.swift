@@ -257,8 +257,7 @@ public enum TextCleanup {
     static let numberWords = Set(LanguagePack.bundled.flatMap(\.numberWords))
 
     static func isNumber(_ word: String) -> Bool {
-        word.allSatisfy(\.isNumber) || SpokenNumbers.units[word] != nil || SpokenNumbers.multipliers[word] != nil
-            || numberWords.contains(word)
+        word.allSatisfy(\.isNumber) || SpokenNumbers.isNumeric(word) || numberWords.contains(word)
     }
 
     /// Capitalizes the first word, unless the text starts with something else: a number ("5 минут"),

@@ -100,10 +100,6 @@ struct MenuBarPanel: View {
         return device.name
     }
 
-    static func shortened(_ name: String, limit: Int = 20) -> String {
-        name.count > limit ? String(name.prefix(limit - 1)) + "…" : name
-    }
-
     private var recent: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {

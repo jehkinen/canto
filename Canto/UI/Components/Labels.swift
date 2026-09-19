@@ -3,14 +3,6 @@ import CantoCore
 
 /// Display names shared by the menu bar panel and the settings.
 enum Labels {
-    static func mode(_ mode: ActivationMode) -> LocalizedStringKey {
-        switch mode {
-        case .pushToTalk: "Hold to talk"
-        case .toggle: "Press to start and stop"
-        case .holdOrTap: "Hold or tap"
-        }
-    }
-
     static func processing(_ mode: TextProcessingMode) -> LocalizedStringKey {
         switch mode {
         case .original: "Original"

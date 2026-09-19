@@ -202,13 +202,12 @@ public enum SpokenNumbers {
         let original = run.map { $0.word + $0.separator }.joined()
         if beforeOrdinal { return original }
 
-        var parts: [(text: String, isNumber: Bool)] = []
+        var parts: [String] = []
         var builder = NumberBuilder()
         var builderEnd = 0
         func finish() {
-            guard builder.words > 0 else { return }
-            parts.append((builder.value.map(String.init) ?? builder.spelled, builder.value != nil))
-            parts[parts.count - 1].text += run[builderEnd].separator
+            guard let value = builder.value else { return }
+            parts.append(String(value) + run[builderEnd].separator)
             builder = NumberBuilder()
         }
         var index = 0
@@ -222,13 +221,13 @@ public enum SpokenNumbers {
                     continue
                 }
                 finish()
-                parts.append((word + run[index].separator, false))
+                parts.append(word + run[index].separator)
                 index += 1
                 continue
             }
             if isDigits(word), let value = Int(word) {
                 finish()
-                builder.seed(word, value: value)
+                builder.seed(value)
                 builderEnd = index
                 index += 1
                 continue
@@ -236,10 +235,10 @@ public enum SpokenNumbers {
             let value = units[lowered] ?? multipliers[lowered] ?? 0
             if !builder.accepts(lowered, value: value) { finish() }
             if builder.accepts(lowered, value: value) {
-                builder.add(word, lowered: lowered, value: value)
+                builder.add(lowered, value: value)
             } else {
                 // A multiplier that can not start a number ("тысячи людей").
-                parts.append((word + run[index].separator, false))
+                parts.append(word + run[index].separator)
                 index += 1
                 continue
             }
@@ -247,7 +246,7 @@ public enum SpokenNumbers {
             index += 1
         }
         finish()
-        return parts.map(\.text).joined()
+        return parts.joined()
     }
 
     /// The value of a run that is one number ("двадцать одна"), not several ("пять шесть").
@@ -256,13 +255,13 @@ public enum SpokenNumbers {
         for piece in run {
             let lowered = piece.word.lowercased()
             if isDigits(piece.word), builder.words == 0, let value = Int(piece.word) {
-                builder.seed(piece.word, value: value)
+                builder.seed(value)
                 continue
             }
             guard isNumberWord(lowered) else { return nil }
             let value = units[lowered] ?? multipliers[lowered] ?? 0
             guard builder.accepts(lowered, value: value) else { return nil }
-            builder.add(piece.word, lowered: lowered, value: value)
+            builder.add(lowered, value: value)
         }
         return builder.value
     }
@@ -454,7 +453,6 @@ public enum SpokenNumbers {
         var lastMultiplier = Int.max
         var words = 0
         var isEnglish = false
-        var spelled = ""
         var closed = false
 
         var value: Int? { words > 0 ? total + group : nil }
@@ -462,13 +460,12 @@ public enum SpokenNumbers {
         /// "and" may follow "hundred" or "thousand" in English.
         var acceptsAnd: Bool { isEnglish && (hasHundreds || lastMultiplier != Int.max) && !hasTens && !hasUnits }
 
-        mutating func seed(_ digits: String, value: Int) {
+        mutating func seed(_ value: Int) {
             group = value
             hasHundreds = true
             hasTens = true
             hasUnits = true
             words = 1
-            spelled = digits
         }
 
         func accepts(_ word: String, value: Int) -> Bool {
@@ -491,9 +488,8 @@ public enum SpokenNumbers {
             }
         }
 
-        mutating func add(_ original: String, lowered word: String, value: Int) {
+        mutating func add(_ word: String, value: Int) {
             if words == 0 { isEnglish = word.allSatisfy(\.isASCII) }
-            spelled += (spelled.isEmpty ? "" : " ") + original
             words += 1
             if let multiplier = SpokenNumbers.multipliers[word] {
                 if multiplier == 100 {
