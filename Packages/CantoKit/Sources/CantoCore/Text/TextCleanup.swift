@@ -30,9 +30,12 @@ public enum TextCleanup {
         options: [.caseInsensitive]
     )
 
-    /// Drops sound tags, subtitle credits and phantom sentences at the end of a transcript.
+    /// Drops sound tags, loops, subtitle credits and phantom sentences at the end of a transcript.
     public static func removeWhisperArtifacts(_ text: String) -> String {
         var result = soundTag.stringByReplacingMatches(in: text, range: NSRange(text.startIndex..., in: text), withTemplate: "")
+        // Loops before the other filters, as the study of Whisper hallucinations advises
+        // (arXiv 2501.11378); after the tags, so "Спасибо. [Music] Спасибо." reads as copies.
+        result = removeLoops(result)
         if let start = creditStart(in: result) {
             result = String(result[..<start])
         }
@@ -83,6 +86,113 @@ public enum TextCleanup {
         return starts
     }
 
+    // MARK: Loops
+
+    /// A word with the spaces and punctuation after it, up to the next word.
+    struct LoopWord {
+        var text: String
+        /// What copies are compared by: lowercased, without punctuation.
+        let key: String
+
+        /// The word without what follows it: "Спасибо" of "Спасибо. ".
+        var core: Substring {
+            text[..<(text.lastIndex { $0.isLetter || $0.isNumber }.map(text.index(after:)) ?? text.endIndex)]
+        }
+
+        var tail: Substring { text[core.endIndex...] }
+
+        var endsSentence: Bool { tail.contains { ".!?…\n".contains($0) } }
+    }
+
+    /// Phrases up to this many words are compared wherever they start: a loop that begins mid-sentence
+    /// is short ("I'm going to the I'm going to the …"). Longer stretches are compared only as whole
+    /// sentences, which is how Whisper repeats them.
+    static let longestLoopPhrase = 8
+
+    /// Whisper's loops: the same word, phrase or sentence three or more times in a row becomes one
+    /// copy, "Спасибо. Спасибо. Спасибо." → "Спасибо.". Two copies stay: people say "да да" and repeat
+    /// a sentence. Numbers and words repeated on purpose ("да да да") stay too. The first copy is kept
+    /// as written, with the punctuation of the last one; the rest of the text is not touched.
+    static func removeLoops(_ text: String) -> String {
+        let (lead, found) = loopWords(in: text)
+        var words = found
+        var changed = true
+        // Another pass after a change: the shorter text can close a loop that began earlier,
+        // "я думаю я думаю я я я думаю" is "я думаю" three times once "я я я" is gone.
+        while changed {
+            changed = false
+            var index = 0
+            while index < words.count {
+                guard let (length, copies) = loop(in: words, at: index) else {
+                    index += 1
+                    continue
+                }
+                let last = index + copies * length - 1
+                words[index + length - 1].text = String(words[index + length - 1].core) + words[last].tail
+                words.removeSubrange(index + length...last)
+                changed = true
+            }
+        }
+        return lead + words.map(\.text).joined()
+    }
+
+    /// The words of a text, and what comes before the first one.
+    static func loopWords(in text: String) -> (lead: String, words: [LoopWord]) {
+        var lead = ""
+        var words: [LoopWord] = []
+        var start = text.startIndex
+        while start < text.endIndex {
+            let tokenEnd = text[start...].firstIndex(where: \.isWhitespace) ?? text.endIndex
+            let end = text[tokenEnd...].firstIndex { !$0.isWhitespace } ?? text.endIndex
+            let key = normalized(String(text[start..<tokenEnd]))
+            if !key.isEmpty {
+                words.append(LoopWord(text: String(text[start..<end]), key: key))
+            } else if words.isEmpty {
+                lead += text[start..<end]
+            } else {
+                // A dash or dots on their own belong to the word before them.
+                words[words.count - 1].text += text[start..<end]
+            }
+            start = end
+        }
+        return (lead, words)
+    }
+
+    /// The loop that starts at a word: the length of its unit and how many copies follow each other.
+    /// The shortest unit wins, so "и я и я и я" is "и я" three times. A unit longer than a phrase is
+    /// the whole sentence that starts here.
+    static func loop(in words: [LoopWord], at index: Int) -> (length: Int, copies: Int)? {
+        let longest = (words.count - index) / 3
+        var lengths = Array(stride(from: 1, through: min(longestLoopPhrase, longest), by: 1))
+        if index == 0 || words[index - 1].endsSentence,
+           let end = words[index..<index + longest].firstIndex(where: \.endsSentence), end - index >= longestLoopPhrase {
+            lengths.append(end - index + 1)
+        }
+        for length in lengths {
+            // The first word must come back twice; that rules out almost every length cheaply.
+            guard words[index + length].key == words[index].key, words[index + 2 * length].key == words[index].key,
+                  isLoop(words[index..<index + length].map(\.key)) else { continue }
+            var copies = 1
+            while index + (copies + 1) * length <= words.count,
+                  (0..<length).allSatisfy({ words[index + $0].key == words[index + copies * length + $0].key }) {
+                copies += 1
+            }
+            if copies >= 3 { return (length, copies) }
+        }
+        return nil
+    }
+
+    /// Whether a unit said three times in a row is a loop rather than something people say.
+    static func isLoop(_ unit: [String]) -> Bool {
+        // Numbers repeat for real: "пять пять пять", a phone number "12 12 12".
+        if unit.joined(separator: " ").split(separator: " ").allSatisfy({ isNumber(String($0)) }) { return false }
+        if unit.count == 1 { return !intentionalRepeats.contains(unit[0]) }
+        // A unit that is itself a repeat was already judged as its shorter unit: "да да" is "да".
+        return !(1..<unit.count).contains { period in
+            unit.count % period == 0 && unit.indices.allSatisfy { unit[$0] == unit[$0 % period] }
+        }
+    }
+
     // MARK: Basic mode
 
     /// Collapsed repetitions, tidy spacing and a capital first letter.
@@ -90,7 +200,7 @@ public enum TextCleanup {
         capitalizeFirstLetter(normalizeSpacing(collapseRepeats(text)))
     }
 
-    /// Words that people repeat on purpose ("да да", "very very") and should stay doubled.
+    /// Words that people repeat on purpose ("да да", "very very", "давай, давай, давай") and should stay repeated.
     static let intentionalRepeats = Set(LanguagePack.bundled.flatMap(\.intentionalRepeats))
 
     /// Removes immediate repetitions of one to three words, a typical speech-to-text stutter:
@@ -134,8 +244,12 @@ public enum TextCleanup {
         return result.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    /// Number words of languages `SpokenNumbers` does not read yet.
+    static let numberWords = Set(LanguagePack.bundled.flatMap(\.numberWords))
+
     static func isNumber(_ word: String) -> Bool {
         word.allSatisfy(\.isNumber) || SpokenNumbers.units[word] != nil || SpokenNumbers.multipliers[word] != nil
+            || numberWords.contains(word)
     }
 
     public static func capitalizeFirstLetter(_ text: String) -> String {

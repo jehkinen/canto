@@ -2,6 +2,11 @@ import Foundation
 import Testing
 @testable import CantoCore
 
+/// Sentences longer than a loop phrase: they loop only as whole sentences.
+private let longRussian = "Мы договорились встретиться завтра утром возле входа в новый офис."
+private let longEnglish = "I think we should move the meeting to next Thursday afternoon"
+private let longHebrew = "אני חושב שכדאי לנו לנסות את הרעיון הזה כבר מחר בבוקר."
+
 struct TextCleanupTests {
     @Test(arguments: [
         ("Спасибо за просмотр!", ""),
@@ -66,6 +71,63 @@ struct TextCleanupTests {
     ])
     func collapsesRepeats(input: String, expected: String) {
         #expect(TextCleanup.collapseRepeats(input) == expected)
+    }
+
+    @Test(arguments: [
+        ("Спасибо. Спасибо. Спасибо. Спасибо.", "Спасибо."),
+        ("Созвон в три. Спасибо, спасибо, спасибо.", "Созвон в три. Спасибо."),
+        ("и я и я и я и я пошёл домой", "и я пошёл домой"),
+        ("и я — и я — и я — и я — и всё", "и я — и всё"),
+        ("я думаю я думаю я я я думаю", "я думаю"),
+        ("Итак,  всё   готово. Спасибо. Спасибо. Спасибо.", "Итак,  всё   готово. Спасибо."),
+        ("Итак. \(longRussian) \(longRussian) \(longRussian) Дальше.", "Итак. \(longRussian) Дальше."),
+        ("Thank you. Thank you. Thank you.", "Thank you."),
+        ("I'm going to the I'm going to the I'm going to the store.", "I'm going to the store."),
+        ("Hello, world! Hello, world! Hello, world!", "Hello, world!"),
+        // Compared without case and punctuation; the last copy's punctuation stays.
+        ("\(longEnglish). \(longEnglish)! \(longEnglish.lowercased())", longEnglish),
+        ("תודה. תודה. תודה. תודה.", "תודה."),
+        ("אני הולך הביתה אני הולך הביתה אני הולך הביתה עכשיו", "אני הולך הביתה עכשיו"),
+        ("\(longHebrew) \(longHebrew) \(longHebrew)", longHebrew),
+    ])
+    func removesLoops(input: String, expected: String) {
+        #expect(TextCleanup.removeLoops(input) == expected)
+    }
+
+    @Test(arguments: [
+        // Two copies are speech; Basic mode's collapseRepeats handles a doubled stutter.
+        "да да, конечно",
+        "мы мы пойдём",
+        "Я иду домой. Я иду домой.",
+        "\(longRussian) \(longRussian)",
+        // Words people repeat on purpose, however many times.
+        "да да да, конечно",
+        "да да да да да да",
+        "это очень очень очень хорошо",
+        "Давай, давай, давай!",
+        "no no no, not that one",
+        "Go, go, go!",
+        "כן כן כן",
+        "זה טוב מאוד מאוד מאוד",
+        // Numbers said digit by digit.
+        "пять пять пять пять",
+        "код один один один два",
+        "телефон 999 12 12 12",
+        "12 34 12 34 12 34",
+        "two two two",
+        "חמש חמש חמש",
+    ])
+    func keepsRepeatsPeopleSay(text: String) {
+        #expect(TextCleanup.removeLoops(text) == text)
+    }
+
+    @Test(arguments: [
+        ("[Music] Спасибо. [Music] Спасибо. [Music] Спасибо.", "Спасибо."),
+        ("— и я и я и я пошёл", "и я пошёл"),
+        ("Готово. Продолжение следует... Продолжение следует... Продолжение следует...", "Готово."),
+    ])
+    func loopsAreWhisperArtifacts(input: String, expected: String) {
+        #expect(TextCleanup.removeWhisperArtifacts(input) == expected)
     }
 
     @Test(arguments: [

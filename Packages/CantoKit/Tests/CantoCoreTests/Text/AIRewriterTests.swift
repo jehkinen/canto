@@ -90,6 +90,12 @@ struct TextPipelineTests {
         #expect(processed.text == "hello   world")
     }
 
+    @Test func originalRemovesLoopsButKeepsDoubles() async {
+        let processed = await pipeline().process("и я и я и я и я пошёл. Да да, пошёл.",
+                                                 settings: settings { $0.textProcessingMode = .original }, fallbackLanguage: "ru")
+        #expect(processed.text == "и я пошёл. Да да, пошёл.")
+    }
+
     @Test func basicWithSpokenPunctuation() async {
         let processed = await pipeline().process("привет запятая мир", settings: settings { $0.textProcessingMode = .basic }, fallbackLanguage: "ru")
         #expect(processed.text == "Привет, мир")

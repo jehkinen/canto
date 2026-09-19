@@ -10,8 +10,11 @@ public struct LanguagePack: Decodable, Sendable {
     public var creditPatterns: [String] = []
     /// Regular expression fragments for sounds Whisper puts in parentheses: "(музыка)".
     public var soundWords: [String] = []
-    /// Words people repeat on purpose ("да да"), which the repeat cleanup keeps doubled.
+    /// Words people repeat on purpose ("да да", "да да да"), which the repeat and loop cleanups keep.
     public var intentionalRepeats: [String] = []
+    /// Number words `SpokenNumbers` does not read yet (it knows Russian and English), so the repeat
+    /// cleanups leave a number said digit by digit alone: "חמש חמש חמש".
+    public var numberWords: [String] = []
     /// Named word lists that punctuation commands refer to as "@name".
     public var wordSets: [String: [String]] = [:]
     public var punctuation: [Command] = []
@@ -44,7 +47,7 @@ public struct LanguagePack: Decodable, Sendable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case code, phantomSentences, creditPatterns, soundWords, intentionalRepeats, wordSets, punctuation
+        case code, phantomSentences, creditPatterns, soundWords, intentionalRepeats, numberWords, wordSets, punctuation
     }
 
     public init(from decoder: Decoder) throws {
@@ -54,6 +57,7 @@ public struct LanguagePack: Decodable, Sendable {
         creditPatterns = try c.decodeIfPresent([String].self, forKey: .creditPatterns) ?? []
         soundWords = try c.decodeIfPresent([String].self, forKey: .soundWords) ?? []
         intentionalRepeats = try c.decodeIfPresent([String].self, forKey: .intentionalRepeats) ?? []
+        numberWords = try c.decodeIfPresent([String].self, forKey: .numberWords) ?? []
         wordSets = try c.decodeIfPresent([String: [String]].self, forKey: .wordSets) ?? [:]
         punctuation = try c.decodeIfPresent([Command].self, forKey: .punctuation) ?? []
     }
