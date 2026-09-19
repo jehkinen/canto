@@ -27,6 +27,35 @@ struct TextCleanupTests {
         #expect(TextCleanup.removeWhisperArtifacts(input) == expected)
     }
 
+    /// Phrases from the published Bag of Hallucinations (see the note in en.json) go when they end a transcript.
+    @Test(arguments: [
+        ("Send the report by Friday. I'm not sure if I should have used the shield.", "Send the report by Friday."),
+        ("The build is green. Hello and welcome to another episode of the", "The build is green."),
+        ("Let's meet at noon. Woof! Beeping.", "Let's meet at noon."),
+        ("Welcome to my channel.", ""),
+        ("Closed captioning provided by the Imperial News Network.", ""),
+        ("Ship it on Monday. The train is now moving towards the central station.", "Ship it on Monday."),
+    ])
+    func removesBagOfHallucinations(input: String, expected: String) {
+        #expect(TextCleanup.removeWhisperArtifacts(input) == expected)
+    }
+
+    /// Real speech with the same words stays, and so do the sentences left out of the list because people dictate them.
+    @Test(arguments: [
+        "Welcome to the team.",
+        "The train is now moving towards the central station, so I'll be a few minutes late.",
+        "Woof, what a week.",
+        "I'm not sure if I should have used the shield icon here, what do you think?",
+        "Can you check this config? I'm not sure what I'm doing here.",
+        "I don't know.",
+        "Good morning!",
+        "Oops.",
+        "Thank you very much.",
+    ])
+    func keepsDictatedSentences(input: String) {
+        #expect(TextCleanup.removeWhisperArtifacts(input) == input)
+    }
+
     @Test(arguments: [
         ("мы мы пойдём завтра", "мы пойдём завтра"),
         ("под каждую под каждую систему", "под каждую систему"),

@@ -12,6 +12,20 @@ struct LanguagePackTests {
         #expect(TextCleanup.spokenCommands.count == 23)
     }
 
+    /// A phantom sentence is compared after `normalized`, so one stored any other way never matches.
+    @Test func phantomSentencesAreNormalized() {
+        for pack in LanguagePack.bundled {
+            for sentence in pack.phantomSentences {
+                #expect(TextCleanup.normalized(sentence) == sentence, "\(pack.code): \(sentence)")
+            }
+            #expect(Set(pack.phantomSentences).count == pack.phantomSentences.count, "\(pack.code) has duplicates")
+        }
+        // Words people really dictate on their own stay out of the list.
+        for word in ["thank you", "thanks", "so", "okay", "ok", "bye", "yes", "no"] {
+            #expect(!TextCleanup.phantomSentences.contains(word), "\(word)")
+        }
+    }
+
     @Test(arguments: [
         ("שלום פסיק מה שלומך סימן שאלה", "שלום, מה שלומך?"),
         ("זה עובד סימן קריאה", "זה עובד!"),
