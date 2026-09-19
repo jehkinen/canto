@@ -41,11 +41,27 @@ public struct TranscriptHistory: Sendable {
         self.fileURL = fileURL
     }
 
+    /// An entry that can not be read (a value a newer Canto wrote, a hand edit) is skipped, not the
+    /// whole history. A file that is not a list at all is moved aside, since the next save replaces it.
     public func load() -> [TranscriptEntry] {
         guard let data = try? Data(contentsOf: fileURL) else { return [] }
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        return (try? decoder.decode([TranscriptEntry].self, from: data)) ?? []
+        guard let entries = try? decoder.decode([Lenient].self, from: data) else {
+            let aside = fileURL.appendingPathExtension("unreadable")
+            try? FileManager.default.removeItem(at: aside)
+            try? FileManager.default.moveItem(at: fileURL, to: aside)
+            return []
+        }
+        return entries.compactMap(\.entry)
+    }
+
+    private struct Lenient: Decodable {
+        var entry: TranscriptEntry?
+
+        init(from decoder: Decoder) throws {
+            entry = try? TranscriptEntry(from: decoder)
+        }
     }
 
     public func save(_ entries: [TranscriptEntry]) throws {

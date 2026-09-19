@@ -64,6 +64,38 @@ struct AppSettingsTests {
         #expect(settings.silenceTimeoutMs == 700)
     }
 
+    @Test func anUnknownValueResetsOnlyItsOwnSetting() throws {
+        let json = #"{"activationMode":"somethingNewer","vocabulary":["Kubernetes"],"capsLockAsHotkey":true,"numberFormat":42}"#
+        let settings = try JSONDecoder().decode(AppSettings.self, from: Data(json.utf8))
+        #expect(settings.activationMode == AppSettings().activationMode)
+        #expect(settings.numberFormat == AppSettings().numberFormat)
+        #expect(settings.vocabulary == ["Kubernetes"])
+        #expect(settings.capsLockAsHotkey)
+    }
+
+    @Test func historySkipsAnEntryItCanNotRead() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let history = TranscriptHistory(fileURL: directory.appendingPathComponent("history.json"))
+        let entry = TranscriptEntry(text: "Привет", duration: 1, provider: .local, processingMode: .basic, appName: nil)
+        try history.save([entry])
+        var file = try String(contentsOf: history.fileURL, encoding: .utf8)
+        let unreadable = file.replacingOccurrences(of: #""provider":"local""#, with: #""provider":"somethingNewer""#)
+        file = "[" + unreadable.dropFirst().dropLast() + "," + file.dropFirst()
+        try file.write(to: history.fileURL, atomically: true, encoding: .utf8)
+        #expect(history.load().map(\.text) == ["Привет"])
+    }
+
+    @Test func historyThatIsNotAListIsKeptAside() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let history = TranscriptHistory(fileURL: directory.appendingPathComponent("history.json"))
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try Data("not json".utf8).write(to: history.fileURL)
+        #expect(history.load().isEmpty)
+        #expect(FileManager.default.fileExists(atPath: history.fileURL.appendingPathExtension("unreadable").path))
+    }
+
     @Test func modelsNoLongerOfferedBecomeLargeV3Turbo() throws {
         for old in ["small", "medium", "largeV3"] {
             let settings = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"whisperModel":"\#(old)"}"#.utf8))

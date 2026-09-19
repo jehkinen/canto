@@ -320,57 +320,58 @@ public struct AppSettings: Codable, Equatable, Sendable {
         }
     }
 
-    // Decoding tolerates missing keys so settings saved by an older build keep loading.
+    // Decoding tolerates missing keys so settings saved by an older build keep loading, and values it
+    // can not read (an option a newer build added) so one of them does not reset all the others.
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = AppSettings()
-        isEnabled = try c.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? d.isEnabled
-        activationMode = try c.decodeIfPresent(ActivationMode.self, forKey: .activationMode) ?? d.activationMode
-        hotkey = try c.decodeIfPresent(Hotkey.self, forKey: .hotkey) ?? d.hotkey
-        capsLockAsHotkey = try c.decodeIfPresent(Bool.self, forKey: .capsLockAsHotkey) ?? d.capsLockAsHotkey
-        hotkeyBeforeCapsLock = try c.decodeIfPresent(Hotkey.self, forKey: .hotkeyBeforeCapsLock)
-        microphoneUID = try c.decodeIfPresent(String.self, forKey: .microphoneUID)
-        language = try c.decodeIfPresent(String.self, forKey: .language)
-        transcriptionProvider = try c.decodeIfPresent(TranscriptionProvider.self, forKey: .transcriptionProvider) ?? d.transcriptionProvider
-        openAITranscriptionModel = try c.decodeIfPresent(String.self, forKey: .openAITranscriptionModel) ?? d.openAITranscriptionModel
-        vocabulary = try c.decodeIfPresent([String].self, forKey: .vocabulary) ?? d.vocabulary
+        isEnabled = c.value(Bool.self, .isEnabled) ?? d.isEnabled
+        activationMode = c.value(ActivationMode.self, .activationMode) ?? d.activationMode
+        hotkey = c.value(Hotkey.self, .hotkey) ?? d.hotkey
+        capsLockAsHotkey = c.value(Bool.self, .capsLockAsHotkey) ?? d.capsLockAsHotkey
+        hotkeyBeforeCapsLock = c.value(Hotkey.self, .hotkeyBeforeCapsLock)
+        microphoneUID = c.value(String.self, .microphoneUID)
+        language = c.value(String.self, .language)
+        transcriptionProvider = c.value(TranscriptionProvider.self, .transcriptionProvider) ?? d.transcriptionProvider
+        openAITranscriptionModel = c.value(String.self, .openAITranscriptionModel) ?? d.openAITranscriptionModel
+        vocabulary = c.value([String].self, .vocabulary) ?? d.vocabulary
         // Small, Medium, Large v3 (and Base on Apple silicon) are no longer offered: Large v3 Turbo replaces them.
-        let model = try c.decodeIfPresent(WhisperModelKind.self, forKey: .whisperModel) ?? d.whisperModel
+        let model = c.value(WhisperModelKind.self, .whisperModel) ?? d.whisperModel
         whisperModel = model.isOffered ? model : .largeV3Turbo
-        whisperModelsDirectory = try c.decodeIfPresent(String.self, forKey: .whisperModelsDirectory)
-        whisperUseGPU = try c.decodeIfPresent(Bool.self, forKey: .whisperUseGPU) ?? d.whisperUseGPU
-        whisperBeamSize = try c.decodeIfPresent(Int.self, forKey: .whisperBeamSize) ?? d.whisperBeamSize
-        unloadModelAfterMinutes = try c.decodeIfPresent(Int.self, forKey: .unloadModelAfterMinutes) ?? d.unloadModelAfterMinutes
-        checkForUpdates = try c.decodeIfPresent(Bool.self, forKey: .checkForUpdates) ?? d.checkForUpdates
-        lightCapsLockWhileRecording = try c.decodeIfPresent(Bool.self, forKey: .lightCapsLockWhileRecording) ?? d.lightCapsLockWhileRecording
-        textProcessingMode = try c.decodeIfPresent(TextProcessingMode.self, forKey: .textProcessingMode) ?? d.textProcessingMode
+        whisperModelsDirectory = c.value(String.self, .whisperModelsDirectory)
+        whisperUseGPU = c.value(Bool.self, .whisperUseGPU) ?? d.whisperUseGPU
+        whisperBeamSize = c.value(Int.self, .whisperBeamSize) ?? d.whisperBeamSize
+        unloadModelAfterMinutes = c.value(Int.self, .unloadModelAfterMinutes) ?? d.unloadModelAfterMinutes
+        checkForUpdates = c.value(Bool.self, .checkForUpdates) ?? d.checkForUpdates
+        lightCapsLockWhileRecording = c.value(Bool.self, .lightCapsLockWhileRecording) ?? d.lightCapsLockWhileRecording
+        textProcessingMode = c.value(TextProcessingMode.self, .textProcessingMode) ?? d.textProcessingMode
         let legacy = try decoder.container(keyedBy: LegacyCodingKeys.self)
-        let oneSkill = try legacy.decodeIfPresent(String.self, forKey: .skill)
-        skills = try c.decodeIfPresent([String].self, forKey: .skills) ?? oneSkill.map { [$0] } ?? d.skills
+        let oneSkill = legacy.value(String.self, .skill)
+        skills = c.value([String].self, .skills) ?? oneSkill.map { [$0] } ?? d.skills
         // An old AI mode continues as the skill that replaced it, on top of the basic cleanup.
         if let replacement = textProcessingMode.legacySkillFileName {
             if skills.isEmpty { skills = [replacement] }
             textProcessingMode = .basic
         }
-        aiProvider = try c.decodeIfPresent(AIProvider.self, forKey: .aiProvider) ?? d.aiProvider
-        aiServerURL = try c.decodeIfPresent(String.self, forKey: .aiServerURL) ?? d.aiServerURL
-        aiServerModel = try c.decodeIfPresent(String.self, forKey: .aiServerModel) ?? d.aiServerModel
-        spokenPunctuation = try c.decodeIfPresent(Bool.self, forKey: .spokenPunctuation) ?? d.spokenPunctuation
+        aiProvider = c.value(AIProvider.self, .aiProvider) ?? d.aiProvider
+        aiServerURL = c.value(String.self, .aiServerURL) ?? d.aiServerURL
+        aiServerModel = c.value(String.self, .aiServerModel) ?? d.aiServerModel
+        spokenPunctuation = c.value(Bool.self, .spokenPunctuation) ?? d.spokenPunctuation
         // Settings saved before the three-way choice existed only had "numbers as words".
-        let legacyNumbersAsWords = try legacy.decodeIfPresent(Bool.self, forKey: .numbersAsWords) ?? false
-        numberFormat = try c.decodeIfPresent(NumberFormat.self, forKey: .numberFormat) ?? (legacyNumbersAsWords ? .words : d.numberFormat)
-        currencySymbols = try c.decodeIfPresent(Bool.self, forKey: .currencySymbols) ?? d.currencySymbols
-        pressEnterOnTrigger = try c.decodeIfPresent(Bool.self, forKey: .pressEnterOnTrigger) ?? d.pressEnterOnTrigger
-        enterTriggerPhrase = try c.decodeIfPresent(String.self, forKey: .enterTriggerPhrase) ?? d.enterTriggerPhrase
-        audioPreprocessing = try c.decodeIfPresent(Bool.self, forKey: .audioPreprocessing) ?? d.audioPreprocessing
-        silenceTimeoutMs = try c.decodeIfPresent(Int.self, forKey: .silenceTimeoutMs) ?? d.silenceTimeoutMs
-        vadPreSpeechBufferMs = try c.decodeIfPresent(Int.self, forKey: .vadPreSpeechBufferMs) ?? d.vadPreSpeechBufferMs
-        vadMinimumSpeechMs = try c.decodeIfPresent(Int.self, forKey: .vadMinimumSpeechMs) ?? d.vadMinimumSpeechMs
-        vadMaximumSegmentMs = try c.decodeIfPresent(Int.self, forKey: .vadMaximumSegmentMs) ?? d.vadMaximumSegmentMs
-        insertionMethod = try c.decodeIfPresent(InsertionMethod.self, forKey: .insertionMethod) ?? d.insertionMethod
-        showRecordingHUD = try c.decodeIfPresent(Bool.self, forKey: .showRecordingHUD) ?? d.showRecordingHUD
-        playSounds = try c.decodeIfPresent(Bool.self, forKey: .playSounds) ?? d.playSounds
-        keepHistory = try c.decodeIfPresent(Bool.self, forKey: .keepHistory) ?? d.keepHistory
+        let legacyNumbersAsWords = legacy.value(Bool.self, .numbersAsWords) ?? false
+        numberFormat = c.value(NumberFormat.self, .numberFormat) ?? (legacyNumbersAsWords ? .words : d.numberFormat)
+        currencySymbols = c.value(Bool.self, .currencySymbols) ?? d.currencySymbols
+        pressEnterOnTrigger = c.value(Bool.self, .pressEnterOnTrigger) ?? d.pressEnterOnTrigger
+        enterTriggerPhrase = c.value(String.self, .enterTriggerPhrase) ?? d.enterTriggerPhrase
+        audioPreprocessing = c.value(Bool.self, .audioPreprocessing) ?? d.audioPreprocessing
+        silenceTimeoutMs = c.value(Int.self, .silenceTimeoutMs) ?? d.silenceTimeoutMs
+        vadPreSpeechBufferMs = c.value(Int.self, .vadPreSpeechBufferMs) ?? d.vadPreSpeechBufferMs
+        vadMinimumSpeechMs = c.value(Int.self, .vadMinimumSpeechMs) ?? d.vadMinimumSpeechMs
+        vadMaximumSegmentMs = c.value(Int.self, .vadMaximumSegmentMs) ?? d.vadMaximumSegmentMs
+        insertionMethod = c.value(InsertionMethod.self, .insertionMethod) ?? d.insertionMethod
+        showRecordingHUD = c.value(Bool.self, .showRecordingHUD) ?? d.showRecordingHUD
+        playSounds = c.value(Bool.self, .playSounds) ?? d.playSounds
+        keepHistory = c.value(Bool.self, .keepHistory) ?? d.keepHistory
     }
 }
 
@@ -391,5 +392,12 @@ public struct VADConfiguration: Equatable, Sendable {
 extension Comparable {
     func clamped(to range: ClosedRange<Self>) -> Self {
         min(max(self, range.lowerBound), range.upperBound)
+    }
+}
+
+private extension KeyedDecodingContainer {
+    /// The value for `key`, or nil when it is missing or can not be read.
+    func value<T: Decodable>(_ type: T.Type, _ key: Key) -> T? {
+        try? decodeIfPresent(type, forKey: key)
     }
 }

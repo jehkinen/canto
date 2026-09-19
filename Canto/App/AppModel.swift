@@ -117,6 +117,7 @@ final class AppModel {
     private let hotkeys = HotkeyCenter()
     private let recorder = AudioRecorder()
     private let historyStore = TranscriptHistory(fileURL: AppPaths.historyFile)
+    private let historyQueue = DispatchQueue(label: "io.github.jehkinen.canto.history", qos: .utility)
     private var detector: VoiceActivityDetector?
     private var insertionChain: Task<Void, Never>?
     private var recognitionTasks: [Task<Recognition?, Never>] = []
@@ -1089,7 +1090,8 @@ final class AppModel {
     private func saveHistory() {
         let entries = history
         let store = historyStore
-        Task.detached(priority: .utility) {
+        // One serial queue, so an older snapshot never lands after a newer one.
+        historyQueue.async {
             try? store.save(entries)
         }
     }
