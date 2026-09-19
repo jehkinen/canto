@@ -17,8 +17,9 @@ let package = Package(
             exclude: ["LICENSE"],
             cSettings: [.headerSearchPath("src")]
         ),
-        // Skills that ship with Canto: copied into the skills folder the first time it is created.
-        .target(name: "CantoCore", dependencies: ["CFvad"], resources: [.copy("Skills")]),
+        // Skills that ship with Canto (copied into the skills folder the first time it is created) and
+        // the language files with the words the text rules need.
+        .target(name: "CantoCore", dependencies: ["CFvad"], resources: [.copy("Skills"), .copy("Languages")]),
         .testTarget(name: "CantoCoreTests", dependencies: ["CantoCore"]),
     ]
 )

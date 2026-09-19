@@ -1,0 +1,168 @@
+{
+  "code": "en",
+  "notes": [
+    "\"cheers\" is Whisper's most common filler on short phrases; other polite one-liners (\"thanks\", \"bye\") stay because people really dictate them."
+  ],
+  "phantomSentences": [
+    "thanks for watching",
+    "thank you for watching",
+    "please subscribe",
+    "subscribe to my channel",
+    "cheers"
+  ],
+  "creditPatterns": [
+    "(?:subtitl\\w*|subs|caption\\w*|transcri\\w*|translat\\w*)\\s+by(?!\\p{L})"
+  ],
+  "soundWords": [
+    "music",
+    "laugh\\w*",
+    "applause",
+    "sigh\\w*",
+    "cough\\w*",
+    "inaudible",
+    "silence",
+    "noise",
+    "static",
+    "breathing"
+  ],
+  "intentionalRepeats": [
+    "very",
+    "yes",
+    "no",
+    "ha",
+    "so",
+    "bye",
+    "that",
+    "had"
+  ],
+  "wordSets": {
+    "determiners": [
+      "a",
+      "an",
+      "the",
+      "this",
+      "that",
+      "one",
+      "any",
+      "each",
+      "every",
+      "my",
+      "your",
+      "our",
+      "their",
+      "his",
+      "her",
+      "its"
+    ]
+  },
+  "punctuation": [
+    {
+      "words": "question mark",
+      "symbol": "?",
+      "notAfter": [
+        "@determiners"
+      ]
+    },
+    {
+      "words": "exclamation mark",
+      "symbol": "!",
+      "notAfter": [
+        "@determiners"
+      ]
+    },
+    {
+      "words": "exclamation point",
+      "symbol": "!",
+      "notAfter": [
+        "@determiners"
+      ]
+    },
+    {
+      "words": "new paragraph",
+      "symbol": "\n\n",
+      "notAfter": [
+        "@determiners"
+      ]
+    },
+    {
+      "words": "new line",
+      "symbol": "\n",
+      "notAfter": [
+        "@determiners"
+      ]
+    },
+    {
+      "words": "comma",
+      "symbol": ",",
+      "notAfter": [
+        "@determiners"
+      ]
+    },
+    {
+      "words": "colon",
+      "symbol": ":",
+      "notAfter": [
+        "@determiners"
+      ]
+    },
+    {
+      "words": "full stop",
+      "symbol": ".",
+      "notAfter": [
+        "@determiners"
+      ]
+    },
+    {
+      "words": "period",
+      "symbol": ".",
+      "notAfterEndings": [
+        "ing"
+      ],
+      "notAfter": [
+        "@determiners",
+        "trial",
+        "grace",
+        "billing",
+        "free",
+        "time",
+        "test",
+        "probation",
+        "probationary",
+        "same",
+        "first",
+        "last",
+        "next",
+        "whole",
+        "short",
+        "long",
+        "given",
+        "specific",
+        "notice",
+        "transition",
+        "rest",
+        "study",
+        "retention",
+        "warranty",
+        "payment",
+        "sprint",
+        "review",
+        "rental",
+        "school",
+        "class",
+        "early",
+        "late",
+        "initial",
+        "final",
+        "current",
+        "previous",
+        "fiscal",
+        "day",
+        "week",
+        "month",
+        "year",
+        "hour",
+        "minute"
+      ]
+    }
+  ]
+}

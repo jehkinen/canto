@@ -1,28 +1,18 @@
 import Foundation
 
 /// Deterministic clean-up of recognized speech: the "Basic" mode, and the safety net under AI modes.
+/// The words each rule needs (phantom sentences, punctuation commands…) come from the language files
+/// in `Languages`, so the rules here are the same for every language.
 public enum TextCleanup {
     // MARK: Whisper artifacts
 
     /// Whole sentences Whisper produces on silence or noise (it learned them from video subtitles).
-    static let phantomSentences: Set<String> = [
-        "спасибо за просмотр", "спасибо за внимание", "продолжение следует", "подписывайтесь на канал",
-        "ставьте лайки и подписывайтесь на канал", "до новых встреч",
-        "thanks for watching", "thank you for watching", "please subscribe", "subscribe to my channel",
-        // "Cheers" is Whisper's most common filler on short phrases; other polite one-liners
-        // ("thanks", "bye") are left alone because people really do dictate them.
-        "cheers",
-    ]
+    static let phantomSentences = Set(LanguagePack.bundled.flatMap(\.phantomSentences))
 
     /// Subtitle credits ("Субтитры делал DimaTorzok", "Subtitles by …"): Whisper learned them from
     /// video subtitles and writes them on silence. They open a sentence and are followed by a name;
     /// everything from them to the end is noise. The same words inside a sentence are real speech.
-    static let creditPatterns = [
-        "субтитр\\w*\\s+(?:и\\s+перевод\\w*\\s+)?(?:сделал|делал|создал|создавал|подготовил|редактировал|правил)[аи]?(?!\\p{L})",
-        "редактор\\w*\\s+субтитр\\w*",
-        "корректор\\s*[:.]",
-        "(?:subtitl\\w*|subs|caption\\w*|transcri\\w*|translat\\w*)\\s+by(?!\\p{L})",
-    ]
+    static let creditPatterns = LanguagePack.bundled.flatMap(\.creditPatterns)
 
     static let creditExpression = try! NSRegularExpression(
         pattern: creditPatterns.joined(separator: "|"),
@@ -30,8 +20,7 @@ public enum TextCleanup {
     )
 
     /// Sounds Whisper puts in parentheses: "(музыка)", "(applause)".
-    static let soundWords = "музык\\w*|смех\\w*|сме[её]тся|аплодисмент\\w*|вздыха\\w*|кашля\\w*|кашель|шум\\w*|тишина|"
-        + "неразборчиво|music|laugh\\w*|applause|sigh\\w*|cough\\w*|inaudible|silence|noise|static|breathing"
+    static let soundWords = LanguagePack.bundled.flatMap(\.soundWords).joined(separator: "|")
 
     /// Sound events Whisper writes instead of words: "*Police*", "[Music]", "(applause)", "♪".
     /// Only words: "2*3*4" and "[1, 2, 3]" are what the user said.
@@ -102,10 +91,7 @@ public enum TextCleanup {
     }
 
     /// Words that people repeat on purpose ("да да", "very very") and should stay doubled.
-    static let intentionalRepeats: Set<String> = [
-        "да", "нет", "очень", "ну", "ха", "хи", "бла", "так", "very", "yes", "no", "ha", "so", "bye", "пока",
-        "that", "had",
-    ]
+    static let intentionalRepeats = Set(LanguagePack.bundled.flatMap(\.intentionalRepeats))
 
     /// Removes immediate repetitions of one to three words, a typical speech-to-text stutter:
     /// "мы мы пойдём" → "мы пойдём", "под каждую под каждую систему" → "под каждую систему".
@@ -169,36 +155,15 @@ public enum TextCleanup {
         var decimalPoint = false
     }
 
-    static let englishDeterminers: Set<String> = [
-        "a", "an", "the", "this", "that", "one", "any", "each", "every", "my", "your", "our", "their", "his", "her", "its",
-    ]
-    static let russianPointers: Set<String> = ["эта", "та", "одна", "своя", "моя", "твоя", "наша", "ваша", "каждая", "любая"]
-
-    /// Spoken commands and what they insert. "Точка" is skipped in set phrases like "точка зрения".
-    static let spokenCommands: [SpokenCommand] = [
-        SpokenCommand(words: "вопросительный знак", symbol: "?", notAfter: russianPointers),
-        SpokenCommand(words: "восклицательный знак", symbol: "!", notAfter: russianPointers),
-        SpokenCommand(words: "новый абзац", symbol: "\n\n", notAfter: ["этот", "тот", "один", "каждый"]),
-        SpokenCommand(words: "новая строка", symbol: "\n", notAfter: russianPointers),
-        SpokenCommand(words: "запятая", symbol: ",", notAfter: russianPointers, notAfterEndings: ["ая", "яя"], decimalPoint: true),
-        SpokenCommand(words: "двоеточие", symbol: ":", notAfter: ["это", "то", "одно", "каждое"]),
-        SpokenCommand(words: "точка(?!\\s+(?:зрения|отсч[её]та|опоры|кипения|доступа|входа|роста|невозврата|сборки))",
-                      symbol: ".", notAfter: russianPointers, notAfterEndings: ["ая", "яя"], decimalPoint: true),
-        SpokenCommand(words: "question mark", symbol: "?", notAfter: englishDeterminers),
-        SpokenCommand(words: "exclamation mark", symbol: "!", notAfter: englishDeterminers),
-        SpokenCommand(words: "exclamation point", symbol: "!", notAfter: englishDeterminers),
-        SpokenCommand(words: "new paragraph", symbol: "\n\n", notAfter: englishDeterminers),
-        SpokenCommand(words: "new line", symbol: "\n", notAfter: englishDeterminers),
-        SpokenCommand(words: "comma", symbol: ",", notAfter: englishDeterminers),
-        SpokenCommand(words: "colon", symbol: ":", notAfter: englishDeterminers),
-        SpokenCommand(words: "full stop", symbol: ".", notAfter: englishDeterminers),
-        SpokenCommand(words: "period", symbol: ".", notAfter: englishDeterminers.union([
-            "trial", "grace", "billing", "free", "time", "test", "probation", "probationary", "same", "first", "last",
-            "next", "whole", "short", "long", "given", "specific", "notice", "transition", "rest", "study", "retention",
-            "warranty", "payment", "sprint", "review", "rental", "school", "class", "early", "late", "initial", "final",
-            "current", "previous", "fiscal", "day", "week", "month", "year", "hour", "minute",
-        ]), notAfterEndings: ["ing"]),
-    ]
+    /// Spoken commands and what they insert, from every language file. A command is skipped in set
+    /// phrases like "точка зрения" (its `notBefore` words).
+    static let spokenCommands: [SpokenCommand] = LanguagePack.bundled.flatMap { pack in
+        pack.punctuation.map { command in
+            let setPhrases = command.notBefore.isEmpty ? "" : "(?!\\s+(?:\(command.notBefore.joined(separator: "|"))))"
+            return SpokenCommand(words: command.words + setPhrases, symbol: command.symbol, notAfter: pack.expand(command.notAfter),
+                                 notAfterEndings: command.notAfterEndings, decimalPoint: command.decimalPoint)
+        }
+    }
 
     static let spokenCommandExpressions: [(NSRegularExpression, SpokenCommand)] = spokenCommands.map { command in
         let phrase = command.words.replacingOccurrences(of: " ", with: "\\s+")
