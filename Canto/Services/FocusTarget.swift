@@ -1,22 +1,25 @@
 import AppKit
 import ApplicationServices
 
-/// The text field the user was in when a dictation started. The phrase goes back there, so text
-/// recognized while the user clicked somewhere else does not land in the wrong place.
-struct FocusTarget {
-    let element: AXUIElement
+/// The app whose text field the user dictates into. A phrase waits for the cursor to be back in a
+/// text field of that app, so text recognized after the user clicked away does not land in the
+/// wrong window.
+///
+/// The field itself is deliberately not compared: Electron apps and web pages hand out a new
+/// element for the same box while the user types, and Canto would then wait for a field that is
+/// already in front of the user. Waiting must never make insertion less reliable than it was.
+struct FocusTarget: Sendable {
     let pid: pid_t
-    private let role: String
-    private let frame: CGRect?
 
     /// Accessibility calls wait for the other app to answer; a busy app must not stall dictation.
-    private static let messagingTimeout: Float = 0.25
+    private static let messagingTimeout: Float = 0.1
 
-    /// Only a place where text can land is worth remembering; anything else means the user was
-    /// not in a field, and the phrase goes wherever the cursor is, as before.
+    /// Only a place where text can land is worth remembering. Anywhere else the user was not in a
+    /// field, and the phrase goes wherever the cursor is, exactly as before.
     private static let textRoles: Set<String> = [kAXTextFieldRole, kAXTextAreaRole, kAXComboBoxRole, "AXSearchField"]
 
-    /// The field that has the keyboard focus right now, in whichever app is frontmost.
+    /// The app whose text field has the keyboard focus, or nil when the focus is not in a field of
+    /// another app.
     static func current() -> FocusTarget? {
         guard Permissions.accessibility else { return nil }
         let system = AXUIElementCreateSystemWide()
@@ -26,15 +29,14 @@ struct FocusTarget {
         var pid: pid_t = 0
         guard AXUIElementGetPid(element, &pid) == .success, pid != ProcessInfo.processInfo.processIdentifier,
               let role = string(element, kAXRoleAttribute), textRoles.contains(role) else { return nil }
-        return FocusTarget(element: element, pid: pid, role: role, frame: frame(of: element))
+        return FocusTarget(pid: pid)
     }
 
-    /// Whether the keyboard focus is back in this field. Some apps rebuild their elements, so a
-    /// field of the same kind, in the same app, in the same place counts as the same field.
-    var isFocused: Bool {
-        guard let now = Self.current() else { return false }
-        if CFEqual(now.element, element) { return true }
-        return now.pid == pid && now.role == role && now.frame != nil && now.frame == frame
+    /// Whether the cursor is back in a text field of that app. Asked off the main thread: an app
+    /// that stops answering must not freeze Canto's own interface while a phrase waits.
+    func isReady() async -> Bool {
+        let pid = pid
+        return await Task.detached { Self.current()?.pid == pid }.value
     }
 
     /// False once the app the field belonged to is gone.
@@ -53,20 +55,5 @@ struct FocusTarget {
         var value: CFTypeRef?
         guard AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success else { return nil }
         return value as? String
-    }
-
-    private static func frame(of element: AXUIElement) -> CGRect? {
-        var origin = CGPoint.zero
-        var size = CGSize.zero
-        guard let position = axValue(element, kAXPositionAttribute), AXValueGetValue(position, .cgPoint, &origin),
-              let extent = axValue(element, kAXSizeAttribute), AXValueGetValue(extent, .cgSize, &size) else { return nil }
-        return CGRect(origin: origin, size: size)
-    }
-
-    private static func axValue(_ element: AXUIElement, _ attribute: String) -> AXValue? {
-        var value: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success,
-              let value, CFGetTypeID(value) == AXValueGetTypeID() else { return nil }
-        return (value as! AXValue)
     }
 }

@@ -155,7 +155,10 @@ final class AppModel {
     private var lastInsertion: (take: Int, app: pid_t?, text: String)?
     /// The field the current take is dictated into; the text waits for it if the focus wanders off.
     private var insertionTarget: FocusTarget?
-    /// How long a finished phrase waits for the cursor to come back to that field.
+    /// A take whose field never came back: the rest of it goes to the pasteboard without waiting
+    /// again, so waits can never pile up.
+    private var setAside: (take: Int, text: String)?
+    /// How long one phrase waits for the cursor to come back to that field.
     private static let focusWait: TimeInterval = 120
 
     private init() {
@@ -273,6 +276,7 @@ final class AppModel {
         listeningSession += 1
         let session = listeningSession
         insertionTarget = FocusTarget.current()
+        setAside = nil
 
         let detector = VoiceActivityDetector(configuration: settings.vadConfiguration, classifier: voiceClassifier())
         detector.recordsEverything = settings.activationMode.recordsWholeTake
@@ -570,7 +574,12 @@ final class AppModel {
 
         // The cursor may have left the field while the phrase was being recognized: the text waits
         // for it instead of landing wherever the user clicked.
-        guard await waitForInsertionTarget(result.text) else { return }
+        var ready = setAside?.take != take
+        if ready { ready = await waitForInsertionTarget() }
+        if !ready {
+            keepOnPasteboard(result, segment: segment, take: take, endedAt: endedAt, settings: settings)
+            return
+        }
         let app = NSWorkspace.shared.frontmostApplication
         let appName = app?.localizedName
         let pressedReturn = result.pressEnter && settings.pressEnterOnTrigger
@@ -615,24 +624,42 @@ final class AppModel {
         }
     }
 
-    /// Waits until the field the take started in has the cursor again. False when it never comes
-    /// back: the text is then on the pasteboard, not inserted somewhere it does not belong.
-    private func waitForInsertionTarget(_ text: String) async -> Bool {
-        guard let target = insertionTarget, !target.isFocused else { return true }
+    /// Waits until the cursor is back in a text field of the app the take started in. False when
+    /// it never comes back, the app is gone, or another take begins.
+    private func waitForInsertionTarget() async -> Bool {
+        guard let target = insertionTarget else { return true }
+        if await target.isReady() { return true }
         show(Notice(message: String(localized: "Put the cursor back where you dictated")))
         let generation = jobGeneration
         let session = listeningSession
         let deadline = Date().addingTimeInterval(Self.focusWait)
         while Date() < deadline {
-            try? await Task.sleep(for: .milliseconds(250))
-            // A new take, or a cancelled one, gives up on the old field.
-            guard generation == jobGeneration, session == listeningSession, !Task.isCancelled else { break }
-            if target.isFocused { return true }
-            if !target.isAlive { break }
+            try? await Task.sleep(for: .milliseconds(400))
+            guard generation == jobGeneration, session == listeningSession, !Task.isCancelled else { return false }
+            if await target.isReady() { return true }
+            if !target.isAlive { return false }
         }
-        TextInserter.copyToPasteboard(text)
-        show(Notice(message: String(localized: "Copied: the field you dictated into never came back")))
         return false
+    }
+
+    /// The phrase could not be inserted where it was dictated. It goes to the pasteboard and to the
+    /// history, and the rest of the take follows it there instead of waiting again.
+    private func keepOnPasteboard(_ result: Recognition, segment: AudioSegment, take: Int, endedAt: Date,
+                                  settings: AppSettings) {
+        let whole = setAside?.take == take
+            ? setAside!.text + PhraseJoiner.separator(after: setAside!.text, before: result.text) + result.text
+            : result.text
+        setAside = (take, whole)
+        lastInsertion = nil
+        TextInserter.copyToPasteboard(whole)
+        show(Notice(message: String(localized: "Copied: the field you dictated into never came back")))
+        logger.info("phrase kept on the pasteboard, \(result.text.count, privacy: .public) chars")
+        if settings.keepHistory {
+            addToHistory(TranscriptEntry(text: result.text, duration: segment.duration, provider: result.provider,
+                                         processingMode: settings.textProcessingMode, appName: nil,
+                                         latency: Date().timeIntervalSince(endedAt), skill: result.skillName,
+                                         recognized: result.recognized == result.text ? nil : result.recognized))
+        }
     }
 
     static func isConnectionProblem(_ error: Error) -> Bool {
