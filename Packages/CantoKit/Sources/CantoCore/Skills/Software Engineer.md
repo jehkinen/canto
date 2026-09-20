@@ -8,13 +8,14 @@ Rules:
 - Russian slang made from English words (verbs, and nouns with Russian endings) is written in Russian letters, spelled as in the glossary below: запушить, смержить, на проде, две фичи, коммиты.
 - Never mix alphabets inside one word: «за pushить» → «запушить», «pushить» → «пушить», «commitнуть» → «коммитнуть», «merge-нуть» → «мержнуть».
 - When recognition wrote English words where the Russian sentence needs a slang verb, write the verb: «надо push it в main» → «надо запушить в main», «я merge-ил» → «я смержил».
-- Names of AI models and tools are misheard too: «виспер» → Whisper, «лардж ви три турбо» → large-v3-turbo, «паракит», «по ракет» → Parakeet, «квен» → Qwen, «джипити» → GPT, «ллама» → Llama.
+- Names of AI models and tools are misheard too: «виспер» → Whisper, «лардж ви три турбо» → large-v3-turbo, «паракит», «по ракет» → Parakeet, «квен» → Qwen, «джипити» → GPT, «ллама» → Llama, «опыной», «опен эй ай» → OpenAI, «хагинг фейс» → Hugging Face, «гэ гэ эм эль» → GGML, «ку четыре», «ку пять» → Q4, Q5.
+- Units after a number are misheard as similar words: «8 пит» → «8 бит», «пять питов» → «5 бит», «два байта» stays, «сто герц», «пять ватт», «три мегабайта», «терабайт» are written as units. A number followed by «пит», «пита», «питов», «пить» is always «бит».
 - Change a word only when the sentence is about software. «Мерч» meaning merchandise and «гид» meaning a guide stay as they are.
 - Keep everything else exactly as dictated: do not translate, rephrase, shorten or restyle the rest.
 
 Typical misrecognitions:
 
-«пуш» → push, «мерж», «мердж», «мерч» → merge, «мейн» → main, «гит», «гид» → git, «пиар» → PR, «пиар-реквест», «пул реквест» → pull request, «энвайромент» → environment, «ворктри» → worktree, «коммит» → commit, «деплой» → deploy, «докер» → Docker, «смерчить», «смёрзить» → смержить, «зарекать» → зарегать, «закомитить» → закоммитить, «задиплоить» → задеплоить, «пофиксеть» → пофиксить.
+«пит» (после числа) → бит, «пуш» → push, «мерж», «мердж», «мерч» → merge, «мейн» → main, «гит», «гид» → git, «пиар» → PR, «пиар-реквест», «пул реквест» → pull request, «энвайромент» → environment, «ворктри» → worktree, «коммит» → commit, «деплой» → deploy, «докер» → Docker, «смерчить», «смёрзить» → смержить, «зарекать» → зарегать, «закомитить» → закоммитить, «задиплоить» → задеплоить, «пофиксеть» → пофиксить.
 
 Glossary of slang, spelled correctly (other forms of these words too):
 
@@ -36,3 +37,6 @@ Examples:
 
 <transcript>надо зарекаться в сервисе и push it конфиг в репу</transcript>
 Надо зарегаться в сервисе и запушить конфиг в репу.
+
+<transcript>модель квантизовали до 8 пит, а вторая на 5 пит</transcript>
+Модель квантизовали до 8 бит, а вторая на 5 бит.

@@ -88,7 +88,8 @@ public struct TextPipeline: Sendable {
         case .asHeard:
             break
         case .digits:
-            text = SpokenNumbers.toDigits(text)
+            // "девятьсот миллионов" reads better as "900 млн" than as nine zeros.
+            text = SpokenNumbers.toDigits(LargeNumbers.abbreviate(text))
         case .words:
             text = NumberWords.apply(text, language: settings.effectiveLanguage(fallback: fallbackLanguage))
         }
