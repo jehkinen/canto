@@ -797,6 +797,22 @@
         }
       }
     },
+    "Copied: the field you dictated into never came back" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הועתק: הסמן לא חזר לשדה שבו הכתבתם"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скопировано: курсор не вернулся в то поле"
+          }
+        }
+      }
+    },
     "Copy" : {
       "localizations" : {
         "he" : {
@@ -2421,6 +2437,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Обработка"
+          }
+        }
+      }
+    },
+    "Put the cursor back where you dictated" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "יש להחזיר את הסמן למקום שבו הכתבתם"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Верните курсор туда, где диктовали"
           }
         }
       }

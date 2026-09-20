@@ -153,6 +153,10 @@ final class AppModel {
     private var listeningSession = 0
     /// The last phrase inserted, so the next one of the same take gets a space before it.
     private var lastInsertion: (take: Int, app: pid_t?, text: String)?
+    /// The field the current take is dictated into; the text waits for it if the focus wanders off.
+    private var insertionTarget: FocusTarget?
+    /// How long a finished phrase waits for the cursor to come back to that field.
+    private static let focusWait: TimeInterval = 120
 
     private init() {
         if let data = UserDefaults.standard.data(forKey: Keys.settings),
@@ -268,6 +272,7 @@ final class AppModel {
         stopMicrophoneTest()
         listeningSession += 1
         let session = listeningSession
+        insertionTarget = FocusTarget.current()
 
         let detector = VoiceActivityDetector(configuration: settings.vadConfiguration, classifier: voiceClassifier())
         detector.recordsEverything = settings.activationMode.recordsWholeTake
@@ -563,6 +568,9 @@ final class AppModel {
         let hasContent = result.text.contains { $0.isLetter || $0.isNumber }
         guard hasContent || result.pressEnter else { return }
 
+        // The cursor may have left the field while the phrase was being recognized: the text waits
+        // for it instead of landing wherever the user clicked.
+        guard await waitForInsertionTarget(result.text) else { return }
         let app = NSWorkspace.shared.frontmostApplication
         let appName = app?.localizedName
         let pressedReturn = result.pressEnter && settings.pressEnterOnTrigger
@@ -605,6 +613,26 @@ final class AppModel {
                 schedulePhaseReset(after: .milliseconds(900))
             }
         }
+    }
+
+    /// Waits until the field the take started in has the cursor again. False when it never comes
+    /// back: the text is then on the pasteboard, not inserted somewhere it does not belong.
+    private func waitForInsertionTarget(_ text: String) async -> Bool {
+        guard let target = insertionTarget, !target.isFocused else { return true }
+        show(Notice(message: String(localized: "Put the cursor back where you dictated")))
+        let generation = jobGeneration
+        let session = listeningSession
+        let deadline = Date().addingTimeInterval(Self.focusWait)
+        while Date() < deadline {
+            try? await Task.sleep(for: .milliseconds(250))
+            // A new take, or a cancelled one, gives up on the old field.
+            guard generation == jobGeneration, session == listeningSession, !Task.isCancelled else { break }
+            if target.isFocused { return true }
+            if !target.isAlive { break }
+        }
+        TextInserter.copyToPasteboard(text)
+        show(Notice(message: String(localized: "Copied: the field you dictated into never came back")))
+        return false
     }
 
     static func isConnectionProblem(_ error: Error) -> Bool {

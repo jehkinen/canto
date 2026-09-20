@@ -244,6 +244,8 @@ RU = {
     "Text": "Текст",
     "Text & AI": "Текст и ИИ",
     "The key could not be saved to the keychain": "Не удалось сохранить ключ в Связку ключей",
+    "Put the cursor back where you dictated": "Верните курсор туда, где диктовали",
+    "Copied: the field you dictated into never came back": "Скопировано: курсор не вернулся в то поле",
     "The keychain did not give Canto the API key": "Связка ключей не отдала Canto ключ API",
     "The key could not be removed from the keychain": "Не удалось удалить ключ из Связки ключей",
     "The microphone changed, listening stopped": "Микрофон изменился, запись остановлена",
