@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 /// A skill: a Markdown file whose text tells the AI what to do with a transcript, such as
@@ -34,27 +35,81 @@ public struct SkillStore: Sendable {
         Bundle.module.urls(forResourcesWithExtension: "md", subdirectory: "Skills") ?? []
     }
 
-    /// Remembers which bundled skills were already offered, so a deleted one does not come back.
+    /// Remembers which bundled skills were already given to the user and in what form, so a
+    /// deleted one does not come back and an untouched one can be brought up to date.
     static let offeredFileName = ".bundled-skills"
 
-    /// Creates the folder and adds every bundled skill it has not been offered yet, also to a
-    /// folder that already existed. A file with the same name is the user's and stays.
+    /// What to do with a bundled skill in the user's folder.
+    enum BundledUpdate: Equatable {
+        /// Never offered: copy it.
+        case add
+        /// The copy Canto made, unchanged by the user, while the bundled one moved on.
+        case replace
+        /// The user's own file, an already current copy, or one the user deleted.
+        case keep
+    }
+
+    /// Fingerprints, not texts: what was written last time, what is there now, what Canto ships.
+    static func update(recorded: String?, onDisk: String?, bundled: String) -> BundledUpdate {
+        guard let onDisk else { return recorded == nil ? .add : .keep }
+        guard onDisk != bundled else { return .keep }
+        return recorded == onDisk ? .replace : .keep
+    }
+
+    /// Creates the folder, adds every bundled skill the user has not seen, and updates the ones
+    /// Canto put there and the user never edited. A file the user wrote or changed is never touched.
     public func ensureDirectory() throws {
         let manager = FileManager.default
         try manager.createDirectory(at: directory, withIntermediateDirectories: true)
         let record = directory.appendingPathComponent(Self.offeredFileName)
-        var offered = Set(((try? String(contentsOf: record, encoding: .utf8)) ?? "").split(separator: "\n").map(String.init))
-        let before = offered.count
-        for source in Self.bundledSkills where !offered.contains(source.lastPathComponent) {
-            let destination = directory.appendingPathComponent(source.lastPathComponent)
-            if !manager.fileExists(atPath: destination.path) {
-                try manager.copyItem(at: source, to: destination)
+        var offered = Self.readRecord(record)
+        let before = offered
+        for source in Self.bundledSkills {
+            let name = source.lastPathComponent
+            guard let text = try? String(contentsOf: source, encoding: .utf8) else { continue }
+            let bundled = Self.fingerprint(text)
+            let destination = directory.appendingPathComponent(name)
+            let onDisk = (try? String(contentsOf: destination, encoding: .utf8)).map(Self.fingerprint)
+            // An older Canto recorded a name without a fingerprint: it is not known what it wrote.
+            let recorded = offered[name].flatMap { $0.isEmpty ? nil : $0 }
+            switch Self.update(recorded: recorded, onDisk: onDisk, bundled: bundled) {
+            case .add, .replace:
+                try text.write(to: destination, atomically: true, encoding: .utf8)
+                offered[name] = bundled
+            case .keep where offered[name] == nil:
+                // A copy that still matches what Canto ships can be updated from now on; anything
+                // else is the user's and is only remembered, so it is never offered again.
+                offered[name] = onDisk == bundled ? bundled : ""
+            case .keep:
+                break
             }
-            offered.insert(source.lastPathComponent)
         }
-        if offered.count != before {
-            try offered.sorted().joined(separator: "\n").write(to: record, atomically: true, encoding: .utf8)
+        if offered != before {
+            try Self.writeRecord(offered, to: record)
         }
+    }
+
+    /// File name to the fingerprint of the text Canto wrote; empty for a file an older Canto
+    /// copied before it recorded fingerprints.
+    private static func readRecord(_ url: URL) -> [String: String] {
+        var record: [String: String] = [:]
+        for line in ((try? String(contentsOf: url, encoding: .utf8)) ?? "").split(separator: "\n") {
+            let parts = line.split(separator: "\t", maxSplits: 1)
+            guard let name = parts.first.map(String.init), !name.isEmpty else { continue }
+            record[name] = parts.count == 2 ? String(parts[1]) : ""
+        }
+        return record
+    }
+
+    private static func writeRecord(_ record: [String: String], to url: URL) throws {
+        let lines = record.sorted { $0.key < $1.key }.map { name, fingerprint in
+            fingerprint.isEmpty ? name : "\(name)\t\(fingerprint)"
+        }
+        try lines.joined(separator: "\n").write(to: url, atomically: true, encoding: .utf8)
+    }
+
+    static func fingerprint(_ text: String) -> String {
+        SHA256.hash(data: Data(text.utf8)).map { String(format: "%02x", $0) }.joined()
     }
 
     /// The skills with these file names that are in the folder, in the same order.

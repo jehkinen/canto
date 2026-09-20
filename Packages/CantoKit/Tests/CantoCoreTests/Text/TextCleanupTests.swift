@@ -213,6 +213,42 @@ struct SkillStoreTests {
         #expect(store.skill(named: "Software Engineer.md") == nil)
     }
 
+    @Test(arguments: [
+        // recorded, on disk, bundled, expected
+        (String?.none, String?.none, "new", SkillStore.BundledUpdate.add),
+        (nil, "old", "new", .keep),
+        ("old", "old", "new", .replace),
+        ("old", "mine", "new", .keep),
+        ("old", nil, "new", .keep),
+        ("new", "new", "new", .keep),
+    ])
+    func decidesWhenABundledSkillMayBeUpdated(recorded: String?, onDisk: String?, bundled: String,
+                                              expected: SkillStore.BundledUpdate) {
+        #expect(SkillStore.update(recorded: recorded, onDisk: onDisk, bundled: bundled) == expected)
+    }
+
+    @Test func updatesACopyTheUserNeverEdited() throws {
+        let store = makeStore()
+        try store.ensureDirectory()
+        let copied = store.directory.appendingPathComponent("Clean up.md")
+        let bundled = try String(contentsOf: copied, encoding: .utf8)
+
+        // An older Canto's copy of a skill that has moved on since.
+        try "# Clean up\n\nOld version.".write(to: copied, atomically: true, encoding: .utf8)
+        let record = store.directory.appendingPathComponent(SkillStore.offeredFileName)
+        let fingerprint = SkillStore.fingerprint("# Clean up\n\nOld version.")
+        try "Clean up.md\t\(fingerprint)".write(to: record, atomically: true, encoding: .utf8)
+
+        try store.ensureDirectory()
+        #expect(try String(contentsOf: copied, encoding: .utf8) == bundled)
+
+        // The user's own version of another skill stays, and is not offered again.
+        let mine = store.directory.appendingPathComponent("Chat style.md")
+        try "# Chat style\n\nMy own rules.".write(to: mine, atomically: true, encoding: .utf8)
+        try store.ensureDirectory()
+        #expect(store.instructions(for: "Chat style.md") == "My own rules.")
+    }
+
     @Test func readsClaudeStyleFrontMatter() throws {
         let store = makeStore()
         try FileManager.default.createDirectory(at: store.directory, withIntermediateDirectories: true)

@@ -87,7 +87,9 @@ final class RecordingHUDController {
         let panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 420, height: 90),
                             styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: true)
         panel.isFloatingPanel = true
-        panel.level = .statusBar
+        // Above the screen-saver level: some apps (the Claude desktop app, presentation and
+        // meeting tools) put their own window there, and the capsule has to stay visible over them.
+        panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.screenSaverWindow)) + 1)
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
         panel.backgroundColor = .clear
         panel.isOpaque = false
