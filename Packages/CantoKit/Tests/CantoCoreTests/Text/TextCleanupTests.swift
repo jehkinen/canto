@@ -221,6 +221,10 @@ struct SkillStoreTests {
         ("old", "mine", "new", .keep),
         ("old", nil, "new", .keep),
         ("new", "new", "new", .keep),
+        // An older Canto copied it without recording what it wrote.
+        ("", "old", "new", .keep),
+        ("", "new", "new", .keep),
+        ("", nil, "new", .keep),
     ])
     func decidesWhenABundledSkillMayBeUpdated(recorded: String?, onDisk: String?, bundled: String,
                                               expected: SkillStore.BundledUpdate) {
@@ -241,6 +245,14 @@ struct SkillStoreTests {
 
         try store.ensureDirectory()
         #expect(try String(contentsOf: copied, encoding: .utf8) == bundled)
+
+        // A copy an older Canto made without a record: once it matches, it can be updated later.
+        let legacy = store.directory.appendingPathComponent("Translate to English.md")
+        let legacyText = try String(contentsOf: legacy, encoding: .utf8)
+        try "Translate to English.md".write(to: record, atomically: true, encoding: .utf8)
+        try store.ensureDirectory()
+        let lines = try String(contentsOf: record, encoding: .utf8).split(separator: "\n").map(String.init)
+        #expect(lines.contains("Translate to English.md\t\(SkillStore.fingerprint(legacyText))"))
 
         // The user's own version of another skill stays, and is not offered again.
         let mine = store.directory.appendingPathComponent("Chat style.md")

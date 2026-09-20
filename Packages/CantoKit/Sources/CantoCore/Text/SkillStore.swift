@@ -50,6 +50,8 @@ public struct SkillStore: Sendable {
     }
 
     /// Fingerprints, not texts: what was written last time, what is there now, what Canto ships.
+    /// `recorded` is nil when the skill was never offered and empty when an older Canto copied it
+    /// without recording what it wrote.
     static func update(recorded: String?, onDisk: String?, bundled: String) -> BundledUpdate {
         guard let onDisk else { return recorded == nil ? .add : .keep }
         guard onDisk != bundled else { return .keep }
@@ -70,18 +72,17 @@ public struct SkillStore: Sendable {
             let bundled = Self.fingerprint(text)
             let destination = directory.appendingPathComponent(name)
             let onDisk = (try? String(contentsOf: destination, encoding: .utf8)).map(Self.fingerprint)
-            // An older Canto recorded a name without a fingerprint: it is not known what it wrote.
-            let recorded = offered[name].flatMap { $0.isEmpty ? nil : $0 }
-            switch Self.update(recorded: recorded, onDisk: onDisk, bundled: bundled) {
+            switch Self.update(recorded: offered[name], onDisk: onDisk, bundled: bundled) {
             case .add, .replace:
                 try text.write(to: destination, atomically: true, encoding: .utf8)
                 offered[name] = bundled
-            case .keep where offered[name] == nil:
-                // A copy that still matches what Canto ships can be updated from now on; anything
-                // else is the user's and is only remembered, so it is never offered again.
-                offered[name] = onDisk == bundled ? bundled : ""
             case .keep:
-                break
+                // A file that matches what Canto ships can be updated from now on, even if an
+                // older Canto copied it without recording anything. Everything else is the user's:
+                // it is only remembered, so it is never offered again.
+                if offered[name] == nil || (offered[name] == "" && onDisk == bundled) {
+                    offered[name] = onDisk == bundled ? bundled : ""
+                }
             }
         }
         if offered != before {
