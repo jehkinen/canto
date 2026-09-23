@@ -44,6 +44,20 @@ struct DictationTextTests {
     }
 
     @Test(arguments: [
+        ("Текст фильма. Слушай, подтяни задачи.", "Слушай, подтяни задачи."),
+        ("Текст фильма. Идите. Хорошо.", "Идите. Хорошо."),
+        ("Thanks for watching. Let us start.", "Let us start."),
+        // Nothing follows: the whole phrase is filler and goes away.
+        ("Текст фильма.", ""),
+        // Real speech that only starts like filler stays.
+        ("Текст фильма у нас есть в сценарии.", "Текст фильма у нас есть в сценарии."),
+        ("Слушай, текст фильма в другом файле.", "Слушай, текст фильма в другом файле."),
+    ])
+    func fillerAtTheStartIsRemoved(input: String, expected: String) {
+        #expect(TextCleanup.removeWhisperArtifacts(input) == expected)
+    }
+
+    @Test(arguments: [
         ("Цена 1 000 рублей", "Цена одна тысяча рублей"),
         ("это 10 000 человек", "это десять тысяч человек"),
         ("5-й этаж", "5-й этаж"),

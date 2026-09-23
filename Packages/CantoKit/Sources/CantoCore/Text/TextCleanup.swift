@@ -42,6 +42,11 @@ public enum TextCleanup {
         while let range = lastSentenceRange(in: result), phantomSentences.contains(normalized(String(result[range]))) {
             result = String(result[..<range.lowerBound])
         }
+        // The same filler also opens a transcript, when Whisper invents something in the silence
+        // before the first word: "Текст фильма. Слушай, подтяни задачи."
+        while let range = firstSentenceRange(in: result), phantomSentences.contains(normalized(String(result[range]))) {
+            result = String(result[range.upperBound...])
+        }
         // A recording that starts mid-word reads to Whisper like a line of dialogue: "— и тогда…".
         // A minus before a number stays: "–5 градусов".
         result = result.replacingOccurrences(of: "^\\s*(?:[—–](?!\\s*\\d)|-(?=\\s)(?!\\s*\\d)|\\.{3}|…)\\s*", with: "",
@@ -340,6 +345,15 @@ public enum TextCleanup {
             .reduce(into: "") { $0.append($1) }
             .split(separator: " ")
             .joined(separator: " ")
+    }
+
+    /// The range of the first sentence with its terminator, when real words follow it.
+    static func firstSentenceRange(in text: String) -> Range<String.Index>? {
+        let terminators: Set<Character> = [".", "!", "?", "…", "\n"]
+        guard let end = text.firstIndex(where: { terminators.contains($0) }) else { return nil }
+        let next = text.index(after: end)
+        guard text[next...].contains(where: { $0.isLetter || $0.isNumber }) else { return nil }
+        return text.startIndex..<next
     }
 
     /// The range of the last sentence, from after the previous terminator to the end.
