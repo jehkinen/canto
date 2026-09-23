@@ -1,4 +1,5 @@
 import AppKit
+import OSLog
 import SwiftUI
 import CantoCore
 
@@ -8,9 +9,13 @@ import CantoCore
 final class RecordingHUDController {
     static let shared = RecordingHUDController()
 
+    private let logger = Logger(subsystem: "io.github.jehkinen.canto", category: "hud")
     private var panel: NSPanel?
     private weak var model: AppModel?
     private var hideTask: Task<Void, Never>?
+    /// The collection behavior the capsule needs on every desktop and over full-screen apps.
+    private static let everywhere: NSWindow.CollectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary,
+                                                                  .stationary, .ignoresCycle]
 
     func start(model: AppModel) {
         self.model = model
@@ -63,6 +68,16 @@ final class RecordingHUDController {
         // Every time, not only when hidden: a capsule macOS left on another desktop or behind a
         // full-screen app is otherwise faded in where the user is not.
         panel.orderFrontRegardless()
+        if !panel.isOnActiveSpace {
+            // macOS kept the capsule on the desktop it was last shown on. Taking it out and
+            // putting it back, with the behavior set again, brings it to the desktop in use.
+            panel.orderOut(nil)
+            panel.collectionBehavior = Self.everywhere
+            panel.orderFrontRegardless()
+        }
+        logger.info("""
+            capsule on the active desktop: \(panel.isOnActiveSpace, privacy: .public),             level \(panel.level.rawValue, privacy: .public),             at \(Int(panel.frame.origin.x), privacy: .public),\(Int(panel.frame.origin.y), privacy: .public)
+            """)
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.18
             panel.animator().alphaValue = 1
@@ -90,7 +105,7 @@ final class RecordingHUDController {
         // Above the screen-saver level: some apps (the Claude desktop app, presentation and
         // meeting tools) put their own window there, and the capsule has to stay visible over them.
         panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.screenSaverWindow)) + 1)
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
+        panel.collectionBehavior = Self.everywhere
         panel.backgroundColor = .clear
         panel.isOpaque = false
         panel.hasShadow = false
