@@ -55,6 +55,8 @@ final class AppModel {
     private(set) var microphoneWarmingUp = false
     private(set) var notice: Notice?
     private(set) var history: [TranscriptEntry]
+    /// How much was dictated, in numbers only; kept even when the history is off.
+    private(set) var stats: DictationStats
     private(set) var devices: [AudioInputDevice] = []
     private(set) var defaultDeviceName: String?
     private(set) var microphoneAccess = Permissions.microphone
@@ -74,6 +76,11 @@ final class AppModel {
     private(set) var isMicrophoneTestRunning = false
     var isRecordingShortcut = false {
         didSet { registerHotkey() }
+    }
+
+    /// Skills run on OpenAI and there is no key yet: they stay off until one is saved.
+    var skillsNeedAPIKey: Bool {
+        settings.aiProvider == .openAI && !hasAPIKey
     }
 
     var isListening: Bool {
@@ -123,6 +130,7 @@ final class AppModel {
     private let hotkeys = HotkeyCenter()
     private let recorder = AudioRecorder()
     private let historyStore = TranscriptHistory(fileURL: AppPaths.historyFile)
+    private let statsStore = StatsStore(fileURL: AppPaths.statsFile)
     private let historyQueue = DispatchQueue(label: "io.github.jehkinen.canto.history", qos: .utility)
     private var detector: VoiceActivityDetector?
     private var insertionChain: Task<Void, Never>?
@@ -169,6 +177,7 @@ final class AppModel {
             settings = AppSettings()
         }
         history = TranscriptHistory(fileURL: AppPaths.historyFile).load()
+        stats = StatsStore(fileURL: AppPaths.statsFile).load()
     }
 
     // MARK: Lifecycle
@@ -184,6 +193,13 @@ final class AppModel {
         recorder.onLevel = { [weak self] level in self?.level = level }
         recorder.onLive = { [weak self] in self?.microphoneBecameLive() }
         recorder.onInterruption = { [weak self] in self?.microphoneInterrupted() }
+
+        // Nothing can run them, so a fresh install, or settings carried over from an AI mode of an
+        // older Canto, starts with no skill switched on.
+        if skillsNeedAPIKey, !settings.skills.isEmpty {
+            logger.info("skills switched off: no OpenAI key to run them")
+            settings.skills = []
+        }
 
         refreshDevices()
         AudioDevices.observeChanges { [weak self] in self?.refreshDevices() }
@@ -601,6 +617,7 @@ final class AppModel {
             total \(latency, format: .fixed(precision: 2), privacy: .public)s, inserted \(result.text.count, privacy: .public) chars \
             into \(appName ?? "?", privacy: .public) (\(String(describing: outcome), privacy: .public))
             """)
+        if hasContent { count(result.text, seconds: segment.duration) }
         if settings.keepHistory, hasContent {
             addToHistory(TranscriptEntry(text: result.text, duration: segment.duration, provider: result.provider,
                                          processingMode: settings.textProcessingMode, appName: appName, latency: latency,
@@ -654,6 +671,7 @@ final class AppModel {
         TextInserter.copyToPasteboard(whole)
         show(Notice(message: String(localized: "Copied: the field you dictated into never came back")))
         logger.info("phrase kept on the pasteboard, \(result.text.count, privacy: .public) chars")
+        count(result.text, seconds: segment.duration)
         if settings.keepHistory {
             addToHistory(TranscriptEntry(text: result.text, duration: segment.duration, provider: result.provider,
                                          processingMode: settings.textProcessingMode, appName: nil,
@@ -1162,6 +1180,14 @@ final class AppModel {
 
     func copy(_ entry: TranscriptEntry) {
         TextInserter.copyToPasteboard(entry.text)
+    }
+
+    /// Counts a dictated phrase: its words, its characters and how long it took to say.
+    private func count(_ text: String, seconds: TimeInterval) {
+        stats.add(words: DictationStats.wordCount(of: text), characters: text.count, seconds: seconds)
+        let snapshot = stats
+        let store = statsStore
+        historyQueue.async { try? store.save(snapshot) }
     }
 
     private func saveHistory() {

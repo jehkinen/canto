@@ -266,6 +266,22 @@
         }
       }
     },
+    "Add an OpenAI API key to use skills" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "יש להוסיף מפתח API של OpenAI כדי להפעיל מיומנויות"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавьте ключ API OpenAI, чтобы включать скиллы"
+          }
+        }
+      }
+    },
     "Add your OpenAI API key" : {
       "localizations" : {
         "he" : {
@@ -282,6 +298,22 @@
         }
       }
     },
+    "Add your OpenAI API key to use skills, or run them on a local server." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "יש להוסיף מפתח API של OpenAI כדי להפעיל מיומנויות, או להריץ אותן בשרת מקומי."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавьте ключ API OpenAI, чтобы включать скиллы, или запускайте их на локальном сервере."
+          }
+        }
+      }
+    },
     "Advanced" : {
       "localizations" : {
         "he" : {
@@ -294,6 +326,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Дополнительно"
+          }
+        }
+      }
+    },
+    "All time" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מאז ומתמיד"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Всё время"
           }
         }
       }
@@ -1001,6 +1049,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Диктуйте в любое приложение на Mac. Удерживайте сочетание клавиш, говорите — и текст появится там, где курсор."
+          }
+        }
+      }
+    },
+    "Dictate to see it fill up" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התחילו להכתיב והמספרים יופיעו כאן"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Начните диктовать, и здесь появятся цифры"
           }
         }
       }
@@ -3657,6 +3721,22 @@
         }
       }
     },
+    "Today" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "היום"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сегодня"
+          }
+        }
+      }
+    },
     "Toggle" : {
       "localizations" : {
         "he" : {
@@ -4223,6 +4303,22 @@
         }
       }
     },
+    "since %@" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מאז %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "с %@"
+          }
+        }
+      }
+    },
     "sk-…" : {
       "shouldTranslate" : false
     },
@@ -4241,6 +4337,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "whisper.cpp на GitHub"
+          }
+        }
+      }
+    },
+    "words" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מילים"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "слов"
           }
         }
       }

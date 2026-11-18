@@ -19,6 +19,11 @@ public enum AppPaths {
         supportDirectory.appendingPathComponent("history.json")
     }
 
+    /// Counters only: how much was dictated, never what was said.
+    public static var statsFile: URL {
+        supportDirectory.appendingPathComponent("stats.json")
+    }
+
     public static func modelsDirectory(for settings: AppSettings) -> URL {
         if let custom = settings.whisperModelsDirectory?.trimmingCharacters(in: .whitespacesAndNewlines), !custom.isEmpty {
             return URL(fileURLWithPath: custom, isDirectory: true)

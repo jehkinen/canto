@@ -48,6 +48,13 @@ struct TextPane: View {
                         }
                     }
                     .toggleStyle(.checkbox)
+                    .disabled(model.skillsNeedAPIKey)
+                }
+                if model.skillsNeedAPIKey {
+                    Label("Add your OpenAI API key to use skills, or run them on a local server.",
+                          systemImage: "key")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
                 Picker("Runs on", selection: $model.settings.aiProvider) {
                     Text("OpenAI").tag(AIProvider.openAI)

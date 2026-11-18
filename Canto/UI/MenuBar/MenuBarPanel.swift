@@ -14,6 +14,7 @@ struct MenuBarPanel: View {
             HeroCard()
                 .frame(height: 56)
             quickControls
+            StatsCards()
             recent
             Divider()
             footer
@@ -81,6 +82,11 @@ struct MenuBarPanel: View {
                             get: { model.settings.skills.contains(skill.fileName) },
                             set: { _ in model.settings.toggleSkill(skill.fileName) }
                         ))
+                        .disabled(model.skillsNeedAPIKey)
+                    }
+                    if model.skillsNeedAPIKey {
+                        Divider()
+                        Text("Add an OpenAI API key to use skills")
                     }
                     if !model.settings.skills.isEmpty {
                         Divider()
@@ -296,6 +302,93 @@ private struct HeroCard: View {
         case .transcribing: return Theme.blue
         default: return model.setupIssues.isEmpty ? .accentColor : .orange
         }
+    }
+}
+
+/// Two cards with how much was dictated: today, with the week behind it, and the total.
+private struct StatsCards: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        HStack(spacing: 10) {
+            StatsCard(title: "Today", tint: Theme.violet, symbol: "waveform",
+                      words: today.words, seconds: today.seconds) {
+                WeekBars(days: model.stats.recentDays(7), tint: Theme.violet)
+            }
+            StatsCard(title: "All time", tint: Theme.blue, symbol: "chart.bar.fill",
+                      words: model.stats.words, seconds: model.stats.seconds) {
+                if let first = model.stats.firstDictation {
+                    Text("since \(first.formatted(.dateTime.day().month(.abbreviated)))")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    Text("Dictate to see it fill up").font(.caption2).foregroundStyle(.tertiary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+        }
+    }
+
+    private var today: DictationStats.Day { model.stats.today() }
+}
+
+private struct StatsCard<Footer: View>: View {
+    let title: LocalizedStringKey
+    let tint: Color
+    let symbol: String
+    let words: Int
+    let seconds: TimeInterval
+    @ViewBuilder let footer: Footer
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 5) {
+                Image(systemName: symbol).font(.caption2).foregroundStyle(tint)
+                Text(title).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                Spacer(minLength: 0)
+                Text(Self.time(seconds)).font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+            }
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(words.formatted(.number.grouping(.automatic)))
+                    .font(.title2.weight(.semibold).monospacedDigit())
+                    .contentTransition(.numericText())
+                Text("words").font(.caption).foregroundStyle(.secondary)
+            }
+            footer
+                .frame(height: 16)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(tint.opacity(0.18), lineWidth: 0.5))
+        .animation(.smooth(duration: 0.3), value: words)
+    }
+
+    /// "18 мин", "2 ч 10 мин", "—" when nothing was dictated yet.
+    static func time(_ seconds: TimeInterval) -> String {
+        guard seconds >= 1 else { return "—" }
+        let allowed: Set<Duration.UnitsFormatStyle.Unit> = seconds >= 3_600 ? [.hours, .minutes] : [.minutes]
+        return Duration.seconds(seconds).formatted(.units(allowed: allowed, width: .narrow))
+    }
+}
+
+/// The last seven days as small bars, tallest day full height.
+private struct WeekBars: View {
+    let days: [DictationStats.Day]
+    let tint: Color
+
+    var body: some View {
+        let peak = max(days.map(\.words).max() ?? 0, 1)
+        HStack(alignment: .bottom, spacing: 3) {
+            ForEach(days) { day in
+                Capsule()
+                    .fill(tint.opacity(day.words > 0 ? 0.75 : 0.22))
+                    .frame(height: max(3, 16 * CGFloat(day.words) / CGFloat(peak)))
+            }
+        }
+        .frame(height: 16, alignment: .bottom)
     }
 }
 
