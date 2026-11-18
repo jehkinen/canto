@@ -123,6 +123,21 @@ struct AppSettingsTests {
         #endif
     }
 
+    @Test func aModelThisMacCanNotRunIsNeverChosen() throws {
+        // Settings copied from another Mac, or made by an older Canto, can name any model.
+        for kind in WhisperModelKind.allCases {
+            let settings = try JSONDecoder().decode(AppSettings.self,
+                                                    from: Data("{\"whisperModel\":\"\(kind.rawValue)\"}".utf8))
+            let chosen = settings.whisperModel
+            #expect(chosen.isAvailable)
+            #expect(chosen.isOffered)
+        }
+        // Parakeet needs the Neural Engine, so it is offered on Apple silicon only.
+        #expect(WhisperModelKind.parakeetV3.isAvailable == WhisperModelKind.offered.contains(.parakeetV3))
+        let unrunnable = WhisperModelKind.available.filter { !$0.isAvailable }
+        #expect(unrunnable.isEmpty)
+    }
+
     @Test func parakeetKnowsItsLanguages() {
         #expect(WhisperModelKind.parakeetV3.recognizes(language: "ru"))
         #expect(WhisperModelKind.parakeetV3.recognizes(language: nil))
