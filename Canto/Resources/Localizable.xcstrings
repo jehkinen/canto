@@ -2070,22 +2070,6 @@
         }
       }
     },
-    "On Intel Macs the processor is usually faster." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "במחשבי Mac עם Intel המעבד בדרך כלל מהיר יותר."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "На Mac с Intel процессор обычно быстрее."
-          }
-        }
-      }
-    },
     "On this Mac" : {
       "localizations" : {
         "he" : {
@@ -2265,18 +2249,18 @@
         }
       }
     },
-    "Parakeet does not recognize this language. Choose Large v3 Turbo." : {
+    "Parakeet was not taught the chosen language, so it cannot be used with it." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Parakeet לא מזהה את השפה הזו. יש לבחור ב-Large v3 Turbo."
+            "value" : "Parakeet לא אומן לשפה שנבחרה, ולכן לא ניתן להשתמש בו איתה."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Parakeet не распознаёт этот язык. Выберите Large v3 Turbo."
+            "value" : "Parakeet не обучали выбранному языку, поэтому с ним его выбрать нельзя."
           }
         }
       }
@@ -3621,6 +3605,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Расшифровка как есть, без очистки."
+          }
+        }
+      }
+    },
+    "This model was not taught the chosen language" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מודל זה לא אומן לשפה שנבחרה"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Эту модель не обучали выбранному языку"
           }
         }
       }

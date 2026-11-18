@@ -211,7 +211,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var whisperModel: WhisperModelKind = .largeV3Turbo
     /// Custom models folder; `nil` uses Application Support/Canto/Models.
     public var whisperModelsDirectory: String?
-    public var whisperUseGPU = AppSettings.gpuRecommended
+    public var whisperUseGPU = AppSettings.supportsMetal
     public var whisperBeamSize = 1
     /// Minutes without dictation after which the local model leaves memory; 0 keeps it loaded.
     public var unloadModelAfterMinutes = 5
@@ -247,8 +247,9 @@ public struct AppSettings: Codable, Equatable, Sendable {
 
     public init() {}
 
-    /// Metal is only worth it on Apple silicon; Intel GPUs are slower than AVX2 for Whisper.
-    public static var gpuRecommended: Bool {
+    /// Metal is only worth it on Apple silicon: Intel GPUs are slower than AVX2 for Whisper, so
+    /// Canto does not offer it there at all.
+    public static var supportsMetal: Bool {
         #if arch(arm64)
         true
         #else
@@ -301,6 +302,12 @@ public struct AppSettings: Codable, Equatable, Sendable {
         copy.vadMinimumSpeechMs = vadMinimumSpeechMs.clamped(to: 50...2_000)
         copy.vadMaximumSegmentMs = vadMaximumSegmentMs.clamped(to: 1_000...120_000)
         copy.enterTriggerPhrase = String(enterTriggerPhrase.prefix(120))
+        // No combination that cannot work: Metal exists only on Apple silicon, and a model that
+        // was never taught the chosen language would answer with garbled text.
+        copy.whisperUseGPU = Self.supportsMetal && whisperUseGPU
+        if !copy.whisperModel.recognizes(language: copy.language) {
+            copy.whisperModel = .largeV3Turbo
+        }
         return copy
     }
 

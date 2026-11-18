@@ -70,6 +70,9 @@ struct MenuBarPanel: View {
                     Picker("Language", selection: $model.settings.language) {
                         ForEach(Labels.languages, id: \.code) { language in
                             Text(language.name).tag(language.code)
+                                // The chosen model would answer in garbled text for a language it
+                                // was never taught; Settings is where the model is swapped.
+                                .disabled(!model.settings.whisperModel.recognizes(language: language.code))
                         }
                     }
                 }

@@ -138,6 +138,29 @@ struct AppSettingsTests {
         #expect(unrunnable.isEmpty)
     }
 
+    @Test func noConfigurationThatCannotWorkSurvivesLoading() throws {
+        var settings = AppSettings()
+        settings.whisperModel = .parakeetV3
+        settings.language = "he"
+        settings.whisperUseGPU = true
+        let loaded = settings.sanitized()
+
+        // Parakeet was never taught Hebrew, so the model gives way and the language stays.
+        #expect(loaded.language == "he")
+        #expect(loaded.whisperModel.recognizes(language: "he"))
+        // Metal only where this Mac has it.
+        #expect(loaded.whisperUseGPU == AppSettings.supportsMetal)
+
+        // A language Parakeet does know keeps the model.
+        var russian = settings
+        russian.language = "ru"
+        #expect(russian.sanitized().whisperModel == .parakeetV3)
+        // Auto-detect works with either model.
+        var auto = settings
+        auto.language = nil
+        #expect(auto.sanitized().whisperModel == .parakeetV3)
+    }
+
     @Test func parakeetKnowsItsLanguages() {
         #expect(WhisperModelKind.parakeetV3.recognizes(language: "ru"))
         #expect(WhisperModelKind.parakeetV3.recognizes(language: nil))

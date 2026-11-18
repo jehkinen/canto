@@ -842,6 +842,14 @@ final class AppModel {
         if settings.whisperModelsDirectory != old.whisperModelsDirectory {
             refreshModels()
         }
+        // No combination that cannot work: a model that was never taught the chosen language, or
+        // Metal where there is none, gives way instead of quietly producing nonsense.
+        if !settings.whisperModel.recognizes(language: settings.language) {
+            settings.whisperModel = .largeV3Turbo
+        }
+        if settings.whisperUseGPU, !AppSettings.supportsMetal {
+            settings.whisperUseGPU = false
+        }
         if settings.unloadModelAfterMinutes != old.unloadModelAfterMinutes {
             scheduleModelUnload()
         }

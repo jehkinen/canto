@@ -24,6 +24,8 @@ struct RecognitionPane: View {
                 Picker("Spoken language", selection: $model.settings.language) {
                     ForEach(Labels.languages, id: \.code) { language in
                         Text(language.name).tag(language.code)
+                            // A language the chosen model was never taught would come out garbled.
+                            .disabled(!model.settings.whisperModel.recognizes(language: language.code))
                     }
                 }
             } footer: {
@@ -51,20 +53,18 @@ struct RecognitionPane: View {
                     if let active = model.activeWhisperModel(for: model.settings), active != model.settings.whisperModel {
                         Text("Until \(Labels.model(model.settings.whisperModel)) is downloaded, \(Labels.model(active)) recognizes your speech.")
                     }
-                    if !model.settings.whisperModel.recognizes(language: model.settings.language) {
-                        Text("Parakeet does not recognize this language. Choose Large v3 Turbo.")
-                            .foregroundStyle(.orange)
+                    if WhisperModelKind.available.contains(.parakeetV3),
+                       !WhisperModelKind.parakeetV3.recognizes(language: model.settings.language) {
+                        Text("Parakeet was not taught the chosen language, so it cannot be used with it.")
                     }
                 }
 
                 Section {
                     // GPU and decoding settings are Whisper's; Parakeet runs on the Neural Engine.
-                    if model.settings.whisperModel.engine == .whisper {
+                    if model.settings.whisperModel.engine == .whisper, AppSettings.supportsMetal {
                         Toggle(isOn: $model.settings.whisperUseGPU) {
                             Text("Use the GPU (Metal)")
-                            Text(AppSettings.gpuRecommended
-                                 ? "Much faster on Apple silicon."
-                                 : "On Intel Macs the processor is usually faster.")
+                            Text("Much faster on Apple silicon.")
                         }
                         LabeledContent {
                             Picker("Decoding", selection: $model.settings.whisperBeamSize) {
@@ -156,6 +156,12 @@ private struct ModelRow: View {
 
     private var isSelected: Bool { model.settings.whisperModel == info.kind }
 
+    /// A model no longer offered can be kept or deleted, not chosen again, and one that was never
+    /// taught the chosen language cannot be chosen with it.
+    private var canBeChosen: Bool {
+        info.kind.isOffered && info.kind.recognizes(language: model.settings.language)
+    }
+
     var body: some View {
         HStack(spacing: 12) {
             if info.kind.isOffered {
@@ -167,7 +173,9 @@ private struct ModelRow: View {
                         .foregroundStyle(isSelected ? Color.accentColor : .secondary)
                 }
                 .buttonStyle(.plain)
-                .help(Text("Use this model"))
+                .disabled(!canBeChosen)
+                .help(canBeChosen ? Text("Use this model")
+                                  : Text("This model was not taught the chosen language"))
             } else {
                 Image(systemName: "archivebox")
                     .font(.title3)
@@ -218,8 +226,7 @@ private struct ModelRow: View {
         .padding(.vertical, 2)
         .contentShape(Rectangle())
         .onTapGesture {
-            // A model no longer offered can be kept or deleted, not chosen again.
-            if info.kind.isOffered { model.settings.whisperModel = info.kind }
+            if canBeChosen { model.settings.whisperModel = info.kind }
         }
     }
 }
